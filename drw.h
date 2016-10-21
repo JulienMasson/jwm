@@ -1,4 +1,7 @@
-/* See LICENSE file for copyright and license details. */
+#ifndef DRW_H
+#define DRW_H
+
+#include <X11/Xft/Xft.h>
 
 typedef struct {
 	Cursor cursor;
@@ -55,3 +58,5 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned in
 
 /* Map functions */
 void drw_map(Drw *drw, Window win, int x, int y, unsigned int w, unsigned int h);
+
+#endif

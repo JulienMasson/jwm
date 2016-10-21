@@ -24,15 +24,15 @@ static const char *colors[SchemeLast][3]      = {
 static const char *tags[] = { "Emacs", "Web", "Term", "Extras"};
 
 /* layout(s) */
-static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
+static const float mfact     = 0.50; /* factor of master area size [0.05..0.95] */
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
 
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "[]=",      tile },    /* first entry is default */
-	{ "><>",      NULL },    /* no layout function means floating behavior */
-	{ "[M]",      monocle },
+	{ "[ T ]",      tile },    /* first entry is default */
+	{ "[ F ]",      NULL },    /* no layout function means floating behavior */
+	{ "[ M ]",      monocle },
 };
 
 /* key definitions */
@@ -50,10 +50,10 @@ static const char *firefoxcmd[]  = { "firefox", NULL };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
-	{ MODKEY|ShiftMask,             XK_d,      spawn,          {.v = dmenucmd } },
+	{ MODKEY,                       XK_d,      spawn,          {.v = dmenucmd } },
 	{ MODKEY|ShiftMask,             XK_e,      spawn,          {.v = emacscmd } },
 	{ MODKEY|ShiftMask,             XK_f,      spawn,          {.v = firefoxcmd } },
-	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
+	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },

@@ -121,7 +121,6 @@ struct Monitor {
 	unsigned int seltags;
 	unsigned int sellt;
 	unsigned int tagset[2];
-	int topbar;
 	Client *clients;
 	Client *sel;
 	Client *stack;
@@ -584,7 +583,6 @@ createmon(void)
 	m->tagset[0] = m->tagset[1] = 1;
 	m->mfact = mfact;
 	m->nmaster = nmaster;
-	m->topbar = topbar;
 	m->lt[0] = &layouts[0];
 	m->lt[1] = &layouts[1 % LENGTH(layouts)];
 	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
@@ -1730,8 +1728,8 @@ void
 updatebarpos(Monitor *m)
 {
 	m->wh -= bh;
-	m->by = m->topbar ? m->wy : m->wy + m->wh;
-	m->wy = m->topbar ? m->wy + bh : m->wy;
+	m->by = m->wy;
+	m->wy = m->wy + bh;
 }
 
 void

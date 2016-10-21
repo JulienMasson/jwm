@@ -3,7 +3,6 @@
 /* appearance */
 static const unsigned int borderpx  = 0;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
-static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
 static const char *fonts[]          = { "monospace:size=10" };
 static const char dmenufont[]       = "monospace:size=10";
@@ -56,7 +55,6 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_e,      spawn,          {.v = emacscmd } },
 	{ MODKEY|ShiftMask,             XK_f,      spawn,          {.v = firefoxcmd } },
 	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
-	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },

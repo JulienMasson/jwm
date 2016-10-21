@@ -121,7 +121,6 @@ struct Monitor {
 	unsigned int seltags;
 	unsigned int sellt;
 	unsigned int tagset[2];
-	int showbar;
 	int topbar;
 	Client *clients;
 	Client *sel;
@@ -197,7 +196,6 @@ static void spawn(const Arg *arg);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static void tile(Monitor *);
-static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
 static void unfocus(Client *c, int setfocus);
 static void unmanage(Client *c, int destroyed);
@@ -586,7 +584,6 @@ createmon(void)
 	m->tagset[0] = m->tagset[1] = 1;
 	m->mfact = mfact;
 	m->nmaster = nmaster;
-	m->showbar = showbar;
 	m->topbar = topbar;
 	m->lt[0] = &layouts[0];
 	m->lt[1] = &layouts[1 % LENGTH(layouts)];
@@ -1643,15 +1640,6 @@ tile(Monitor *m)
 }
 
 void
-togglebar(const Arg *arg)
-{
-	selmon->showbar = !selmon->showbar;
-	updatebarpos(selmon);
-	XMoveResizeWindow(dpy, selmon->barwin, selmon->wx, selmon->by, selmon->ww, bh);
-	arrange(selmon);
-}
-
-void
 togglefloating(const Arg *arg)
 {
 	if (!selmon->sel)
@@ -1741,14 +1729,9 @@ updatebars(void)
 void
 updatebarpos(Monitor *m)
 {
-	m->wy = m->my;
-	m->wh = m->mh;
-	if (m->showbar) {
-		m->wh -= bh;
-		m->by = m->topbar ? m->wy : m->wy + m->wh;
-		m->wy = m->topbar ? m->wy + bh : m->wy;
-	} else
-		m->by = -bh;
+	m->wh -= bh;
+	m->by = m->topbar ? m->wy : m->wy + m->wh;
+	m->wy = m->topbar ? m->wy + bh : m->wy;
 }
 
 void

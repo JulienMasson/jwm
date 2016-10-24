@@ -12,6 +12,7 @@
 
 #define TEXTW(X)                (drw_fontset_getwidth(drw, (X)) + lrpad)
 #define LENGTH(X)               (sizeof X / sizeof X[0])
+#define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */

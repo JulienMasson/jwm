@@ -37,9 +37,12 @@
 #include "drw.h"
 #include "util.h"
 #include "xwindow.h"
+#include "atom.h"
+#include "key.h"
+#include "event.h"
+#include "screen.h"
 
 /* macros */
-#define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 #define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
                                * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
@@ -75,8 +78,6 @@ static void focus(Client *c);
 static void focusin(XEvent *e);
 static long getstate(Window w);
 static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
-static void grabbuttons(Client *c, int focused);
-static void grabkeys(void);
 static void keypress(XEvent *e);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
@@ -104,7 +105,6 @@ static void unmanage(Client *c, int destroyed);
 static void unmapnotify(XEvent *e);
 static int updategeom(void);
 static void updateclientlist(void);
-static void updatenumlockmask(void);
 static void updatesizehints(Client *c);
 static void updatewindowtype(Client *c);
 static void updatetitle(Client *c);
@@ -113,10 +113,10 @@ static void updatewmhints(Client *c);
 /* variables */
 static const char broken[] = "broken";
 int screen;
-static int sw, sh;           /* X display screen geometry width, height */
+int sw, sh;           /* X display screen geometry width, height */
 int bh, blw = 0;      /* bar geometry */
 int lrpad;            /* sum of left and right padding for text */
-static unsigned int numlockmask = 0;
+unsigned int numlockmask = 0;
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress] = buttonpress,
 	[ClientMessage] = clientmessage,
@@ -133,7 +133,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[PropertyNotify] = propertynotify,
 	[UnmapNotify] = unmapnotify
 };
-static Atom wmatom[WMLast], netatom[NetLast];
+Atom wmatom[WMLast], netatom[NetLast];
 static int running = 1;
 Cur *cursor[CurLast];
 Scm scheme[SchemeLast];
@@ -671,46 +671,6 @@ gettextprop(Window w, Atom atom, char *text, unsigned int size)
 	text[size - 1] = '\0';
 	XFree(name.value);
 	return 1;
-}
-
-void
-grabbuttons(Client *c, int focused)
-{
-	updatenumlockmask();
-	{
-		unsigned int i, j;
-		unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
-		XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
-		if (focused) {
-			for (i = 0; i < LENGTH(buttons); i++)
-				if (buttons[i].click == ClkClientWin)
-					for (j = 0; j < LENGTH(modifiers); j++)
-						XGrabButton(dpy, buttons[i].button,
-						            buttons[i].mask | modifiers[j],
-						            c->win, False, BUTTONMASK,
-						            GrabModeAsync, GrabModeSync, None, None);
-		} else
-			XGrabButton(dpy, AnyButton, AnyModifier, c->win, False,
-			            BUTTONMASK, GrabModeAsync, GrabModeSync, None, None);
-	}
-}
-
-void
-grabkeys(void)
-{
-	updatenumlockmask();
-	{
-		unsigned int i, j;
-		unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
-		KeyCode code;
-
-		XUngrabKey(dpy, AnyKey, AnyModifier, root);
-		for (i = 0; i < LENGTH(keys); i++)
-			if ((code = XKeysymToKeycode(dpy, keys[i].keysym)))
-				for (j = 0; j < LENGTH(modifiers); j++)
-					XGrabKey(dpy, code, keys[i].mod | modifiers[j], root,
-						 True, GrabModeAsync, GrabModeAsync);
-	}
 }
 
 void
@@ -1272,62 +1232,6 @@ setlayout(const Arg *arg)
 }
 
 void
-setup(void)
-{
-	XSetWindowAttributes wa;
-
-	/* clean up any zombies immediately */
-	sigchld(0);
-
-	/* init screen */
-	screen = DefaultScreen(dpy);
-	sw = DisplayWidth(dpy, screen);
-	sh = DisplayHeight(dpy, screen);
-	root = RootWindow(dpy, screen);
-	drw = drw_create(dpy, screen, root, sw, sh);
-	if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
-		die("no fonts could be loaded.");
-	lrpad = drw->fonts->h;
-	bh = drw->fonts->h + 2;
-	updategeom();
-	/* init atoms */
-	wmatom[WMProtocols] = XInternAtom(dpy, "WM_PROTOCOLS", False);
-	wmatom[WMDelete] = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
-	wmatom[WMState] = XInternAtom(dpy, "WM_STATE", False);
-	wmatom[WMTakeFocus] = XInternAtom(dpy, "WM_TAKE_FOCUS", False);
-	netatom[NetActiveWindow] = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", False);
-	netatom[NetSupported] = XInternAtom(dpy, "_NET_SUPPORTED", False);
-	netatom[NetWMName] = XInternAtom(dpy, "_NET_WM_NAME", False);
-	netatom[NetWMState] = XInternAtom(dpy, "_NET_WM_STATE", False);
-	netatom[NetWMFullscreen] = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
-	netatom[NetWMWindowType] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
-	netatom[NetWMWindowTypeDialog] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DIALOG", False);
-	netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
-	/* init cursors */
-	cursor[CurNormal] = drw_cur_create(drw, XC_left_ptr);
-	cursor[CurResize] = drw_cur_create(drw, XC_sizing);
-	cursor[CurMove] = drw_cur_create(drw, XC_fleur);
-	/* init appearance */
-	scheme[SchemeNorm] = drw_scm_create(drw, colors[SchemeNorm], 3);
-	scheme[SchemeSel] = drw_scm_create(drw, colors[SchemeSel], 3);
-	/* init bars */
-	updatebars();
-	updatestatus();
-	/* EWMH support per view */
-	XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32,
-			PropModeReplace, (unsigned char *) netatom, NetLast);
-	XDeleteProperty(dpy, root, netatom[NetClientList]);
-	/* select for events */
-	wa.cursor = cursor[CurNormal]->cursor;
-	wa.event_mask = SubstructureRedirectMask|SubstructureNotifyMask|ButtonPressMask|PointerMotionMask
-	                |EnterWindowMask|LeaveWindowMask|StructureNotifyMask|PropertyChangeMask;
-	XChangeWindowAttributes(dpy, root, CWEventMask|CWCursor, &wa);
-	XSelectInput(dpy, root, wa.event_mask);
-	grabkeys();
-	focus(NULL);
-}
-
-void
 showhide(Client *c)
 {
 	if (!c)
@@ -1510,22 +1414,6 @@ updategeom(void)
 }
 
 void
-updatenumlockmask(void)
-{
-	unsigned int i, j;
-	XModifierKeymap *modmap;
-
-	numlockmask = 0;
-	modmap = XGetModifierMapping(dpy);
-	for (i = 0; i < 8; i++)
-		for (j = 0; j < modmap->max_keypermod; j++)
-			if (modmap->modifiermap[i * modmap->max_keypermod + j]
-			   == XKeysymToKeycode(dpy, XK_Num_Lock))
-				numlockmask = (1 << i);
-	XFreeModifiermap(modmap);
-}
-
-void
 updatesizehints(Client *c)
 {
 	long msize;
@@ -1621,6 +1509,40 @@ view(const Arg *arg)
 	arrange(selmon);
 }
 
+void
+setup()
+{
+	/* clean up any zombies immediately */
+	sigchld(0);
+
+	/* setup screen */
+	setup_screen();
+
+	/* init bars properties */
+	init_bars_properties();
+
+	/* update geometry */
+	updategeom();
+
+	/* setup atoms */
+	setup_atoms();
+
+	/* setup bars */
+	setup_bars();
+
+	/* EWMH support per view */
+	support_ewmh();
+
+	/* setup events */
+	setup_events();
+
+	/* setup key */
+	grabkeys();
+
+	/* focus main screen */
+	focus(NULL);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -1628,9 +1550,17 @@ main(int argc, char *argv[])
 		fputs("warning: no locale support\n", stderr);
 	if (!(dpy = XOpenDisplay(NULL)))
 		die("jwm: cannot open display");
+
+	/* log file */
+	freopen(".jwm.log", "a", stdout); setbuf(stdout, NULL);
+	freopen(".jwm.log", "a", stderr); setbuf(stderr, NULL);
+
 	setup();
+
 	scan();
+
 	run();
+
 	cleanup();
 	XCloseDisplay(dpy);
 	return EXIT_SUCCESS;

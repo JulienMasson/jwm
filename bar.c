@@ -2,7 +2,9 @@
 
 #include "bar.h"
 #include "drw.h"
+#include "config.h"
 
+/* extern vars */
 extern Drw *drw;
 extern Monitor *mons, *selmon;
 extern Scm scheme[SchemeLast];
@@ -13,7 +15,23 @@ extern Window root;
 extern int screen;
 extern Cur *cursor[CurLast];
 
-static const char *tags[] = { "Emacs", "Web", "Term", "Extras"};
+void
+init_bars_properties(void)
+{
+	lrpad = drw->fonts->h;
+	bh = lrpad + 2;
+}
+
+void
+setup_bars(void)
+{
+	updatebars();
+	updatestatus();
+
+	/* init appearance */
+	scheme[SchemeNorm] = drw_scm_create(drw, colors[SchemeNorm], 3);
+	scheme[SchemeSel] = drw_scm_create(drw, colors[SchemeSel], 3);
+}
 
 void
 drawbar(Monitor *m)

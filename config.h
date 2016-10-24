@@ -2,33 +2,34 @@
 #define CONFIG_H
 
 #include "jwm.h"
+#include "window.h"
 
 /* appearance */
-static const unsigned int borderpx  = 0;        /* border pixel of windows */
-static const unsigned int snap      = 32;       /* snap pixel */
-static const char *fonts[]          = { "monospace:size=10" };
-static const char dmenufont[]       = "monospace:size=10";
-static const char col_gray1[]       = "#222222";
-static const char col_gray2[]       = "#444444";
-static const char col_gray3[]       = "#bbbbbb";
-static const char col_gray4[]       = "#eeeeee";
-static const char col_cyan[]        = "#005577";
-static const char col_orange[]      = "#ffa500";
-static const char *colors[SchemeLast][3]      = {
+const unsigned int borderpx  = 0;        /* border pixel of windows */
+const unsigned int snap      = 32;       /* snap pixel */
+const char *fonts[1]         = { "monospace:size=10" };
+const char dmenufont[]       = "monospace:size=10";
+const char col_gray1[]       = "#222222";
+const char col_gray2[]       = "#444444";
+const char col_gray3[]       = "#bbbbbb";
+const char col_gray4[]       = "#eeeeee";
+const char col_cyan[]        = "#005577";
+const char col_orange[]      = "#ffa500";
+const char *colors[SchemeLast][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
  	[SchemeSel] =  { col_gray4, col_cyan,  col_cyan  },
 };
 
 /* tagging */
-static const char *tags[] = { "Emacs", "Web", "Term", "Extras"};
+const char *tags[4] = { "Emacs", "Web", "Term", "Extras"};
 
 /* layout(s) */
-static const float mfact     = 0.50; /* factor of master area size [0.05..0.95] */
-static const int nmaster     = 1;    /* number of clients in master area */
-static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
+const float mfact     = 0.50; /* factor of master area size [0.05..0.95] */
+const int nmaster     = 1;    /* number of clients in master area */
+const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
 
-static const Layout layouts[] = {
+const Layout layouts[3] = {
 	/* symbol     arrange function */
 	{ "[ T ]",      tile },    /* first entry is default */
 	{ "[ F ]",      NULL },    /* no layout function means floating behavior */
@@ -42,13 +43,13 @@ static const Layout layouts[] = {
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
 
 /* commands */
-static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_orange, "-sf", col_gray4, NULL };
-static const char *termcmd[]  = { "urxvt", NULL };
-static const char *emacscmd[]  = { "emacs", NULL };
-static const char *firefoxcmd[]  = { "firefox", NULL };
+char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
+const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_orange, "-sf", col_gray4, NULL };
+const char *termcmd[]  = { "urxvt", NULL };
+const char *emacscmd[]  = { "emacs", NULL };
+const char *firefoxcmd[]  = { "firefox", NULL };
 
-static Key keys[] = {
+Key keys[19] = {
 	/* modifier                     key        function        argument */
 	{ MODKEY,                       XK_d,      spawn,          {.v = dmenucmd } },
 	{ MODKEY|ShiftMask,             XK_e,      spawn,          {.v = emacscmd } },
@@ -69,7 +70,7 @@ static Key keys[] = {
 
 /* button definitions */
 /* click can be ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
-static Button buttons[] = {
+Button buttons[4] = {
 	/* click                event mask      button          function        argument */
 	{ ClkLtSymbol,          0,              Button1,        setlayout,      {0} },
 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },

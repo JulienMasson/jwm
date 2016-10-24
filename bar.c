@@ -2,18 +2,8 @@
 
 #include "bar.h"
 #include "drw.h"
-#include "config.h"
-
-/* extern vars */
-extern Drw *drw;
-extern Monitor *mons, *selmon;
-extern Scm scheme[SchemeLast];
-extern int lrpad;            /* sum of left and right padding for text */
-extern int bh,blw;      /* bar geometry */
-extern Display *dpy;
-extern Window root;
-extern int screen;
-extern Cur *cursor[CurLast];
+#include "extern.h"
+#include "jwm.h"
 
 void
 init_bars_properties(void)
@@ -49,7 +39,7 @@ drawbar(Monitor *m)
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		drw_setscheme(drw, scheme[SchemeNorm]);
-		sw = TEXTW(stext) - lrpad / 2; /* no right padding so status text hugs the corner */
+		sw = text_width(stext) - lrpad / 2; /* no right padding so status text hugs the corner */
 		drw_text(drw, m->ww - sw, 0, sw, bh, lrpad / 2 - 2, stext, 0);
 	}
 
@@ -60,7 +50,7 @@ drawbar(Monitor *m)
 	}
 	x = 0;
 	for (i = 0; i < LENGTH(tags); i++) {
-		w = TEXTW(tags[i]);
+		w = text_width(tags[i]);
 		drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
 		drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg & 1 << i);
 		if (occ & 1 << i)
@@ -69,7 +59,7 @@ drawbar(Monitor *m)
 			         urg & 1 << i);
 		x += w;
 	}
-	w = blw = TEXTW(m->ltsymbol);
+	w = blw = text_width(m->ltsymbol);
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
 
@@ -130,4 +120,10 @@ void
 updatestatus(void)
 {
 	drawbar(selmon);
+}
+
+unsigned int
+text_width(const char *text)
+{
+	return drw_fontset_getwidth(drw, text) + lrpad;
 }

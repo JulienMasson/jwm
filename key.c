@@ -1,12 +1,6 @@
 #include "key.h"
 #include "jwm.h"
-#include "config.h"
-
-/* extern vars */
-extern Display *dpy;
-extern Window root;
-extern unsigned int numlockmask;
-
+#include "extern.h"
 
 static void
 updatenumlockmask(void)

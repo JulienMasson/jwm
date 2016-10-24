@@ -10,9 +10,7 @@
 #include <X11/Xft/Xft.h>
 #include <X11/Xlib.h>
 
-#define TEXTW(X)                (drw_fontset_getwidth(drw, (X)) + lrpad)
-#define LENGTH(X)               (sizeof X / sizeof X[0])
-#define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
+#include "drw.h"
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
@@ -24,6 +22,21 @@ enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
        ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
 enum { SchemeNorm, SchemeSel, SchemeLast }; /* color schemes */
 
+/* macros */
+#define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
+#define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
+                               * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
+#define ISVISIBLE(C)            ((C->tags & C->mon->tagset[C->mon->seltags]))
+#define LENGTH(X)               (sizeof X / sizeof X[0])
+#define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
+#define WIDTH(X)                ((X)->w + 2 * (X)->bw)
+#define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
+#define TAGMASK                 ((1 << LENGTH(tags)) - 1)
+#define ColBorder               2
+#define LENGTH(X)               (sizeof X / sizeof X[0])
+#define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
+
+/* struct definition */
 typedef struct Monitor Monitor;
 typedef struct Client Client;
 struct Client {
@@ -86,19 +99,5 @@ typedef struct {
 	void (*func)(const Arg *);
 	const Arg arg;
 } Key;
-
-void spawn(const Arg *arg);
-void tile(Monitor *m);
-void monocle(Monitor *m);
-void focusstack(const Arg *arg);
-void killclient(const Arg *arg);
-void setlayout(const Arg *arg);
-void view(const Arg *arg);
-void tag(const Arg *arg);
-void movemouse(const Arg *arg);
-void quit(const Arg *arg);
-void resizemouse(const Arg *arg);
-int getrootptr(int *x, int *y);
-Monitor *recttomon(int x, int y, int w, int h);
 
 #endif

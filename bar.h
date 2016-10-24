@@ -10,5 +10,7 @@ void drawbars(void);
 void updatebarpos(Monitor *m);
 void updatebars(void);
 void updatestatus(void);
+unsigned int text_width(const char *text);
+void updatebarpos(Monitor *m);
 
 #endif

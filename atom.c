@@ -1,10 +1,6 @@
 #include "atom.h"
 #include "jwm.h"
-
-/* extern vars */
-extern Display *dpy;
-extern Window root;
-extern Atom wmatom[WMLast], netatom[NetLast];
+#include "extern.h"
 
 void
 setup_atoms(void)
@@ -29,4 +25,20 @@ support_ewmh(void)
 	XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32,
 			PropModeReplace, (unsigned char *) netatom, NetLast);
 	XDeleteProperty(dpy, root, netatom[NetClientList]);
+}
+
+Atom
+getatomprop(Client *c, Atom prop)
+{
+	int di;
+	unsigned long dl;
+	unsigned char *p = NULL;
+	Atom da, atom = None;
+
+	if (XGetWindowProperty(dpy, c->win, prop, 0L, sizeof atom, False, XA_ATOM,
+	                      &da, &di, &dl, &dl, &p) == Success && p) {
+		atom = *(Atom *)p;
+		XFree(p);
+	}
+	return atom;
 }

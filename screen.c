@@ -1,16 +1,8 @@
 #include "screen.h"
 #include "util.h"
-#include "config.h"
+#include "extern.h"
 #include "drw.h"
-
-/* extern vars */
-extern int screen;
-extern int sw, sh;
-extern Drw *drw;
-extern Cur *cursor[CurLast];
-extern Display *dpy;
-extern Window root;
-
+#include "jwm.h"
 
 void
 setup_screen(void)

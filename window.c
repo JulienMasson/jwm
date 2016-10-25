@@ -5,14 +5,27 @@
 
 #include "window.h"
 #include "client.h"
-#include "jwm.h"
 #include "extern.h"
 #include "util.h"
 #include "event.h"
 #include "bar.h"
 #include "key.h"
 
+/* Global vars */
+const Layout layouts[3] = {
+	/* symbol     arrange function */
+	{ "[ T ]",      tile },    /* first entry is default */
+	{ "[ F ]",      NULL },    /* no layout function means floating behavior */
+	{ "[ M ]",      monocle },
+};
+
+/* static vars */
+static const unsigned int borderpx = 0;    /* border pixel of windows */
+static const unsigned int snap     = 32;   /* snap pixel */
+static const float mfact           = 0.50; /* factor of master area size [0.05..0.95] */
+static const int nmaster           = 1;    /* number of clients in master area */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
+
 
 int
 getrootptr(int *x, int *y)
@@ -513,8 +526,6 @@ setlayout(const Arg *arg)
 void
 spawn(const Arg *arg)
 {
-	if (arg->v == dmenucmd)
-		dmenumon[0] = '0' + selmon->num;
 	if (fork() == 0) {
 		if (dpy)
 			close(ConnectionNumber(dpy));

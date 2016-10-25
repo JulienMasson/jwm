@@ -1,5 +1,4 @@
 #include "client.h"
-#include "jwm.h"
 #include "extern.h"
 #include "bar.h"
 #include "util.h"
@@ -7,6 +6,10 @@
 #include "event.h"
 #include "atom.h"
 #include "window.h"
+
+/* Static vars */
+static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
+
 
 int
 applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)

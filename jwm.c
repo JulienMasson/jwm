@@ -31,8 +31,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include "config.h"
-#include "jwm.h"
 #include "bar.h"
 #include "drw.h"
 #include "util.h"
@@ -58,9 +56,6 @@ Display *dpy;
 Drw *drw;
 Monitor *mons, *selmon;
 Window root;
-
-/* compile-time check if all tags fit into an unsigned int bit array. */
-struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
 /* function implementations */
 void

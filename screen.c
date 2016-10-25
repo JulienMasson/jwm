@@ -2,7 +2,7 @@
 #include "util.h"
 #include "extern.h"
 #include "drw.h"
-#include "jwm.h"
+#include "font.h"
 
 void
 setup_screen(void)

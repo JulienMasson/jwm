@@ -1,5 +1,4 @@
 #include "atom.h"
-#include "jwm.h"
 #include "extern.h"
 
 void

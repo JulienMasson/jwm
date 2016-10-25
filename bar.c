@@ -3,7 +3,18 @@
 #include "bar.h"
 #include "drw.h"
 #include "extern.h"
-#include "jwm.h"
+#include "color.h"
+
+/* Static vars */
+static const char *colors[SchemeLast][3]      = {
+	/*               fg         bg         border   */
+	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
+ 	[SchemeSel] =  { col_gray4, col_cyan,  col_cyan  },
+};
+
+/* Global vars */
+const char *tags[4] = { "Emacs", "Web", "Term", "Extras"};
+
 
 void
 init_bars_properties(void)

@@ -1,5 +1,4 @@
 #include "event.h"
-#include "jwm.h"
 #include "drw.h"
 #include "window.h"
 #include "bar.h"
@@ -93,10 +92,8 @@ buttonpress(XEvent *e)
 		focus(c);
 		click = ClkClientWin;
 	}
-	for (i = 0; i < LENGTH(buttons); i++)
-		if (click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button
-		    && CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
-			buttons[i].func(click == ClkTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
+
+	handle_button_events(ev, click, arg);
 }
 
 void
@@ -251,17 +248,9 @@ focusin(XEvent *e)
 void
 keypress(XEvent *e)
 {
-	unsigned int i;
-	KeySym keysym;
 	XKeyEvent *ev;
-
 	ev = &e->xkey;
-	keysym = XKeycodeToKeysym(dpy, (KeyCode)ev->keycode, 0);
-	for (i = 0; i < LENGTH(keys); i++)
-		if (keysym == keys[i].keysym
-		    && CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)
-		    && keys[i].func)
-			keys[i].func(&(keys[i].arg));
+	handle_key_events(ev);
 }
 
 void

@@ -17,7 +17,6 @@ enum { NetSupported, NetWMName, NetWMState,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
-enum { SchemeNorm, SchemeSel, SchemeLast }; /* color schemes */
 
 /* macros */
 #define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
@@ -28,7 +27,6 @@ enum { SchemeNorm, SchemeSel, SchemeLast }; /* color schemes */
 #define WIDTH(X)                ((X)->w + 2 * (X)->bw)
 #define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
-#define ColBorder               2
 #define LENGTH(X)               (sizeof X / sizeof X[0])
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
 

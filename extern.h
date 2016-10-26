@@ -12,7 +12,6 @@ extern const Layout layouts[3];
 
 /* jwm vars */
 extern Atom wmatom[WMLast], netatom[NetLast];
-extern Scm scheme[SchemeLast];
 extern Display *dpy;
 extern Drw *drw;
 extern Monitor *mons, *selmon;

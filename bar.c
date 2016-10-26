@@ -6,7 +6,11 @@
 #include "color.h"
 #include "screen.h"
 
+/* Macros */
+#define ColBorder               2
+
 /* Static vars */
+static Scm scheme[SchemeLast];
 static const char *colors[SchemeLast][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
@@ -154,4 +158,18 @@ int
 get_bar_width(void)
 {
 	return bar_width;
+}
+
+unsigned long
+get_scheme_pixel(scheme_t type)
+{
+	return scheme[type][ColBorder].pixel;
+}
+
+void
+cleanup_bar(void)
+{
+	size_t i;
+	for (i = 0; i < SchemeLast; i++)
+		free(scheme[i]);
 }

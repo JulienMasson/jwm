@@ -22,7 +22,6 @@
 
 /* Global vars */
 Atom wmatom[WMLast], netatom[NetLast];
-Scm scheme[SchemeLast];
 Display *dpy;
 Drw *drw;
 Monitor *mons, *selmon;
@@ -46,8 +45,7 @@ cleanup(void)
 	while (mons)
 		cleanupmon(mons);
 	cleanup_cursors();
-	for (i = 0; i < SchemeLast; i++)
-		free(scheme[i]);
+	cleanup_bar();
 	drw_free(drw);
 	XSync(dpy, False);
 	XSetInputFocus(dpy, PointerRoot, RevertToPointerRoot, CurrentTime);

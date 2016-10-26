@@ -3,6 +3,12 @@
 
 #include "jwm.h"
 
+typedef enum {
+	SchemeNorm,
+	SchemeSel,
+	SchemeLast
+} scheme_t;
+
 void init_bars_properties(void);
 void setup_bars(void);
 void drawbar(Monitor *m);
@@ -14,5 +20,7 @@ unsigned int text_width(const char *text);
 void updatebarpos(Monitor *m);
 int get_bar_height(void);
 int get_bar_width(void);
+unsigned long get_scheme_pixel(scheme_t type);
+void cleanup_bar(void);
 
 #endif

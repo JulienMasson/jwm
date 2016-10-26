@@ -122,7 +122,7 @@ updatebars(void)
 		m->barwin = XCreateWindow(dpy, root, m->wx, m->by, m->ww, bh, 0, DefaultDepth(dpy, screen),
 		                          CopyFromParent, DefaultVisual(dpy, screen),
 		                          CWOverrideRedirect|CWBackPixmap|CWEventMask, &wa);
-		XDefineCursor(dpy, m->barwin, cursor[CurNormal]->cursor);
+		XDefineCursor(dpy, m->barwin, get_cursor(CurNormal));
 		XMapRaised(dpy, m->barwin);
 	}
 }

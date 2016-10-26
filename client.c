@@ -9,6 +9,7 @@
 
 /* Static vars */
 static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
+static const char broken[] = "broken";
 
 
 int

@@ -40,9 +40,9 @@
 #include "event.h"
 #include "screen.h"
 #include "client.h"
+#include "font.h"
 
 /* variables */
-const char broken[] = "broken";
 int screen;
 int sw, sh;           /* X display screen geometry width, height */
 int bh, blw = 0;      /* bar geometry */
@@ -50,7 +50,6 @@ int lrpad;            /* sum of left and right padding for text */
 unsigned int numlockmask = 0;
 Atom wmatom[WMLast], netatom[NetLast];
 int running = 1;
-Cur *cursor[CurLast];
 Scm scheme[SchemeLast];
 Display *dpy;
 Drw *drw;
@@ -74,8 +73,7 @@ cleanup(void)
 	XUngrabKey(dpy, AnyKey, AnyModifier, root);
 	while (mons)
 		cleanupmon(mons);
-	for (i = 0; i < CurLast; i++)
-		drw_cur_free(drw, cursor[i]);
+	cleanup_cursors();
 	for (i = 0; i < SchemeLast; i++)
 		free(scheme[i]);
 	drw_free(drw);
@@ -163,6 +161,12 @@ setup()
 
 	/* setup screen */
 	setup_screen();
+
+	/* setup font */
+	setup_font();
+
+	/* init cursors */
+	init_cursors();
 
 	/* init bars properties */
 	init_bars_properties();

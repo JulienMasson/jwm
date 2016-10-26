@@ -12,7 +12,7 @@ typedef struct {
 } Key;
 
 typedef struct {
-	unsigned int click;
+	click_t click;
 	unsigned int mask;
 	unsigned int button;
 	void (*func)(const Arg *arg);
@@ -31,6 +31,7 @@ static void dmenu_spawn(const Arg *arg);
 /* Static vars */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char dmenufont[]   = "Droid Sans:size=9";
+static const char dmenuprompt[] = "Run command:";
 static const char *dmenucmd[]   = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *termcmd[]    = { "urxvt", NULL };
 static const char *emacscmd[]   = { "emacs", NULL };
@@ -138,7 +139,7 @@ handle_key_events(XKeyEvent *ev)
 }
 
 void
-handle_button_events(XButtonPressedEvent *ev, unsigned int click, Arg arg)
+handle_button_events(XButtonPressedEvent *ev, click_t click, Arg arg)
 {
 	unsigned int i;
 	for (i = 0; i < LENGTH(buttons); i++)

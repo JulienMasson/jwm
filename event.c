@@ -44,7 +44,7 @@ void
 setup_events(void)
 {
 	XSetWindowAttributes wa;
-	wa.cursor = cursor[CurNormal]->cursor;
+	wa.cursor = get_cursor(CurNormal);
 	wa.event_mask = SubstructureRedirectMask|SubstructureNotifyMask|ButtonPressMask|PointerMotionMask
 		|EnterWindowMask|LeaveWindowMask|StructureNotifyMask|PropertyChangeMask;
 	XChangeWindowAttributes(dpy, root, CWEventMask|CWCursor, &wa);
@@ -61,7 +61,8 @@ handle_events(XEvent ev)
 void
 buttonpress(XEvent *e)
 {
-	unsigned int i, x, click;
+	unsigned int i, x;
+	click_t click;
 	Arg arg = {0};
 	Client *c;
 	Monitor *m;

@@ -2,10 +2,7 @@
 #define DRW_H
 
 #include <X11/Xft/Xft.h>
-
-typedef struct {
-	Cursor cursor;
-} Cur;
+#include "cursor.h"
 
 typedef struct Fnt {
 	Display *dpy;

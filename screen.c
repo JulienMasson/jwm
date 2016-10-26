@@ -18,12 +18,4 @@ setup_screen(void)
 	/* create default screen */
 	drw = drw_create(dpy, screen, root, sw, sh);
 
-	/* create font */
-	if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
-		die("no fonts could be loaded.");
-
-	/* init cursors */
-	cursor[CurNormal] = drw_cur_create(drw, XC_left_ptr);
-	cursor[CurResize] = drw_cur_create(drw, XC_sizing);
-	cursor[CurMove] = drw_cur_create(drw, XC_fleur);
 }

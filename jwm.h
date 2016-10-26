@@ -13,13 +13,10 @@
 #include "drw.h"
 
 /* enums */
-enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
 enum { NetSupported, NetWMName, NetWMState,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
-enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
-       ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
 enum { SchemeNorm, SchemeSel, SchemeLast }; /* color schemes */
 
 /* macros */

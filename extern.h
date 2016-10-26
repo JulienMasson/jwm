@@ -11,8 +11,6 @@ extern const char *tags[4];
 extern const Layout layouts[3];
 
 /* jwm vars */
-extern int screen;
-extern int sw, sh;
 extern int bh, blw;
 extern int lrpad;
 extern unsigned int numlockmask;

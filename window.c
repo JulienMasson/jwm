@@ -10,6 +10,7 @@
 #include "event.h"
 #include "bar.h"
 #include "key.h"
+#include "screen.h"
 
 /* Global vars */
 const Layout layouts[3] = {
@@ -169,6 +170,8 @@ int
 updategeom(void)
 {
 	int dirty = 0;
+	int sh = get_screen()->height;
+	int sw = get_screen()->width;
 
 	if (XineramaIsActive(dpy)) {
 		int i, j, n, nn;
@@ -605,6 +608,7 @@ manage(Window w, XWindowAttributes *wa)
 	Client *c, *t = NULL;
 	Window trans = None;
 	XWindowChanges wc;
+	int sw = get_screen()->width;
 
 	c = ecalloc(1, sizeof(Client));
 	c->win = w;

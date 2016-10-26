@@ -5,6 +5,7 @@
 #include "extern.h"
 #include "client.h"
 #include "key.h"
+#include "screen.h"
 
 /* static functions */
 static void buttonpress(XEvent *e);
@@ -177,14 +178,16 @@ configurenotify(XEvent *e)
 	Client *c;
 	XConfigureEvent *ev = &e->xconfigure;
 	int dirty;
+	int *sh = &(get_screen()->height);
+	int *sw = &(get_screen()->width);
 
 	/* TODO: updategeom handling sucks, needs to be simplified */
 	if (ev->window == root) {
-		dirty = (sw != ev->width || sh != ev->height);
-		sw = ev->width;
-		sh = ev->height;
+		dirty = (*sw != ev->width || *sh != ev->height);
+		*sw = ev->width;
+		*sh = ev->height;
 		if (updategeom() || dirty) {
-			drw_resize(drw, sw, bh);
+			drw_resize(drw, *sw, bh);
 			updatebars();
 			for (m = mons; m; m = m->next) {
 				for (c = m->clients; c; c = c->next)

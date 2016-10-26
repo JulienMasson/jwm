@@ -42,9 +42,7 @@
 #include "client.h"
 #include "font.h"
 
-/* variables */
-int screen;
-int sw, sh;           /* X display screen geometry width, height */
+/* Global vars */
 int bh, blw = 0;      /* bar geometry */
 int lrpad;            /* sum of left and right padding for text */
 unsigned int numlockmask = 0;

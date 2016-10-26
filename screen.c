@@ -4,18 +4,28 @@
 #include "drw.h"
 #include "font.h"
 
+/* Global vars */
+static screen_t screen;
+
+
 void
 setup_screen(void)
 {
+	int number, height, width;
 	/* get screen properties */
-	screen = DefaultScreen(dpy);
-	sw = DisplayWidth(dpy, screen);
-	sh = DisplayHeight(dpy, screen);
+	number = screen.number = DefaultScreen(dpy);
+	height = screen.height = DisplayWidth(dpy, number);
+	width = screen.width = DisplayHeight(dpy, number);
 
 	/* get root window */
-	root = RootWindow(dpy, screen);
+	root = RootWindow(dpy, number);
 
 	/* create default screen */
-	drw = drw_create(dpy, screen, root, sw, sh);
+	drw = drw_create(dpy, number, root, width, height);
+}
 
+screen_t *
+get_screen(void)
+{
+	return &screen;
 }

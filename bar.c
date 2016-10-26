@@ -4,6 +4,7 @@
 #include "drw.h"
 #include "extern.h"
 #include "color.h"
+#include "screen.h"
 
 /* Static vars */
 static const char *colors[SchemeLast][3]      = {
@@ -110,6 +111,7 @@ updatebarpos(Monitor *m)
 void
 updatebars(void)
 {
+	int snumber = get_screen()->number;
 	Monitor *m;
 	XSetWindowAttributes wa = {
 		.override_redirect = True,
@@ -119,8 +121,8 @@ updatebars(void)
 	for (m = mons; m; m = m->next) {
 		if (m->barwin)
 			continue;
-		m->barwin = XCreateWindow(dpy, root, m->wx, m->by, m->ww, bh, 0, DefaultDepth(dpy, screen),
-		                          CopyFromParent, DefaultVisual(dpy, screen),
+		m->barwin = XCreateWindow(dpy, root, m->wx, m->by, m->ww, bh, 0, DefaultDepth(dpy, snumber),
+		                          CopyFromParent, DefaultVisual(dpy, snumber),
 		                          CWOverrideRedirect|CWBackPixmap|CWEventMask, &wa);
 		XDefineCursor(dpy, m->barwin, get_cursor(CurNormal));
 		XMapRaised(dpy, m->barwin);

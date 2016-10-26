@@ -6,6 +6,7 @@
 #include "event.h"
 #include "atom.h"
 #include "window.h"
+#include "screen.h"
 
 /* Static vars */
 static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
@@ -17,6 +18,8 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 {
 	int baseismin;
 	Monitor *m = c->mon;
+	int sh = get_screen()->height;
+	int sw = get_screen()->width;
 
 	/* set minimum possible */
 	*w = MAX(1, *w);

@@ -3,6 +3,7 @@
 
 #include "jwm.h"
 #include "key.h"
+#include "atom.h"
 
 /* tags */
 extern const char *tags[4];

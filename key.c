@@ -2,6 +2,7 @@
 #include "extern.h"
 #include "color.h"
 #include "window.h"
+#include "util.h"
 
 /* struct definitions */
 typedef struct {

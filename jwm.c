@@ -34,7 +34,6 @@ cleanup(void)
 	Arg a = {.ui = ~0};
 	Layout foo = { "", NULL };
 	Monitor *m;
-	size_t i;
 
 	view(&a);
 	selmon->lt[selmon->sellt] = &foo;

@@ -12,6 +12,11 @@
 #include "key.h"
 #include "screen.h"
 
+/* Macros */
+#define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
+                               * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
+#define TAGMASK                 ((1 << LENGTH(tags)) - 1)
+
 /* Global vars */
 const Layout layouts[3] = {
 	/* symbol     arrange function */

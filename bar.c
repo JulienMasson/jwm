@@ -5,6 +5,7 @@
 #include "extern.h"
 #include "color.h"
 #include "screen.h"
+#include "util.h"
 
 /* Macros */
 #define ColBorder               2

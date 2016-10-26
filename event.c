@@ -6,6 +6,7 @@
 #include "client.h"
 #include "key.h"
 #include "screen.h"
+#include "util.h"
 
 /* static functions */
 static void buttonpress(XEvent *e);

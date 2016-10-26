@@ -11,7 +11,7 @@ void monocle(Monitor *m);
 void spawn(const Arg *arg);
 void focusstack(const Arg *arg);
 void killclient(const Arg *arg);
-void setlayout(const Arg *arg);
+void nextlayout(const Arg *arg);
 void movemouse(const Arg *arg);
 void resizemouse(const Arg *arg);
 void view(const Arg *arg);

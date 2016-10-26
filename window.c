@@ -514,13 +514,17 @@ resizemouse(const Arg *arg)
 }
 
 void
-setlayout(const Arg *arg)
+nextlayout(const Arg *arg)
 {
-	if (!arg || !arg->v || arg->v != selmon->lt[selmon->sellt])
-		selmon->sellt ^= 1;
-	if (arg && arg->v)
-		selmon->lt[selmon->sellt] = (Layout *)arg->v;
+	/* increment layout selected */
+	selmon->sellt = (selmon->sellt + 1) % LENGTH(layouts);
+
+	/* get layout in layouts */
+	selmon->lt[selmon->sellt] = &layouts[selmon->sellt];
+
+	/* copy symbol to selected monitor */
 	strncpy(selmon->ltsymbol, selmon->lt[selmon->sellt]->symbol, sizeof selmon->ltsymbol);
+
 	if (selmon->sel)
 		arrange(selmon);
 	else

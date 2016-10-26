@@ -49,13 +49,11 @@ static Key keys[19] = {
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
-	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
-	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
-	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
 	TAGKEYS(                        XK_ampersand,              0)
 	TAGKEYS(                        XK_eacute,                 1)
 	TAGKEYS(                        XK_quotedbl,               2)
 	TAGKEYS(                        XK_apostrophe,             3)
+	{ MODKEY,                       XK_space,  nextlayout,     {0} },
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
 };
 
@@ -63,7 +61,6 @@ static Key keys[19] = {
 /* click can be ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static Button buttons[4] = {
 	/* click                event mask      button          function        argument */
-	{ ClkLtSymbol,          0,              Button1,        setlayout,      {0} },
 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
 	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
 	{ ClkTagBar,            0,              Button1,        view,           {0} },

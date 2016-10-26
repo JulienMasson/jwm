@@ -23,12 +23,15 @@ typedef struct {
 static void dmenu_spawn(const Arg *arg);
 
 /* key definitions */
+#define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
+
 #define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
 
 /* Static vars */
+static unsigned int numlockmask = 0;
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char dmenufont[]   = "Droid Sans:size=9";
 static const char dmenuprompt[] = "Run command:";

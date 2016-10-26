@@ -68,6 +68,7 @@ buttonpress(XEvent *e)
 	Client *c;
 	Monitor *m;
 	XButtonPressedEvent *ev = &e->xbutton;
+	int bl = get_bar_width();
 
 	click = ClkRootWin;
 	/* focus monitor if necessary */
@@ -84,7 +85,7 @@ buttonpress(XEvent *e)
 		if (i < LENGTH(tags)) {
 			click = ClkTagBar;
 			arg.ui = 1 << i;
-		} else if (ev->x < x + blw)
+		} else if (ev->x < x + bl)
 			click = ClkLtSymbol;
 		/* else if (ev->x > selmon->ww - TEXTW(stext)) */
 		/* 	click = ClkStatusText; */
@@ -180,6 +181,7 @@ configurenotify(XEvent *e)
 	int dirty;
 	int *sh = &(get_screen()->height);
 	int *sw = &(get_screen()->width);
+	int bh = get_bar_height();
 
 	/* TODO: updategeom handling sucks, needs to be simplified */
 	if (ev->window == root) {

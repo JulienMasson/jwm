@@ -29,5 +29,6 @@ void arrange(Monitor *m);
 int gettextprop(Window w, Atom atom, char *text, unsigned int size);
 int xerrordummy(Display *dpy, XErrorEvent *ee);
 int xerror(Display *dpy, XErrorEvent *ee);
+int running_state(void);
 
 #endif

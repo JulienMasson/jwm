@@ -1,25 +1,3 @@
-/* See LICENSE file for copyright and license details.
- *
- * dynamic window manager is designed like any other X client as well. It is
- * driven through handling X events. In contrast to other X clients, a window
- * manager selects for SubstructureRedirectMask on the root window, to receive
- * events about window (dis-)appearance.  Only one X connection at a time is
- * allowed to select for this event mask.
- *
- * The event handlers of dwm are organized in an array which is accessed
- * whenever a new event has been fetched. This allows event dispatching
- * in O(1) time.
- *
- * Each child of the root window is called a client, except windows which have
- * set the override_redirect flag.  Clients are organized in a linked client
- * list on each monitor, the focus history is remembered through a stack list
- * on each monitor. Each client contains a bit array to indicate the tags of a
- * client.
- *
- * Keys and tagging rules are organized as arrays and defined in config.h.
- *
- * To understand everything else, start reading main().
- */
 #include <errno.h>
 #include <locale.h>
 #include <signal.h>
@@ -43,11 +21,7 @@
 #include "font.h"
 
 /* Global vars */
-int bh, blw = 0;      /* bar geometry */
-int lrpad;            /* sum of left and right padding for text */
-unsigned int numlockmask = 0;
 Atom wmatom[WMLast], netatom[NetLast];
-int running = 1;
 Scm scheme[SchemeLast];
 Display *dpy;
 Drw *drw;
@@ -88,31 +62,30 @@ run(void)
 	fd_set in_fds;
 	struct timeval tv;
 
-	// Main loop
-	while(1) {
-		// Create a File Description Set containing x11_fd
+	/* Main loop */
+	while(running_state()) {
+
+		/* Create a File Description Set containing x11_fd */
 		FD_ZERO(&in_fds);
 		FD_SET(x11_fd, &in_fds);
 
-		// Set our timer.  One second sounds good.
+		/* Set our timer to One second */
 		tv.tv_usec = 0;
 		tv.tv_sec = 1;
 
-		// Wait for X Event or a Timer
+		/* Wait for X Event or a Timer */
 		int num_ready_fds = select(x11_fd + 1, &in_fds, NULL, NULL, &tv);
 
-		// Timer Fired
+		/* Timer Fired */
 		if (num_ready_fds == 0)
 			drawbars();
 
-		// Handle XEvents and flush the input
+		/* Handle XEvents and flush the input */
 		while(XPending(dpy)) {
 			XNextEvent(dpy, &ev);
 			handle_events(ev);
 		}
 
-		if (!running)
-			break;
 	}
 }
 
@@ -194,8 +167,11 @@ setup()
 int
 main(int argc, char *argv[])
 {
+	/* Locale support */
 	if (!setlocale(LC_CTYPE, "") || !XSupportsLocale())
 		fputs("warning: no locale support\n", stderr);
+
+	/* open display */
 	if (!(dpy = XOpenDisplay(NULL)))
 		die("jwm: cannot open display");
 
@@ -203,13 +179,20 @@ main(int argc, char *argv[])
 	freopen(".jwm.log", "a", stdout); setbuf(stdout, NULL);
 	freopen(".jwm.log", "a", stderr); setbuf(stderr, NULL);
 
+	/* setup all features */
 	setup();
 
+	/* scan window tree information */
 	scan();
 
+	/* main loop */
 	run();
 
+	/* cleanup all features */
 	cleanup();
+
+	/* close display */
 	XCloseDisplay(dpy);
+
 	return EXIT_SUCCESS;
 }

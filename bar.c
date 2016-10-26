@@ -12,6 +12,9 @@ static const char *colors[SchemeLast][3]      = {
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
  	[SchemeSel] =  { col_gray4, col_cyan,  col_cyan  },
 };
+static int bar_height;
+static int bar_width;
+static int lrpad;            /* sum of left and right padding for text */
 
 /* Global vars */
 const char *tags[4] = { "Emacs", "Web", "Term", "Extras"};
@@ -21,7 +24,7 @@ void
 init_bars_properties(void)
 {
 	lrpad = drw->fonts->h;
-	bh = lrpad + 2;
+	bar_height = lrpad + 2;
 }
 
 void
@@ -52,7 +55,7 @@ drawbar(Monitor *m)
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		drw_setscheme(drw, scheme[SchemeNorm]);
 		sw = text_width(stext) - lrpad / 2; /* no right padding so status text hugs the corner */
-		drw_text(drw, m->ww - sw, 0, sw, bh, lrpad / 2 - 2, stext, 0);
+		drw_text(drw, m->ww - sw, 0, sw, bar_height, lrpad / 2 - 2, stext, 0);
 	}
 
 	for (c = m->clients; c; c = c->next) {
@@ -64,29 +67,29 @@ drawbar(Monitor *m)
 	for (i = 0; i < LENGTH(tags); i++) {
 		w = text_width(tags[i]);
 		drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
-		drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg & 1 << i);
+		drw_text(drw, x, 0, w, bar_height, lrpad / 2, tags[i], urg & 1 << i);
 		if (occ & 1 << i)
 			drw_rect(drw, x + boxs, boxs, boxw, boxw,
 			         m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
 			         urg & 1 << i);
 		x += w;
 	}
-	w = blw = text_width(m->ltsymbol);
+	w = bar_width = text_width(m->ltsymbol);
 	drw_setscheme(drw, scheme[SchemeNorm]);
-	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
+	x = drw_text(drw, x, 0, w, bar_height, lrpad / 2, m->ltsymbol, 0);
 
-	if ((w = m->ww - sw - x) > bh) {
+	if ((w = m->ww - sw - x) > bar_height) {
 		if (m->sel) {
 			drw_setscheme(drw, scheme[m == selmon ? SchemeSel : SchemeNorm]);
-			drw_text(drw, x, 0, w, bh, lrpad / 2, m->sel->name, 0);
+			drw_text(drw, x, 0, w, bar_height, lrpad / 2, m->sel->name, 0);
 			if (m->sel->isfloating)
 				drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);
 		} else {
 			drw_setscheme(drw, scheme[SchemeNorm]);
-			drw_rect(drw, x, 0, w, bh, 1, 1);
+			drw_rect(drw, x, 0, w, bar_height, 1, 1);
 		}
 	}
-	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
+	drw_map(drw, m->barwin, 0, 0, m->ww, bar_height);
 }
 
 void
@@ -103,9 +106,9 @@ updatebarpos(Monitor *m)
 {
 	m->wy = m->my;
 	m->wh = m->mh;
-	m->wh -= bh;
+	m->wh -= bar_height;
 	m->by = m->wy;
-	m->wy = m->wy + bh;
+	m->wy = m->wy + bar_height;
 }
 
 void
@@ -121,7 +124,7 @@ updatebars(void)
 	for (m = mons; m; m = m->next) {
 		if (m->barwin)
 			continue;
-		m->barwin = XCreateWindow(dpy, root, m->wx, m->by, m->ww, bh, 0, DefaultDepth(dpy, snumber),
+		m->barwin = XCreateWindow(dpy, root, m->wx, m->by, m->ww, bar_height, 0, DefaultDepth(dpy, snumber),
 		                          CopyFromParent, DefaultVisual(dpy, snumber),
 		                          CWOverrideRedirect|CWBackPixmap|CWEventMask, &wa);
 		XDefineCursor(dpy, m->barwin, get_cursor(CurNormal));
@@ -139,4 +142,16 @@ unsigned int
 text_width(const char *text)
 {
 	return drw_fontset_getwidth(drw, text) + lrpad;
+}
+
+int
+get_bar_height(void)
+{
+	return bar_height;
+}
+
+int
+get_bar_width(void)
+{
+	return bar_width;
 }

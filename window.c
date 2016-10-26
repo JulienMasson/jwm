@@ -25,6 +25,7 @@ static const unsigned int borderpx = 0;    /* border pixel of windows */
 static const unsigned int snap     = 32;   /* snap pixel */
 static const float mfact           = 0.50; /* factor of master area size [0.05..0.95] */
 static const int nmaster           = 1;    /* number of clients in master area */
+static int running = 1;
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 
 
@@ -609,6 +610,7 @@ manage(Window w, XWindowAttributes *wa)
 	Window trans = None;
 	XWindowChanges wc;
 	int sw = get_screen()->width;
+	int bh = get_bar_height();
 
 	c = ecalloc(1, sizeof(Client));
 	c->win = w;
@@ -689,4 +691,10 @@ unmanage(Client *c, int destroyed)
 	focus(NULL);
 	updateclientlist();
 	arrange(m);
+}
+
+int
+running_state(void)
+{
+	return running;
 }

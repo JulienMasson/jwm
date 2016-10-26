@@ -20,6 +20,7 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 	Monitor *m = c->mon;
 	int sh = get_screen()->height;
 	int sw = get_screen()->width;
+	int bh = get_bar_height();
 
 	/* set minimum possible */
 	*w = MAX(1, *w);

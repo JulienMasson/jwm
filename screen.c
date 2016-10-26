@@ -14,8 +14,8 @@ setup_screen(void)
 	int number, height, width;
 	/* get screen properties */
 	number = screen.number = DefaultScreen(dpy);
-	height = screen.height = DisplayWidth(dpy, number);
-	width = screen.width = DisplayHeight(dpy, number);
+	height = screen.height = DisplayHeight(dpy, number);
+	width = screen.width = DisplayWidth(dpy, number);
 
 	/* get root window */
 	root = RootWindow(dpy, number);

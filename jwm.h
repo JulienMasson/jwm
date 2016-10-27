@@ -50,14 +50,13 @@ struct Monitor {
 	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
-	unsigned int sellt;
 	unsigned int current_tag;
+	unsigned int current_layout;
 	Client *clients;
 	Client *sel;
 	Client *stack;
 	Monitor *next;
 	Window barwin;
-	const Layout *lt[2];
 };
 
 typedef union {

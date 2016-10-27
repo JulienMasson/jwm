@@ -20,8 +20,8 @@
 /* Global vars */
 const Layout layouts[3] = {
 	/* symbol     arrange function */
-	{ "[ T ]",      tile },    /* first entry is default */
 	{ "[ F ]",      NULL },    /* no layout function means floating behavior */
+	{ "[ T ]",      tile },    /* first entry is default */
 	{ "[ M ]",      monocle },
 };
 
@@ -65,10 +65,9 @@ createmon(void)
 
 	m = ecalloc(1, sizeof(Monitor));
 	m->current_tag = 1;
+	m->current_layout = 0;
 	m->mfact = mfact;
 	m->nmaster = nmaster;
-	m->lt[0] = &layouts[0];
-	m->lt[1] = &layouts[1 % LENGTH(layouts)];
 	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
 	return m;
 }
@@ -113,9 +112,9 @@ restack(Monitor *m)
 	drawbar(m);
 	if (!m->sel)
 		return;
-	if (m->sel->isfloating || !m->lt[m->sellt]->arrange)
+	if (m->sel->isfloating || !layouts[m->current_layout].arrange)
 		XRaiseWindow(dpy, m->sel->win);
-	if (m->lt[m->sellt]->arrange) {
+	if (layouts[m->current_layout].arrange) {
 		wc.stack_mode = Below;
 		wc.sibling = m->barwin;
 		for (c = m->stack; c; c = c->snext)
@@ -357,9 +356,9 @@ monocle(Monitor *m)
 void
 arrangemon(Monitor *m)
 {
-	strncpy(m->ltsymbol, m->lt[m->sellt]->symbol, sizeof m->ltsymbol);
-	if (m->lt[m->sellt]->arrange)
-		m->lt[m->sellt]->arrange(m);
+	strncpy(m->ltsymbol, layouts[m->current_layout].symbol, sizeof m->ltsymbol);
+	if (layouts[m->current_layout].arrange)
+		layouts[m->current_layout].arrange(m);
 }
 
 void
@@ -438,11 +437,11 @@ movemouse(const Arg *arg)
 					ny = selmon->wy;
 				else if (abs((selmon->wy + selmon->wh) - (ny + HEIGHT(c))) < snap)
 					ny = selmon->wy + selmon->wh - HEIGHT(c);
-				if (!c->isfloating && selmon->lt[selmon->sellt]->arrange
+				if (!c->isfloating && layouts[selmon->current_layout].arrange
 				    && (abs(nx - c->x) > snap || abs(ny - c->y) > snap))
 					togglefloating(NULL);
 			}
-			if (!selmon->lt[selmon->sellt]->arrange || c->isfloating)
+			if (!layouts[selmon->current_layout].arrange || c->isfloating)
 				resize(c, nx, ny, c->w, c->h, 1);
 			break;
 		}
@@ -499,11 +498,11 @@ resizemouse(const Arg *arg)
 			if (c->mon->wx + nw >= selmon->wx && c->mon->wx + nw <= selmon->wx + selmon->ww
 			    && c->mon->wy + nh >= selmon->wy && c->mon->wy + nh <= selmon->wy + selmon->wh)
 			{
-				if (!c->isfloating && selmon->lt[selmon->sellt]->arrange
+				if (!c->isfloating && layouts[selmon->current_layout].arrange
 				    && (abs(nw - c->w) > snap || abs(nh - c->h) > snap))
 					togglefloating(NULL);
 			}
-			if (!selmon->lt[selmon->sellt]->arrange || c->isfloating)
+			if (!layouts[selmon->current_layout].arrange || c->isfloating)
 				resize(c, c->x, c->y, nw, nh, 1);
 			break;
 		}
@@ -522,13 +521,10 @@ void
 nextlayout(const Arg *arg)
 {
 	/* increment layout selected */
-	selmon->sellt = (selmon->sellt + 1) % LENGTH(layouts);
-
-	/* get layout in layouts */
-	selmon->lt[selmon->sellt] = &layouts[selmon->sellt];
+	selmon->current_layout = (selmon->current_layout + 1) % LENGTH(layouts);
 
 	/* copy symbol to selected monitor */
-	strncpy(selmon->ltsymbol, selmon->lt[selmon->sellt]->symbol, sizeof selmon->ltsymbol);
+	strncpy(selmon->ltsymbol, layouts[selmon->current_layout].symbol, sizeof selmon->ltsymbol);
 
 	if (selmon->sel)
 		arrange(selmon);

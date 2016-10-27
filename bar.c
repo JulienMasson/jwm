@@ -56,11 +56,9 @@ drawbar(Monitor *m)
 	get_widgets(stext, sizeof(stext));
 
 	/* draw status first so it can be overdrawn by tags later */
-	if (m == selmon) { /* status is only drawn on selected monitor */
-		drw_setscheme(drw, scheme[SchemeNorm]);
-		sw = text_width(stext) - lrpad / 2; /* no right padding so status text hugs the corner */
-		drw_text(drw, m->ww - sw, 0, sw, bar_height, lrpad / 2 - 2, stext, 0);
-	}
+	drw_setscheme(drw, scheme[SchemeNorm]);
+	sw = text_width(stext) - lrpad / 2; /* no right padding so status text hugs the corner */
+	drw_text(drw, m->ww - sw, 0, sw, bar_height, lrpad / 2 - 2, stext, 0);
 
 	for (c = m->clients; c; c = c->next) {
 		occ |= c->tags;

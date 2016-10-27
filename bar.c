@@ -1,11 +1,10 @@
-#include <time.h>
-
 #include "bar.h"
 #include "drw.h"
 #include "extern.h"
 #include "color.h"
 #include "screen.h"
 #include "util.h"
+#include "widgets.h"
 
 /* Macros */
 #define ColBorder               2
@@ -52,9 +51,9 @@ drawbar(Monitor *m)
 	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0;
 	Client *c;
-	time_t t;
-	t = time(NULL);
-	sprintf(stext, "%s", ctime(&t));
+
+	/* add widgets */
+	get_widgets(stext, sizeof(stext));
 
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */

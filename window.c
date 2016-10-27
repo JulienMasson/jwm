@@ -64,7 +64,7 @@ createmon(void)
 	Monitor *m;
 
 	m = ecalloc(1, sizeof(Monitor));
-	m->tagset[0] = m->tagset[1] = 1;
+	m->current_tag = 1;
 	m->mfact = mfact;
 	m->nmaster = nmaster;
 	m->lt[0] = &layouts[0];
@@ -385,7 +385,7 @@ sendmon(Client *c, Monitor *m)
 	detach(c);
 	detachstack(c);
 	c->mon = m;
-	c->tags = m->tagset[m->seltags]; /* assign tags of target monitor */
+	c->tags = m->current_tag; /* assign tags of target monitor */
 	attach(c);
 	attachstack(c);
 	focus(NULL);
@@ -603,13 +603,12 @@ togglefloating(const Arg *arg)
 void
 view(const Arg *arg)
 {
-	if ((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags])
-		return;
-	selmon->seltags ^= 1; /* toggle sel tagset */
-	if (arg->ui & TAGMASK)
-		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
-	focus(NULL);
-	arrange(selmon);
+	/* check the current tag */
+	if ((arg->ui & TAGMASK) != selmon->current_tag) {
+		selmon->current_tag = arg->ui & TAGMASK;
+		focus(NULL);
+		arrange(selmon);
+	}
 }
 
 void
@@ -636,7 +635,7 @@ manage(Window w, XWindowAttributes *wa)
 		c->tags = t->tags;
 	} else {
 		c->mon = selmon;
-		c->tags = c->mon->tagset[c->mon->seltags];
+		c->tags = c->mon->current_tag;
 	}
 
 	if (c->x + WIDTH(c) > c->mon->mx + c->mon->mw)

@@ -13,7 +13,7 @@
 #include "drw.h"
 
 /* macros */
-#define ISVISIBLE(C)            ((C->tags & C->mon->tagset[C->mon->seltags]))
+#define ISVISIBLE(C)            ((C->tags & C->mon->current_tag))
 #define WIDTH(X)                ((X)->w + 2 * (X)->bw)
 #define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
@@ -50,9 +50,8 @@ struct Monitor {
 	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
-	unsigned int seltags;
 	unsigned int sellt;
-	unsigned int tagset[2];
+	unsigned int current_tag;
 	Client *clients;
 	Client *sel;
 	Client *stack;

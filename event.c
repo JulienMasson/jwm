@@ -114,8 +114,7 @@ clientmessage(XEvent *e)
 					  || (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */ && !c->isfullscreen)));
 	} else if (cme->message_type == netatom[NetActiveWindow]) {
 		if (!ISVISIBLE(c)) {
-			c->mon->seltags ^= 1;
-			c->mon->tagset[c->mon->seltags] = c->tags;
+			c->mon->current_tag = c->tags;
 		}
 		pop(c);
 	}

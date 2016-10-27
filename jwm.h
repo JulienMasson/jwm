@@ -44,7 +44,6 @@ typedef struct {
 
 struct Monitor {
 	char ltsymbol[16];
-	float mfact;
 	int nmaster;
 	int num;
 	int by;               /* bar geometry */

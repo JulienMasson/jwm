@@ -28,7 +28,6 @@ const Layout layouts[3] = {
 /* static vars */
 static const unsigned int borderpx = 0;    /* border pixel of windows */
 static const unsigned int snap     = 32;   /* snap pixel */
-static const float mfact           = 0.50; /* factor of master area size [0.05..0.95] */
 static const int nmaster           = 1;    /* number of clients in master area */
 static int running = 1;
 static int (*xerrorxlib)(Display *, XErrorEvent *);
@@ -66,7 +65,6 @@ createmon(void)
 	m = ecalloc(1, sizeof(Monitor));
 	m->current_tag = 1;
 	m->current_layout = 0;
-	m->mfact = mfact;
 	m->nmaster = nmaster;
 	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
 	return m;
@@ -567,7 +565,7 @@ tile(Monitor *m)
 		return;
 
 	if (n > m->nmaster)
-		mw = m->nmaster ? m->ww * m->mfact : 0;
+		mw = m->nmaster ? m->ww / 2 : 0; /* windows split by 2 */
 	else
 		mw = m->ww;
 	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)

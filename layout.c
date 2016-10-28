@@ -47,11 +47,11 @@ tile_layout(Monitor *m)
 	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
 		if (i < m->nmaster) {
 			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
-			resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), 0);
+			resize(c, m->wx, m->wy + my, mw, h, 0);
 			my += HEIGHT(c);
 		} else {
 			h = (m->wh - ty) / (n - i);
-			resize(c, m->wx + mw, m->wy + ty, m->ww - mw - (2*c->bw), h - (2*c->bw), 0);
+			resize(c, m->wx + mw, m->wy + ty, m->ww - mw, h, 0);
 			ty += HEIGHT(c);
 		}
 }
@@ -68,42 +68,40 @@ tab_layout(Monitor *m)
 	if (n > 0) /* override layout symbol */
 		snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%d]", n);
 	for (c = nexttiled(m->clients); c; c = nexttiled(c->next))
-		resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, 0);
+		resize(c, m->wx, m->wy, m->ww, m->wh, 0);
 }
 
 void
 layout_configure_client(XConfigureRequestEvent *ev, Client *c)
 {
-		if (ev->value_mask & CWBorderWidth)
-			c->bw = ev->border_width;
-		else if (c->isfloating || (selmon->current_layout == floating)) {
-			Monitor *m = get_monitor_from_client(c);
-			if (ev->value_mask & CWX) {
-				c->oldx = c->x;
-				c->x = m->mx + ev->x;
-			}
-			if (ev->value_mask & CWY) {
-				c->oldy = c->y;
-				c->y = m->my + ev->y;
-			}
-			if (ev->value_mask & CWWidth) {
-				c->oldw = c->w;
-				c->w = ev->width;
-			}
-			if (ev->value_mask & CWHeight) {
-				c->oldh = c->h;
-				c->h = ev->height;
-			}
-			if ((c->x + c->w) > m->mx + m->mw && c->isfloating)
-				c->x = m->mx + (m->mw / 2 - WIDTH(c) / 2); /* center in x direction */
-			if ((c->y + c->h) > m->my + m->mh && c->isfloating)
-				c->y = m->my + (m->mh / 2 - HEIGHT(c) / 2); /* center in y direction */
-			if ((ev->value_mask & (CWX|CWY)) && !(ev->value_mask & (CWWidth|CWHeight)))
-				configure(c);
-			if (ISVISIBLE(c, m))
-				XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
-		} else
+	if (c->isfloating || (selmon->current_layout == floating)) {
+		Monitor *m = get_monitor_from_client(c);
+		if (ev->value_mask & CWX) {
+			c->oldx = c->x;
+			c->x = m->mx + ev->x;
+		}
+		if (ev->value_mask & CWY) {
+			c->oldy = c->y;
+			c->y = m->my + ev->y;
+		}
+		if (ev->value_mask & CWWidth) {
+			c->oldw = c->w;
+			c->w = ev->width;
+		}
+		if (ev->value_mask & CWHeight) {
+			c->oldh = c->h;
+			c->h = ev->height;
+		}
+		if ((c->x + c->w) > m->mx + m->mw && c->isfloating)
+			c->x = m->mx + (m->mw / 2 - WIDTH(c) / 2); /* center in x direction */
+		if ((c->y + c->h) > m->my + m->mh && c->isfloating)
+			c->y = m->my + (m->mh / 2 - HEIGHT(c) / 2); /* center in y direction */
+		if ((ev->value_mask & (CWX|CWY)) && !(ev->value_mask & (CWWidth|CWHeight)))
 			configure(c);
+		if (ISVISIBLE(c, m))
+			XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
+	} else
+		configure(c);
 }
 
 Layout

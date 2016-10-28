@@ -11,8 +11,8 @@
 #include <X11/Xlib.h>
 
 /* macros */
-#define WIDTH(X)                ((X)->w + 2 * (X)->bw)
-#define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
+#define WIDTH(X)                ((X)->w)
+#define HEIGHT(X)               ((X)->h)
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
 

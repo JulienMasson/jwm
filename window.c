@@ -19,7 +19,6 @@
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
 
 /* static vars */
-static const unsigned int borderpx = 0;    /* border pixel of windows */
 static const unsigned int snap     = 32;   /* snap pixel */
 static const int nmaster           = 1;    /* number of clients in master area */
 static int running = 1;
@@ -56,18 +55,18 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 			*x = sw - WIDTH(c);
 		if (*y > sh)
 			*y = sh - HEIGHT(c);
-		if (*x + *w + 2 * c->bw < 0)
+		if (*x + *w < 0)
 			*x = 0;
-		if (*y + *h + 2 * c->bw < 0)
+		if (*y + *h < 0)
 			*y = 0;
 	} else {
 		if (*x >= m->wx + m->ww)
 			*x = m->wx + m->ww - WIDTH(c);
 		if (*y >= m->wy + m->wh)
 			*y = m->wy + m->wh - HEIGHT(c);
-		if (*x + *w + 2 * c->bw <= m->wx)
+		if (*x + *w <= m->wx)
 			*x = m->wx;
-		if (*y + *h + 2 * c->bw <= m->wy)
+		if (*y + *h <= m->wy)
 			*y = m->wy;
 	}
 	if (*h < bh)
@@ -208,8 +207,6 @@ setfullscreen(Client *c, int fullscreen)
 		                PropModeReplace, (unsigned char*)&netatom[NetWMFullscreen], 1);
 		c->isfullscreen = 1;
 		c->oldstate = c->isfloating;
-		c->oldbw = c->bw;
-		c->bw = 0;
 		c->isfloating = 1;
 		resizeclient(c, m->mx, m->my, m->mw, m->mh);
 		XRaiseWindow(dpy, c->win);
@@ -218,7 +215,6 @@ setfullscreen(Client *c, int fullscreen)
 		                PropModeReplace, (unsigned char*)0, 0);
 		c->isfullscreen = 0;
 		c->isfloating = c->oldstate;
-		c->bw = c->oldbw;
 		c->x = c->oldx;
 		c->y = c->oldy;
 		c->w = c->oldw;
@@ -666,7 +662,7 @@ resizemouse(const Arg *arg)
 	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
 			 None, get_cursor(CurResize), CurrentTime) != GrabSuccess)
 		return;
-	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
+	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w - 1, c->h - 1);
 	do {
 		Monitor *m = get_monitor_from_client(c);
 		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
@@ -681,8 +677,8 @@ resizemouse(const Arg *arg)
 				continue;
 			lasttime = ev.xmotion.time;
 
-			nw = MAX(ev.xmotion.x - ocx - 2 * c->bw + 1, 1);
-			nh = MAX(ev.xmotion.y - ocy - 2 * c->bw + 1, 1);
+			nw = MAX(ev.xmotion.x - ocx + 1, 1);
+			nh = MAX(ev.xmotion.y - ocy + 1, 1);
 			if (m->wx + nw >= selmon->wx && m->wx + nw <= selmon->wx + selmon->ww
 			    && m->wy + nh >= selmon->wy && m->wy + nh <= selmon->wy + selmon->wh)
 			{
@@ -695,7 +691,7 @@ resizemouse(const Arg *arg)
 			break;
 		}
 	} while (ev.type != ButtonRelease);
-	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
+	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w - 1, c->h - 1);
 	XUngrabPointer(dpy, CurrentTime);
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 	if ((m = recttomon(c->x, c->y, c->w, c->h)) != selmon) {
@@ -786,7 +782,6 @@ manage(Window w, XWindowAttributes *wa)
 	c->y = c->oldy = wa->y;
 	c->w = c->oldw = wa->width;
 	c->h = c->oldh = wa->height;
-	c->oldbw = wa->border_width;
 
 	updatetitle(c);
 	if (XGetTransientForHint(dpy, w, &trans) && (t = wintoclient(trans))) {
@@ -805,9 +800,8 @@ manage(Window w, XWindowAttributes *wa)
 	/* only fix client y-offset, if the client center might cover the bar */
 	c->y = MAX(c->y, ((m->by == m->my) && (c->x + (c->w / 2) >= m->wx)
 			  && (c->x + (c->w / 2) < m->wx + m->ww)) ? bh : m->my);
-	c->bw = borderpx;
 
-	wc.border_width = c->bw;
+	wc.border_width = 0; /* no border */
 	XConfigureWindow(dpy, w, CWBorderWidth, &wc);
 	XSetWindowBorder(dpy, w, get_scheme_pixel(SchemeNorm));
 	configure(c); /* propagates border_width, if size doesn't change */
@@ -844,7 +838,7 @@ unmanage(Client *c, int destroyed)
 	detach(m, c);
 	detachstack(m, c);
 	if (!destroyed) {
-		wc.border_width = c->oldbw;
+		wc.border_width = 0; /* no border */
 		XGrabServer(dpy);
 		XSetErrorHandler(xerrordummy);
 		XConfigureWindow(dpy, c->win, CWBorderWidth, &wc); /* restore border */

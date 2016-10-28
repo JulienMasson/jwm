@@ -7,6 +7,7 @@
 typedef enum {
 	SchemeNorm,
 	SchemeSel,
+	SchemeTitle,
 	SchemeLast
 } scheme_t;
 

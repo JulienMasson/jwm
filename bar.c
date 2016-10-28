@@ -12,9 +12,10 @@
 /* Static vars */
 static Scm scheme[SchemeLast];
 static const char *colors[SchemeLast][3]      = {
-	/*               fg         bg         border   */
-	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
- 	[SchemeSel] =  { col_gray4, col_cyan,  col_cyan  },
+	/*                fg         bg         border   */
+	[SchemeNorm] =  { col_gray3, col_gray1, col_gray2 },
+ 	[SchemeSel] =   { col_gray4, col_cyan,  col_cyan  },
+	[SchemeTitle] = { col_cyan,  col_gray1, col_cyan  },
 };
 static int bar_height;
 static int bar_width;
@@ -40,6 +41,7 @@ setup_bars(void)
 	/* init appearance */
 	scheme[SchemeNorm] = drw_scm_create(drw, colors[SchemeNorm], 3);
 	scheme[SchemeSel] = drw_scm_create(drw, colors[SchemeSel], 3);
+	scheme[SchemeTitle] = drw_scm_create(drw, colors[SchemeTitle], 3);
 }
 
 void
@@ -55,11 +57,12 @@ drawbar(Monitor *m)
 	/* add widgets */
 	get_widgets(stext, sizeof(stext));
 
-	/* draw status first so it can be overdrawn by tags later */
+	/* draw status bar */
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	sw = text_width(stext) - lrpad / 2; /* no right padding so status text hugs the corner */
 	drw_text(drw, m->ww - sw, 0, sw, bar_height, lrpad / 2 - 2, stext, 0);
 
+	/* draw tags */
 	for (c = m->clients; c; c = c->next) {
 		occ |= c->tags;
 		if (c->isurgent)
@@ -76,13 +79,16 @@ drawbar(Monitor *m)
 			         urg & 1 << i);
 		x += w;
 	}
+
+	/* draw layouts */
 	w = bar_width = text_width(m->ltsymbol);
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	x = drw_text(drw, x, 0, w, bar_height, lrpad / 2, m->ltsymbol, 0);
 
+	/* draw windows title */
 	if ((w = m->ww - sw - x) > bar_height) {
 		if (m->sel) {
-			drw_setscheme(drw, scheme[m == selmon ? SchemeSel : SchemeNorm]);
+			drw_setscheme(drw, scheme[m == selmon ? SchemeTitle : SchemeNorm]);
 			drw_text(drw, x, 0, w, bar_height, lrpad / 2, m->sel->name, 0);
 			if (m->sel->isfloating)
 				drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);

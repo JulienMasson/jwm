@@ -16,7 +16,6 @@
 /* Macros */
 #define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
                                * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
-#define TAGMASK                 ((1 << LENGTH(tags)) - 1)
 
 /* static vars */
 static const unsigned int snap     = 32;   /* snap pixel */
@@ -733,8 +732,8 @@ spawn(const Arg *arg)
 void
 tag(const Arg *arg)
 {
-	if (selmon->sel && arg->ui & TAGMASK) {
-		selmon->sel->tags = arg->ui & TAGMASK;
+	if (selmon->sel) {
+		selmon->sel->tags = arg->ui;
 		focus(selmon, NULL);
 		arrange(selmon);
 	}
@@ -757,12 +756,9 @@ togglefloating(const Arg *arg)
 void
 view(const Arg *arg)
 {
-	/* check the current tag */
-	if ((arg->ui & TAGMASK) != selmon->current_tag) {
-		selmon->current_tag = arg->ui & TAGMASK;
-		focus(selmon, NULL);
-		arrange(selmon);
-	}
+	selmon->current_tag = arg->ui;
+	focus(selmon, NULL);
+	arrange(selmon);
 }
 
 void

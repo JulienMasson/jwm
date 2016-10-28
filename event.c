@@ -64,13 +64,12 @@ handle_events(XEvent ev)
 void
 buttonpress(XEvent *e)
 {
-	unsigned int i, x;
+	unsigned int i;
 	click_t click;
 	Arg arg = {0};
 	Client *c;
 	Monitor *m;
 	XButtonPressedEvent *ev = &e->xbutton;
-	int bl = get_bar_width();
 
 	click = ClkRootWin;
 	/* focus monitor if necessary */
@@ -80,19 +79,10 @@ buttonpress(XEvent *e)
 		focus(selmon, NULL);
 	}
 	if (ev->window == selmon->barwin) {
-		i = x = 0;
-		do
-			x += text_width(tags[i]);
-		while (ev->x >= x && ++i < LENGTH(tags));
-		if (i < LENGTH(tags)) {
+		if ( (i = click_on_bar(ev->x)) != -1) {
 			click = ClkTagBar;
 			arg.ui = 1 << i;
-		} else if (ev->x < x + bl)
-			click = ClkLtSymbol;
-		/* else if (ev->x > selmon->ww - TEXTW(stext)) */
-		/* 	click = ClkStatusText; */
-		else
-			click = ClkWinTitle;
+		}
 	} else if ((c = wintoclient(ev->window))) {
 		m = get_monitor_from_client(c);
 		focus(m, c);

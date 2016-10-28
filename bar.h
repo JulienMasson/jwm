@@ -23,5 +23,6 @@ int get_bar_height(void);
 int get_bar_width(void);
 unsigned long get_scheme_pixel(scheme_t type);
 void cleanup_bar(void);
+int click_on_bar(int x);
 
 #endif

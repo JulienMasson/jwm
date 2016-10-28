@@ -147,6 +147,19 @@ text_width(const char *text)
 }
 
 int
+click_on_bar(int x)
+{
+	unsigned int i = 0, index = 0;
+	do
+		index += text_width(tags[i]);
+	while (x >= index && ++i < LENGTH(tags));
+	if (i < LENGTH(tags))
+		return i;
+	else
+		return -1;
+}
+
+int
 get_bar_height(void)
 {
 	return bar_height;

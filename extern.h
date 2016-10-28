@@ -9,9 +9,6 @@
 /* tags */
 extern const char *tags[4];
 
-/* Layouts */
-extern const Layout layouts[3];
-
 /* jwm vars */
 extern Atom wmatom[WMLast], netatom[NetLast];
 extern Display *dpy;

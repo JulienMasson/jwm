@@ -13,7 +13,8 @@ SRC = 	drw.c \
 	cursor.c \
 	font.c \
 	widgets.c \
-	date.c
+	date.c \
+	layout.c
 
 OBJ = ${SRC:.c=.o}
 

@@ -11,19 +11,12 @@
 #include "bar.h"
 #include "key.h"
 #include "screen.h"
+#include "layout.h"
 
 /* Macros */
 #define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
                                * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
-
-/* Global vars */
-const Layout layouts[3] = {
-	/* symbol     arrange function */
-	{ "[ F ]",      NULL },    /* no layout function means floating behavior */
-	{ "[ T ]",      tile },    /* first entry is default */
-	{ "[ M ]",      monocle },
-};
 
 /* static vars */
 static const unsigned int borderpx = 0;    /* border pixel of windows */
@@ -81,7 +74,7 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 		*h = bh;
 	if (*w < bh)
 		*w = bh;
-	if (c->isfloating || !layouts[m->current_layout].arrange) {
+	if (c->isfloating || (m->current_layout == floating)) {
 		/* see last two sentences in ICCCM 4.1.2.3 */
 		baseismin = c->basew == c->minw && c->baseh == c->minh;
 		if (!baseismin) { /* temporarily remove base dimensions */
@@ -196,7 +189,7 @@ showhide(Monitor *m, Client *c)
 	if (ISVISIBLE(c,m)) {
 		/* show clients top down */
 		XMoveWindow(dpy, c->win, c->x, c->y);
-		if ((!layouts[m->current_layout].arrange || c->isfloating) && !c->isfullscreen)
+		if (((m->current_layout == floating) || c->isfloating) && !c->isfullscreen)
 			resize(c, c->x, c->y, c->w, c->h, 0);
 		showhide(m, c->snext);
 	} else {
@@ -280,9 +273,9 @@ createmon(void)
 
 	m = ecalloc(1, sizeof(Monitor));
 	m->current_tag = 1;
-	m->current_layout = 0;
+	m->current_layout = floating;
 	m->nmaster = nmaster;
-	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
+	strncpy(m->ltsymbol, get_layout(m->current_layout).symbol, sizeof m->ltsymbol);
 	return m;
 }
 
@@ -328,9 +321,9 @@ restack(Monitor *m)
 	drawbar(m);
 	if (!m->sel)
 		return;
-	if (m->sel->isfloating || !layouts[m->current_layout].arrange)
+	if (m->sel->isfloating || (m->current_layout == floating))
 		XRaiseWindow(dpy, m->sel->win);
-	if (layouts[m->current_layout].arrange) {
+	if (m->current_layout != floating) {
 		wc.stack_mode = Below;
 		wc.sibling = m->barwin;
 		for (c = m->stack; c; c = c->snext)
@@ -341,14 +334,6 @@ restack(Monitor *m)
 	}
 	XSync(dpy, False);
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
-}
-
-Client *
-nexttiled(Client *c)
-{
-	Monitor *m = get_monitor_from_client(c);
-	for (; c && (c->isfloating || !ISVISIBLE(c,m)); c = c->next);
-	return c;
 }
 
 /* There's no way to check accesses to destroyed windows, thus those cases are
@@ -556,26 +541,10 @@ gettextprop(Window w, Atom atom, char *text, unsigned int size)
 }
 
 void
-monocle(Monitor *m)
-{
-	unsigned int n = 0;
-	Client *c;
-
-	for (c = m->clients; c; c = c->next)
-		if (ISVISIBLE(c,m))
-			n++;
-	if (n > 0) /* override layout symbol */
-		snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%d]", n);
-	for (c = nexttiled(m->clients); c; c = nexttiled(c->next))
-		resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, 0);
-}
-
-void
 arrangemon(Monitor *m)
 {
-	strncpy(m->ltsymbol, layouts[m->current_layout].symbol, sizeof m->ltsymbol);
-	if (layouts[m->current_layout].arrange)
-		layouts[m->current_layout].arrange(m);
+	strncpy(m->ltsymbol, get_layout(m->current_layout).symbol, sizeof m->ltsymbol);
+	get_layout(m->current_layout).arrange(m);
 }
 
 void
@@ -655,11 +624,11 @@ movemouse(const Arg *arg)
 					ny = selmon->wy;
 				else if (abs((selmon->wy + selmon->wh) - (ny + HEIGHT(c))) < snap)
 					ny = selmon->wy + selmon->wh - HEIGHT(c);
-				if (!c->isfloating && layouts[selmon->current_layout].arrange
+				if (!c->isfloating && (selmon->current_layout != floating)
 				    && (abs(nx - c->x) > snap || abs(ny - c->y) > snap))
 					togglefloating(NULL);
 			}
-			if (!layouts[selmon->current_layout].arrange || c->isfloating)
+			if ((selmon->current_layout == floating) || c->isfloating)
 				resize(c, nx, ny, c->w, c->h, 1);
 			break;
 		}
@@ -717,11 +686,11 @@ resizemouse(const Arg *arg)
 			if (m->wx + nw >= selmon->wx && m->wx + nw <= selmon->wx + selmon->ww
 			    && m->wy + nh >= selmon->wy && m->wy + nh <= selmon->wy + selmon->wh)
 			{
-				if (!c->isfloating && layouts[selmon->current_layout].arrange
+				if (!c->isfloating && (selmon->current_layout != floating)
 				    && (abs(nw - c->w) > snap || abs(nh - c->h) > snap))
 					togglefloating(NULL);
 			}
-			if (!layouts[selmon->current_layout].arrange || c->isfloating)
+			if ((selmon->current_layout == floating) || c->isfloating)
 				resize(c, c->x, c->y, nw, nh, 1);
 			break;
 		}
@@ -740,10 +709,10 @@ void
 nextlayout(const Arg *arg)
 {
 	/* increment layout selected */
-	selmon->current_layout = (selmon->current_layout + 1) % LENGTH(layouts);
+	selmon->current_layout = (selmon->current_layout + 1) % last_layout;
 
 	/* copy symbol to selected monitor */
-	strncpy(selmon->ltsymbol, layouts[selmon->current_layout].symbol, sizeof selmon->ltsymbol);
+	strncpy(selmon->ltsymbol, get_layout(selmon->current_layout).symbol, sizeof selmon->ltsymbol);
 
 	if (selmon->sel)
 		arrange(selmon);
@@ -773,32 +742,6 @@ tag(const Arg *arg)
 		focus(selmon, NULL);
 		arrange(selmon);
 	}
-}
-
-void
-tile(Monitor *m)
-{
-	unsigned int i, n, h, mw, my, ty;
-	Client *c;
-
-	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
-	if (n == 0)
-		return;
-
-	if (n > m->nmaster)
-		mw = m->nmaster ? m->ww / 2 : 0; /* windows split by 2 */
-	else
-		mw = m->ww;
-	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
-		if (i < m->nmaster) {
-			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
-			resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), 0);
-			my += HEIGHT(c);
-		} else {
-			h = (m->wh - ty) / (n - i);
-			resize(c, m->wx + mw, m->wy + ty, m->ww - mw - (2*c->bw), h - (2*c->bw), 0);
-			ty += HEIGHT(c);
-		}
 }
 
 void

@@ -6,6 +6,13 @@
 #include "jwm.h"
 #include "client.h"
 
+typedef enum {
+	floating,
+	tiling,
+	tab,
+	last_layout,
+} layout_t;
+
 typedef struct Monitor Monitor;
 struct Monitor {
 	char ltsymbol[16];
@@ -15,7 +22,7 @@ struct Monitor {
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
 	unsigned int current_tag;
-	unsigned int current_layout;
+	layout_t current_layout;
 	Client *clients;
 	Client *sel;
 	Client *stack;

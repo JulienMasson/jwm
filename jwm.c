@@ -171,8 +171,10 @@ main(int argc, char *argv[])
 		die("jwm: cannot open display");
 
 	/* log file */
-	freopen(".jwm.log", "a", stdout); setbuf(stdout, NULL);
-	freopen(".jwm.log", "a", stderr); setbuf(stderr, NULL);
+	if (freopen(".jwm.log", "a", stdout))
+		setbuf(stdout, NULL);
+	if (freopen(".jwm.log", "a", stderr))
+		setbuf(stderr, NULL);
 
 	/* setup all features */
 	setup();

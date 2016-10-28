@@ -100,6 +100,12 @@ setclientstate(Client *c, long state)
 }
 
 void
+fullscreen(const Arg *arg)
+{
+	setfullscreen(selmon->sel, !selmon->sel->isfullscreen);
+}
+
+void
 killclient(const Arg *arg)
 {
 	if (!selmon->sel)

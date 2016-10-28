@@ -29,5 +29,6 @@ void updatewmhints(Client *c);
 void updatetitle(Client *c);
 void updatewindowtype(Client *c);
 void setclientstate(Client *c, long state);
+void fullscreen(const Arg *arg);
 
 #endif

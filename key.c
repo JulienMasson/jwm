@@ -54,6 +54,7 @@ static Key keys[19] = {
 	TAGKEYS(                        XK_eacute,                 1)
 	TAGKEYS(                        XK_quotedbl,               2)
 	TAGKEYS(                        XK_apostrophe,             3)
+	{ MODKEY,                       XK_f,      fullscreen,     {0} },
 	{ MODKEY,                       XK_space,  nextlayout,     {0} },
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
 };

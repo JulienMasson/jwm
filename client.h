@@ -4,24 +4,31 @@
 #include "drw.h"
 #include "jwm.h"
 
-void focus(Client *c);
+typedef struct Client Client;
+struct Client {
+	char name[256];
+	float mina, maxa;
+	int x, y, w, h;
+	int oldx, oldy, oldw, oldh;
+	int basew, baseh, incw, inch, maxw, maxh, minw, minh;
+	int bw, oldbw;
+	unsigned int tags;
+	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
+	Client *next;
+	Client *snext;
+	Window win;
+};
+
+void clearurgent(Client *c);
 void unfocus(Client *c, int setfocus);
 void setfocus(Client *c);
 void resize(Client *c, int x, int y, int w, int h, int interact);
 void resizeclient(Client *c, int x, int y, int w, int h);
-void attach(Client *c);
-void detach(Client *c);
-void attachstack(Client *c);
-void detachstack(Client *c);
-void showhide(Client *c);
-void setfullscreen(Client *c, int fullscreen);
-void pop(Client *c);
 void configure(Client *c);
 void updatesizehints(Client *c);
 void updatewmhints(Client *c);
 void updatetitle(Client *c);
 void updatewindowtype(Client *c);
 void setclientstate(Client *c, long state);
-void updateclientlist(void);
 
 #endif

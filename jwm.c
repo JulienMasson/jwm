@@ -156,7 +156,7 @@ setup()
 	grabkeys();
 
 	/* focus main screen */
-	focus(NULL);
+	focus(selmon, NULL);
 }
 
 int

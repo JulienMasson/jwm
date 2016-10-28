@@ -9,99 +9,7 @@
 #include "screen.h"
 
 /* Static vars */
-static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
 static const char broken[] = "broken";
-
-
-int
-applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
-{
-	int baseismin;
-	Monitor *m = c->mon;
-	int sh = get_screen()->height;
-	int sw = get_screen()->width;
-	int bh = get_bar_height();
-
-	/* set minimum possible */
-	*w = MAX(1, *w);
-	*h = MAX(1, *h);
-	if (interact) {
-		if (*x > sw)
-			*x = sw - WIDTH(c);
-		if (*y > sh)
-			*y = sh - HEIGHT(c);
-		if (*x + *w + 2 * c->bw < 0)
-			*x = 0;
-		if (*y + *h + 2 * c->bw < 0)
-			*y = 0;
-	} else {
-		if (*x >= m->wx + m->ww)
-			*x = m->wx + m->ww - WIDTH(c);
-		if (*y >= m->wy + m->wh)
-			*y = m->wy + m->wh - HEIGHT(c);
-		if (*x + *w + 2 * c->bw <= m->wx)
-			*x = m->wx;
-		if (*y + *h + 2 * c->bw <= m->wy)
-			*y = m->wy;
-	}
-	if (*h < bh)
-		*h = bh;
-	if (*w < bh)
-		*w = bh;
-	if (resizehints || c->isfloating || !layouts[c->mon->current_layout].arrange) {
-		/* see last two sentences in ICCCM 4.1.2.3 */
-		baseismin = c->basew == c->minw && c->baseh == c->minh;
-		if (!baseismin) { /* temporarily remove base dimensions */
-			*w -= c->basew;
-			*h -= c->baseh;
-		}
-		/* adjust for aspect limits */
-		if (c->mina > 0 && c->maxa > 0) {
-			if (c->maxa < (float)*w / *h)
-				*w = *h * c->maxa + 0.5;
-			else if (c->mina < (float)*h / *w)
-				*h = *w * c->mina + 0.5;
-		}
-		if (baseismin) { /* increment calculation requires this */
-			*w -= c->basew;
-			*h -= c->baseh;
-		}
-		/* adjust for increment value */
-		if (c->incw)
-			*w -= *w % c->incw;
-		if (c->inch)
-			*h -= *h % c->inch;
-		/* restore base dimensions */
-		*w = MAX(*w + c->basew, c->minw);
-		*h = MAX(*h + c->baseh, c->minh);
-		if (c->maxw)
-			*w = MIN(*w, c->maxw);
-		if (c->maxh)
-			*h = MIN(*h, c->maxh);
-	}
-	return *x != c->x || *y != c->y || *w != c->w || *h != c->h;
-}
-
-void
-attachstack(Client *c)
-{
-	c->snext = c->mon->stack;
-	c->mon->stack = c;
-}
-
-void
-detachstack(Client *c)
-{
-	Client **tc, *t;
-
-	for (tc = &c->mon->stack; *tc && *tc != c; tc = &(*tc)->snext);
-	*tc = c->snext;
-
-	if (c == c->mon->sel) {
-		for (t = c->mon->stack; t && !ISVISIBLE(t); t = t->snext);
-		c->mon->sel = t;
-	}
-}
 
 void
 clearurgent(Client *c)
@@ -130,48 +38,6 @@ unfocus(Client *c, int setfocus)
 }
 
 void
-focus(Client *c)
-{
-	if (!c || !ISVISIBLE(c))
-		for (c = selmon->stack; c && !ISVISIBLE(c); c = c->snext);
-	/* was if (selmon->sel) */
-	if (selmon->sel && selmon->sel != c)
-		unfocus(selmon->sel, 0);
-	if (c) {
-		if (c->mon != selmon)
-			selmon = c->mon;
-		if (c->isurgent)
-			clearurgent(c);
-		detachstack(c);
-		attachstack(c);
-		grabbuttons(c, 1);
-		XSetWindowBorder(dpy, c->win, get_scheme_pixel(SchemeSel));
-		setfocus(c);
-	} else {
-		XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
-		XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
-	}
-	selmon->sel = c;
-	drawbars();
-}
-
-void
-attach(Client *c)
-{
-	c->next = c->mon->clients;
-	c->mon->clients = c;
-}
-
-void
-detach(Client *c)
-{
-	Client **tc;
-
-	for (tc = &c->mon->clients; *tc && *tc != c; tc = &(*tc)->next);
-	*tc = c->next;
-}
-
-void
 setfocus(Client *c)
 {
 	if (!c->neverfocus) {
@@ -181,33 +47,6 @@ setfocus(Client *c)
 		                (unsigned char *) &(c->win), 1);
 	}
 	sendevent(c, wmatom[WMTakeFocus]);
-}
-
-void
-pop(Client *c)
-{
-	detach(c);
-	attach(c);
-	focus(c);
-	arrange(c->mon);
-}
-
-void
-showhide(Client *c)
-{
-	if (!c)
-		return;
-	if (ISVISIBLE(c)) {
-		/* show clients top down */
-		XMoveWindow(dpy, c->win, c->x, c->y);
-		if ((!layouts[c->mon->current_layout].arrange || c->isfloating) && !c->isfullscreen)
-			resize(c, c->x, c->y, c->w, c->h, 0);
-		showhide(c->snext);
-	} else {
-		/* hide clients bottom up */
-		showhide(c->snext);
-		XMoveWindow(dpy, c->win, WIDTH(c) * -2, c->y);
-	}
 }
 
 void
@@ -274,48 +113,6 @@ killclient(const Arg *arg)
 		XSetErrorHandler(xerror);
 		XUngrabServer(dpy);
 	}
-}
-
-void
-setfullscreen(Client *c, int fullscreen)
-{
-	if (fullscreen && !c->isfullscreen) {
-		XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32,
-		                PropModeReplace, (unsigned char*)&netatom[NetWMFullscreen], 1);
-		c->isfullscreen = 1;
-		c->oldstate = c->isfloating;
-		c->oldbw = c->bw;
-		c->bw = 0;
-		c->isfloating = 1;
-		resizeclient(c, c->mon->mx, c->mon->my, c->mon->mw, c->mon->mh);
-		XRaiseWindow(dpy, c->win);
-	} else if (!fullscreen && c->isfullscreen){
-		XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32,
-		                PropModeReplace, (unsigned char*)0, 0);
-		c->isfullscreen = 0;
-		c->isfloating = c->oldstate;
-		c->bw = c->oldbw;
-		c->x = c->oldx;
-		c->y = c->oldy;
-		c->w = c->oldw;
-		c->h = c->oldh;
-		resizeclient(c, c->x, c->y, c->w, c->h);
-		arrange(c->mon);
-	}
-}
-
-void
-updateclientlist(void)
-{
-	Client *c;
-	Monitor *m;
-
-	XDeleteProperty(dpy, root, netatom[NetClientList]);
-	for (m = mons; m; m = m->next)
-		for (c = m->clients; c; c = c->next)
-			XChangeProperty(dpy, root, netatom[NetClientList],
-			                XA_WINDOW, 32, PropModeAppend,
-			                (unsigned char *) &(c->win), 1);
 }
 
 void

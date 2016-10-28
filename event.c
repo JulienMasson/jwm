@@ -76,7 +76,7 @@ buttonpress(XEvent *e)
 	if ((m = wintomon(ev->window)) && m != selmon) {
 		unfocus(selmon->sel, 1);
 		selmon = m;
-		focus(NULL);
+		focus(selmon, NULL);
 	}
 	if (ev->window == selmon->barwin) {
 		i = x = 0;
@@ -93,7 +93,8 @@ buttonpress(XEvent *e)
 		else
 			click = ClkWinTitle;
 	} else if ((c = wintoclient(ev->window))) {
-		focus(c);
+		m = get_monitor_from_client(c);
+		focus(m, c);
 		click = ClkClientWin;
 	}
 
@@ -113,8 +114,9 @@ clientmessage(XEvent *e)
 			setfullscreen(c, (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
 					  || (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */ && !c->isfullscreen)));
 	} else if (cme->message_type == netatom[NetActiveWindow]) {
-		if (!ISVISIBLE(c)) {
-			c->mon->current_tag = c->tags;
+		Monitor *m = get_monitor_from_client(c);
+		if (!ISVISIBLE(c, m)) {
+			m->current_tag = c->tags;
 		}
 		pop(c);
 	}
@@ -124,7 +126,6 @@ void
 configurerequest(XEvent *e)
 {
 	Client *c;
-	Monitor *m;
 	XConfigureRequestEvent *ev = &e->xconfigurerequest;
 	XWindowChanges wc;
 
@@ -132,7 +133,7 @@ configurerequest(XEvent *e)
 		if (ev->value_mask & CWBorderWidth)
 			c->bw = ev->border_width;
 		else if (c->isfloating || !layouts[selmon->current_layout].arrange) {
-			m = c->mon;
+			Monitor *m = get_monitor_from_client(c);
 			if (ev->value_mask & CWX) {
 				c->oldx = c->x;
 				c->x = m->mx + ev->x;
@@ -155,7 +156,7 @@ configurerequest(XEvent *e)
 				c->y = m->my + (m->mh / 2 - HEIGHT(c) / 2); /* center in y direction */
 			if ((ev->value_mask & (CWX|CWY)) && !(ev->value_mask & (CWWidth|CWHeight)))
 				configure(c);
-			if (ISVISIBLE(c))
+			if (ISVISIBLE(c, m))
 				XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
 		} else
 			configure(c);
@@ -197,7 +198,7 @@ configurenotify(XEvent *e)
 						resizeclient(c, m->mx, m->my, m->mw, m->mh);
 				XMoveResizeWindow(dpy, m->barwin, m->wx, m->by, m->ww, bh);
 			}
-			focus(NULL);
+			focus(m, NULL);
 			arrange(NULL);
 		}
 	}
@@ -223,13 +224,13 @@ enternotify(XEvent *e)
 	if ((ev->mode != NotifyNormal || ev->detail == NotifyInferior) && ev->window != root)
 		return;
 	c = wintoclient(ev->window);
-	m = c ? c->mon : wintomon(ev->window);
+	m = c ? get_monitor_from_client(c) : wintomon(ev->window);
 	if (m != selmon) {
 		unfocus(selmon->sel, 1);
 		selmon = m;
 	} else if (!c || c == selmon->sel)
 		return;
-	focus(c);
+	focus(selmon, c);
 }
 
 void
@@ -295,7 +296,7 @@ motionnotify(XEvent *e)
 	if ((m = recttomon(ev->x_root, ev->y_root, 1, 1)) != mon && mon) {
 		unfocus(selmon->sel, 1);
 		selmon = m;
-		focus(NULL);
+		focus(selmon, NULL);
 	}
 	mon = m;
 }
@@ -312,12 +313,13 @@ propertynotify(XEvent *e)
 	else if (ev->state == PropertyDelete)
 		return; /* ignore */
 	else if ((c = wintoclient(ev->window))) {
+		Monitor *m = get_monitor_from_client(c);
 		switch(ev->atom) {
 		default: break;
 		case XA_WM_TRANSIENT_FOR:
 			if (!c->isfloating && (XGetTransientForHint(dpy, c->win, &trans)) &&
 			    (c->isfloating = (wintoclient(trans)) != NULL))
-				arrange(c->mon);
+				arrange(m);
 			break;
 		case XA_WM_NORMAL_HINTS:
 			updatesizehints(c);
@@ -329,8 +331,8 @@ propertynotify(XEvent *e)
 		}
 		if (ev->atom == XA_WM_NAME || ev->atom == netatom[NetWMName]) {
 			updatetitle(c);
-			if (c == c->mon->sel)
-				drawbar(c->mon);
+			if (c == m->sel)
+				drawbar(m);
 		}
 		if (ev->atom == netatom[NetWMWindowType])
 			updatewindowtype(c);

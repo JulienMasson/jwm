@@ -2,6 +2,7 @@
 #define ATOM_H
 
 #include "jwm.h"
+#include "client.h"
 
 typedef enum {
 	NetSupported,

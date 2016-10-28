@@ -4,6 +4,7 @@
 #include <X11/Xlib.h>
 
 #include "jwm.h"
+#include "client.h"
 
 void setup_events(void);
 void handle_events(XEvent ev);

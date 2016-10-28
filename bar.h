@@ -2,6 +2,7 @@
 #define BAR_H
 
 #include "jwm.h"
+#include "window.h"
 
 typedef enum {
 	SchemeNorm,

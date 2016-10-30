@@ -18,7 +18,6 @@
                                * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
 
 /* static vars */
-static const unsigned int snap     = 32;   /* snap pixel */
 static int running = 1;
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 
@@ -603,24 +602,24 @@ movemouse(const Arg *arg)
 				continue;
 			lasttime = ev.xmotion.time;
 
+			/* get motion values */
 			nx = ocx + (ev.xmotion.x - x);
 			ny = ocy + (ev.xmotion.y - y);
-			if (nx >= selmon->wx && nx <= selmon->wx + selmon->ww
-			    && ny >= selmon->wy && ny <= selmon->wy + selmon->wh) {
-				if (abs(selmon->wx - nx) < snap)
-					nx = selmon->wx;
-				else if (abs((selmon->wx + selmon->ww) - (nx + WIDTH(c))) < snap)
-					nx = selmon->wx + selmon->ww - WIDTH(c);
-				if (abs(selmon->wy - ny) < snap)
-					ny = selmon->wy;
-				else if (abs((selmon->wy + selmon->wh) - (ny + HEIGHT(c))) < snap)
-					ny = selmon->wy + selmon->wh - HEIGHT(c);
-				if (!c->isfloating && (selmon->current_layout != floating)
-				    && (abs(nx - c->x) > snap || abs(ny - c->y) > snap))
-					togglefloating(NULL);
-			}
-			if ((selmon->current_layout == floating) || c->isfloating)
-				resize(c, nx, ny, c->w, c->h, 1);
+
+			/* Client hit the top */
+			if (ny < selmon->wy)
+				ny = selmon->wy;
+
+			/* Client hit the bottom */
+			if (ny + c->h > selmon->mh)
+				ny = selmon->mh - c->h;
+
+			/* toggle floationg in case the client isn't */
+			if (!c->isfloating && (selmon->current_layout != floating))
+				togglefloating(NULL);
+
+			/* resize client */
+			resize(c, nx, ny, c->w, c->h, 1);
 			break;
 		}
 	} while (ev.type != ButtonRelease);
@@ -659,7 +658,6 @@ resizemouse(const Arg *arg)
 		return;
 	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w - 1, c->h - 1);
 	do {
-		Monitor *m = get_monitor_from_client(c);
 		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
 		switch(ev.type) {
 		case ConfigureRequest:
@@ -674,15 +672,17 @@ resizemouse(const Arg *arg)
 
 			nw = MAX(ev.xmotion.x - ocx + 1, 1);
 			nh = MAX(ev.xmotion.y - ocy + 1, 1);
-			if (m->wx + nw >= selmon->wx && m->wx + nw <= selmon->wx + selmon->ww
-			    && m->wy + nh >= selmon->wy && m->wy + nh <= selmon->wy + selmon->wh)
-			{
-				if (!c->isfloating && (selmon->current_layout != floating)
-				    && (abs(nw - c->w) > snap || abs(nh - c->h) > snap))
-					togglefloating(NULL);
-			}
-			if ((selmon->current_layout == floating) || c->isfloating)
-				resize(c, c->x, c->y, nw, nh, 1);
+
+			/* Client hit the bottom */
+			if (nh + c->y > selmon->mh)
+				nh = selmon->mh - c->y;
+
+			/* toggle floationg in case the client isn't */
+			if (!c->isfloating && (selmon->current_layout != floating))
+				togglefloating(NULL);
+
+			/* resize client */
+			resize(c, c->x, c->y, nw, nh, 1);
 			break;
 		}
 	} while (ev.type != ButtonRelease);

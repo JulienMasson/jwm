@@ -15,8 +15,6 @@ typedef enum {
 
 typedef struct Monitor Monitor;
 struct Monitor {
-	char ltsymbol[16];
-	int nmaster;
 	int num;
 	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */

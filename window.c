@@ -19,7 +19,6 @@
 
 /* static vars */
 static const unsigned int snap     = 32;   /* snap pixel */
-static const int nmaster           = 1;    /* number of clients in master area */
 static int running = 1;
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 
@@ -269,8 +268,6 @@ createmon(void)
 	m = ecalloc(1, sizeof(Monitor));
 	m->current_tag = 1;
 	m->current_layout = floating;
-	m->nmaster = nmaster;
-	strncpy(m->ltsymbol, get_layout(m->current_layout).symbol, sizeof m->ltsymbol);
 	return m;
 }
 
@@ -538,7 +535,6 @@ gettextprop(Window w, Atom atom, char *text, unsigned int size)
 void
 arrangemon(Monitor *m)
 {
-	strncpy(m->ltsymbol, get_layout(m->current_layout).symbol, sizeof m->ltsymbol);
 	get_layout(m->current_layout).arrange(m);
 }
 
@@ -706,8 +702,6 @@ nextlayout(const Arg *arg)
 	/* increment layout selected */
 	selmon->current_layout = (selmon->current_layout + 1) % last_layout;
 
-	/* copy symbol to selected monitor */
-	strncpy(selmon->ltsymbol, get_layout(selmon->current_layout).symbol, sizeof selmon->ltsymbol);
 
 	if (selmon->sel)
 		arrange(selmon);

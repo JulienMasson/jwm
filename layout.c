@@ -9,7 +9,7 @@ static void tile_layout(Monitor *m);
 static void tab_layout(Monitor *m);
 
 /* Global vars */
-const Layout layouts[last_layout] = {
+static Layout layouts[last_layout] = {
 	/* symbol     arrange function */
 	{ "[ F ]",    float_layout },
 	{ "[ T ]",    tile_layout  },
@@ -33,40 +33,38 @@ float_layout(Monitor *m)
 void
 tile_layout(Monitor *m)
 {
-	unsigned int i, n, h, mw, my, ty;
+	unsigned int i, n, h, mw, ty;
 	Client *c;
 
 	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
 	if (n == 0)
 		return;
 
-	if (n > m->nmaster)
-		mw = m->nmaster ? m->ww / 2 : 0; /* windows split by 2 */
+	/* windows split by 2 */
+	if ( n > 1)
+		mw = m->ww / 2;
 	else
 		mw = m->ww;
-	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
-		if (i < m->nmaster) {
-			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
-			resize(c, m->wx, m->wy + my, mw, h, 0);
-			my += HEIGHT(c);
-		} else {
+
+	/* master client */
+	c = nexttiled(m->clients);
+	resize(c, m->wx, m->wy, mw, m->wh, 0);
+	c = nexttiled(c->next);
+
+	/* tiled client */
+	if (c) {
+		for (i = 1, ty = 0; c; c = nexttiled(c->next), i++) {
 			h = (m->wh - ty) / (n - i);
 			resize(c, m->wx + mw, m->wy + ty, m->ww - mw, h, 0);
 			ty += HEIGHT(c);
 		}
+	}
 }
 
 void
 tab_layout(Monitor *m)
 {
-	unsigned int n = 0;
 	Client *c;
-
-	for (c = m->clients; c; c = c->next)
-		if (ISVISIBLE(c,m))
-			n++;
-	if (n > 0) /* override layout symbol */
-		snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%d]", n);
 	for (c = nexttiled(m->clients); c; c = nexttiled(c->next))
 		resize(c, m->wx, m->wy, m->ww, m->wh, 0);
 }

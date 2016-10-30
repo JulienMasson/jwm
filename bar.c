@@ -5,6 +5,7 @@
 #include "screen.h"
 #include "util.h"
 #include "widgets.h"
+#include "layout.h"
 
 /* Macros */
 #define ColBorder               2
@@ -53,6 +54,7 @@ drawbar(Monitor *m)
 	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0;
 	Client *c;
+	Layout layout = get_layout(m->current_layout);
 
 	/* add widgets */
 	get_widgets(stext, sizeof(stext));
@@ -81,9 +83,9 @@ drawbar(Monitor *m)
 	}
 
 	/* draw layouts */
-	w = bar_width = text_width(m->ltsymbol);
+	w = bar_width = text_width(layout.symbol);
 	drw_setscheme(drw, scheme[SchemeNorm]);
-	x = drw_text(drw, x, 0, w, bar_height, lrpad / 2, m->ltsymbol, 0);
+	x = drw_text(drw, x, 0, w, bar_height, lrpad / 2, layout.symbol, 0);
 
 	/* draw windows title */
 	if ((w = m->ww - sw - x) > bar_height) {

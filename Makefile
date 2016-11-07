@@ -1,37 +1,22 @@
 include config.mk
 
-SRC = 	drw.c \
-	jwm.c \
-	bar.c \
-	util.c \
-	window.c \
-	event.c \
-	screen.c \
-	atom.c \
-	key.c \
-	client.c \
-	cursor.c \
-	font.c \
-	widgets.c \
-	date.c \
-	layout.c
-
-OBJ = ${SRC:.c=.o}
+SRCS := $(wildcard *.c)
+OBJS := $(patsubst %.c,obj/%.o,$(SRCS))
 
 all: jwm
 
-.c.o:
-	@echo CC $<
-	@${CC} -c ${CFLAGS} $<
-
-${OBJ}: config.mk
-
-jwm: ${OBJ}
+jwm: ${OBJS}
 	@echo CC -o $@
-	@${CC} -o $@ ${OBJ} ${LDFLAGS}
+	@${CC} -o $@ $^ ${LDFLAGS}
+
+obj/%.o : %.c
+	@mkdir -p obj
+	@echo CC $^
+	@${CC} -c ${CFLAGS} -o obj/$*.o $<
 
 clean:
 	@echo cleaning
-	@rm -f jwm ${OBJ}
+	@rm -f jwm
+	@rm -rf obj
 
 .PHONY: all clean

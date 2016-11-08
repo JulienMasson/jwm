@@ -14,8 +14,8 @@
 #include "layout.h"
 
 /* Macros */
-#define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
-                               * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
+#define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->window.x+(m)->window.width) - MAX((x),(m)->window.x)) \
+                               * MAX(0, MIN((y)+(h),(m)->window.y+(m)->window.height) - MAX((y),(m)->window.y)))
 
 /* static vars */
 static int running = 1;
@@ -57,14 +57,14 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 		if (*y + *h < 0)
 			*y = 0;
 	} else {
-		if (*x >= m->wx + m->ww)
-			*x = m->wx + m->ww - WIDTH(c);
-		if (*y >= m->wy + m->wh)
-			*y = m->wy + m->wh - HEIGHT(c);
-		if (*x + *w <= m->wx)
-			*x = m->wx;
-		if (*y + *h <= m->wy)
-			*y = m->wy;
+		if (*x >= m->window.x + m->window.width)
+			*x = m->window.x + m->window.width - WIDTH(c);
+		if (*y >= m->window.y + m->window.height)
+			*y = m->window.y + m->window.height - HEIGHT(c);
+		if (*x + *w <= m->window.x)
+			*x = m->window.x;
+		if (*y + *h <= m->window.y)
+			*y = m->window.y;
 	}
 	if (*h < bh)
 		*h = bh;
@@ -401,10 +401,10 @@ updategeom(void)
 				{
 					dirty = 1;
 					m->num = i;
-					m->screen.x = m->wx = unique[i].x_org;
-					m->screen.y = m->wy = unique[i].y_org;
-					m->screen.width = m->ww = unique[i].width;
-					m->screen.height = m->wh = unique[i].height;
+					m->screen.x = m->window.x = unique[i].x_org;
+					m->screen.y = m->window.y = unique[i].y_org;
+					m->screen.width = m->window.width = unique[i].width;
+					m->screen.height = m->window.height = unique[i].height;
 					updatebarpos(m);
 				}
 		} else {
@@ -432,8 +432,8 @@ updategeom(void)
 			mons = createmon();
 		if (mons->screen.width != sw || mons->screen.height != sh) {
 			dirty = 1;
-			mons->screen.width = mons->ww = sw;
-			mons->screen.height = mons->wh = sh;
+			mons->screen.width = mons->window.width = sw;
+			mons->screen.height = mons->window.height = sh;
 			updatebarpos(mons);
 		}
 	}
@@ -607,8 +607,8 @@ movemouse(const Arg *arg)
 			ny = ocy + (ev.xmotion.y - y);
 
 			/* Client hit the top */
-			if (ny < selmon->wy)
-				ny = selmon->wy;
+			if (ny < selmon->window.y)
+				ny = selmon->window.y;
 
 			/* Client hit the bottom */
 			if (ny + c->h > selmon->screen.height)
@@ -788,8 +788,8 @@ manage(Window w, XWindowAttributes *wa)
 		c->y = m->screen.y + m->screen.height - HEIGHT(c);
 	c->x = MAX(c->x, m->screen.x);
 	/* only fix client y-offset, if the client center might cover the bar */
-	c->y = MAX(c->y, ((m->by == m->screen.y) && (c->x + (c->w / 2) >= m->wx)
-			  && (c->x + (c->w / 2) < m->wx + m->ww)) ? bh : m->screen.y);
+	c->y = MAX(c->y, ((m->by == m->screen.y) && (c->x + (c->w / 2) >= m->window.x)
+			  && (c->x + (c->w / 2) < m->window.x + m->window.width)) ? bh : m->screen.y);
 
 	wc.border_width = 0; /* no border */
 	XConfigureWindow(dpy, w, CWBorderWidth, &wc);

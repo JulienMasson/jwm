@@ -62,7 +62,7 @@ drawbar(Monitor *m)
 	/* draw status bar */
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	sw = text_width(stext) - lrpad / 2; /* no right padding so status text hugs the corner */
-	drw_text(drw, m->ww - sw, 0, sw, bar_height, lrpad / 2 - 2, stext, 0);
+	drw_text(drw, m->window.width - sw, 0, sw, bar_height, lrpad / 2 - 2, stext, 0);
 
 	/* draw tags */
 	for (c = m->clients; c; c = c->next) {
@@ -88,7 +88,7 @@ drawbar(Monitor *m)
 	x = drw_text(drw, x, 0, w, bar_height, lrpad / 2, layout.symbol, 0);
 
 	/* draw windows title */
-	if ((w = m->ww - sw - x) > bar_height) {
+	if ((w = m->window.width - sw - x) > bar_height) {
 		if (m->sel) {
 			drw_setscheme(drw, scheme[m == selmon ? SchemeTitle : SchemeNorm]);
 			drw_text(drw, x, 0, w, bar_height, lrpad / 2, m->sel->name, 0);
@@ -99,7 +99,7 @@ drawbar(Monitor *m)
 			drw_rect(drw, x, 0, w, bar_height, 1, 1);
 		}
 	}
-	drw_map(drw, m->barwin, 0, 0, m->ww, bar_height);
+	drw_map(drw, m->barwin, 0, 0, m->window.width, bar_height);
 }
 
 void
@@ -114,11 +114,11 @@ drawbars(void)
 void
 updatebarpos(Monitor *m)
 {
-	m->wy = m->screen.y;
-	m->wh = m->screen.height;
-	m->wh -= bar_height;
-	m->by = m->wy;
-	m->wy = m->wy + bar_height;
+	m->window.y = m->screen.y;
+	m->window.height = m->screen.height;
+	m->window.height -= bar_height;
+	m->by = m->window.y;
+	m->window.y = m->window.y + bar_height;
 }
 
 void
@@ -134,7 +134,7 @@ updatebars(void)
 	for (m = mons; m; m = m->next) {
 		if (m->barwin)
 			continue;
-		m->barwin = XCreateWindow(dpy, root, m->wx, m->by, m->ww, bar_height, 0, DefaultDepth(dpy, snumber),
+		m->barwin = XCreateWindow(dpy, root, m->window.x, m->by, m->window.width, bar_height, 0, DefaultDepth(dpy, snumber),
 		                          CopyFromParent, DefaultVisual(dpy, snumber),
 		                          CWOverrideRedirect|CWBackPixmap|CWEventMask, &wa);
 		XDefineCursor(dpy, m->barwin, get_cursor(CurNormal));

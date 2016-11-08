@@ -42,20 +42,20 @@ tile_layout(Monitor *m)
 
 	/* windows split by 2 */
 	if ( n > 1)
-		mw = m->ww / 2;
+		mw = m->window.width / 2;
 	else
-		mw = m->ww;
+		mw = m->window.width;
 
 	/* master client */
 	c = nexttiled(m->clients);
-	resize(c, m->wx, m->wy, mw, m->wh, 0);
+	resize(c, m->window.x, m->window.y, mw, m->window.height, 0);
 	c = nexttiled(c->next);
 
 	/* tiled client */
 	if (c) {
 		for (i = 1, ty = 0; c; c = nexttiled(c->next), i++) {
-			h = (m->wh - ty) / (n - i);
-			resize(c, m->wx + mw, m->wy + ty, m->ww - mw, h, 0);
+			h = (m->window.height - ty) / (n - i);
+			resize(c, m->window.x + mw, m->window.y + ty, m->window.width - mw, h, 0);
 			ty += HEIGHT(c);
 		}
 	}
@@ -66,7 +66,7 @@ tab_layout(Monitor *m)
 {
 	Client *c;
 	for (c = nexttiled(m->clients); c; c = nexttiled(c->next))
-		resize(c, m->wx, m->wy, m->ww, m->wh, 0);
+		resize(c, m->window.x, m->window.y, m->window.width, m->window.height, 0);
 }
 
 void

@@ -157,8 +157,8 @@ configurenotify(XEvent *e)
 			for (m = mons; m; m = m->next) {
 				for (c = m->clients; c; c = c->next)
 					if (c->isfullscreen)
-						resizeclient(c, m->mx, m->my, m->mw, m->mh);
-				XMoveResizeWindow(dpy, m->barwin, m->wx, m->by, m->ww, bh);
+						resizeclient(c, m->screen.x, m->screen.y, m->screen.width, m->screen.height);
+				XMoveResizeWindow(dpy, m->barwin, m->window.x, m->by, m->window.width, bh);
 			}
 			focus(m, NULL);
 			arrange(NULL);

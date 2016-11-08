@@ -25,7 +25,7 @@ struct Monitor {
 	int num;
 	int by;               /* bar geometry */
 	area_t screen;        /* screen area */
-	int wx, wy, ww, wh;   /* window area */
+	area_t window;        /* window area */
 	unsigned int current_tag;
 	layout_t current_layout;
 	Client *clients;

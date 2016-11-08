@@ -13,12 +13,19 @@ typedef enum {
 	last_layout,
 } layout_t;
 
+typedef struct {
+	int x;
+	int y;
+	int height;
+	int width;
+} area_t;
+
 typedef struct Monitor Monitor;
 struct Monitor {
 	int num;
 	int by;               /* bar geometry */
-	int mx, my, mw, mh;   /* screen size */
-	int wx, wy, ww, wh;   /* window area  */
+	area_t screen;        /* screen area */
+	int wx, wy, ww, wh;   /* window area */
 	unsigned int current_tag;
 	layout_t current_layout;
 	Client *clients;

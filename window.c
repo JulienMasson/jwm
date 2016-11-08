@@ -205,7 +205,7 @@ setfullscreen(Client *c, int fullscreen)
 		c->isfullscreen = 1;
 		c->oldstate = c->isfloating;
 		c->isfloating = 1;
-		resizeclient(c, m->mx, m->my, m->mw, m->mh);
+		resizeclient(c, m->screen.x, m->screen.y, m->screen.width, m->screen.height);
 		XRaiseWindow(dpy, c->win);
 	} else if (!fullscreen && c->isfullscreen){
 		XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32,
@@ -396,15 +396,15 @@ updategeom(void)
 			}
 			for (i = 0, m = mons; i < nn && m; m = m->next, i++)
 				if (i >= n
-				    || (unique[i].x_org != m->mx || unique[i].y_org != m->my
-					|| unique[i].width != m->mw || unique[i].height != m->mh))
+				    || (unique[i].x_org != m->screen.x || unique[i].y_org != m->screen.y
+					|| unique[i].width != m->screen.width || unique[i].height != m->screen.height))
 				{
 					dirty = 1;
 					m->num = i;
-					m->mx = m->wx = unique[i].x_org;
-					m->my = m->wy = unique[i].y_org;
-					m->mw = m->ww = unique[i].width;
-					m->mh = m->wh = unique[i].height;
+					m->screen.x = m->wx = unique[i].x_org;
+					m->screen.y = m->wy = unique[i].y_org;
+					m->screen.width = m->ww = unique[i].width;
+					m->screen.height = m->wh = unique[i].height;
 					updatebarpos(m);
 				}
 		} else {
@@ -430,10 +430,10 @@ updategeom(void)
 	{
 		if (!mons)
 			mons = createmon();
-		if (mons->mw != sw || mons->mh != sh) {
+		if (mons->screen.width != sw || mons->screen.height != sh) {
 			dirty = 1;
-			mons->mw = mons->ww = sw;
-			mons->mh = mons->wh = sh;
+			mons->screen.width = mons->ww = sw;
+			mons->screen.height = mons->wh = sh;
 			updatebarpos(mons);
 		}
 	}
@@ -611,8 +611,8 @@ movemouse(const Arg *arg)
 				ny = selmon->wy;
 
 			/* Client hit the bottom */
-			if (ny + c->h > selmon->mh)
-				ny = selmon->mh - c->h;
+			if (ny + c->h > selmon->screen.height)
+				ny = selmon->screen.height - c->h;
 
 			/* toggle floationg in case the client isn't */
 			if (!c->isfloating && (selmon->current_layout != floating))
@@ -674,8 +674,8 @@ resizemouse(const Arg *arg)
 			nh = MAX(ev.xmotion.y - ocy + 1, 1);
 
 			/* Client hit the bottom */
-			if (nh + c->y > selmon->mh)
-				nh = selmon->mh - c->y;
+			if (nh + c->y > selmon->screen.height)
+				nh = selmon->screen.height - c->y;
 
 			/* toggle floationg in case the client isn't */
 			if (!c->isfloating && (selmon->current_layout != floating))
@@ -782,14 +782,14 @@ manage(Window w, XWindowAttributes *wa)
 		c->tags = m->current_tag;
 	}
 
-	if (c->x + WIDTH(c) > m->mx + m->mw)
-		c->x = m->mx + m->mw - WIDTH(c);
-	if (c->y + HEIGHT(c) > m->my + m->mh)
-		c->y = m->my + m->mh - HEIGHT(c);
-	c->x = MAX(c->x, m->mx);
+	if (c->x + WIDTH(c) > m->screen.x + m->screen.width)
+		c->x = m->screen.x + m->screen.width - WIDTH(c);
+	if (c->y + HEIGHT(c) > m->screen.y + m->screen.height)
+		c->y = m->screen.y + m->screen.height - HEIGHT(c);
+	c->x = MAX(c->x, m->screen.x);
 	/* only fix client y-offset, if the client center might cover the bar */
-	c->y = MAX(c->y, ((m->by == m->my) && (c->x + (c->w / 2) >= m->wx)
-			  && (c->x + (c->w / 2) < m->wx + m->ww)) ? bh : m->my);
+	c->y = MAX(c->y, ((m->by == m->screen.y) && (c->x + (c->w / 2) >= m->wx)
+			  && (c->x + (c->w / 2) < m->wx + m->ww)) ? bh : m->screen.y);
 
 	wc.border_width = 0; /* no border */
 	XConfigureWindow(dpy, w, CWBorderWidth, &wc);

@@ -76,11 +76,11 @@ layout_configure_client(XConfigureRequestEvent *ev, Client *c)
 		Monitor *m = get_monitor_from_client(c);
 		if (ev->value_mask & CWX) {
 			c->oldx = c->x;
-			c->x = m->mx + ev->x;
+			c->x = m->screen.x + ev->x;
 		}
 		if (ev->value_mask & CWY) {
 			c->oldy = c->y;
-			c->y = m->my + ev->y;
+			c->y = m->screen.y + ev->y;
 		}
 		if (ev->value_mask & CWWidth) {
 			c->oldw = c->w;
@@ -90,10 +90,10 @@ layout_configure_client(XConfigureRequestEvent *ev, Client *c)
 			c->oldh = c->h;
 			c->h = ev->height;
 		}
-		if ((c->x + c->w) > m->mx + m->mw && c->isfloating)
-			c->x = m->mx + (m->mw / 2 - WIDTH(c) / 2); /* center in x direction */
-		if ((c->y + c->h) > m->my + m->mh && c->isfloating)
-			c->y = m->my + (m->mh / 2 - HEIGHT(c) / 2); /* center in y direction */
+		if ((c->x + c->w) > m->screen.x + m->screen.width && c->isfloating)
+			c->x = m->screen.x + (m->screen.width / 2 - WIDTH(c) / 2); /* center in x direction */
+		if ((c->y + c->h) > m->screen.y + m->screen.height && c->isfloating)
+			c->y = m->screen.y + (m->screen.height / 2 - HEIGHT(c) / 2); /* center in y direction */
 		if ((ev->value_mask & (CWX|CWY)) && !(ev->value_mask & (CWWidth|CWHeight)))
 			configure(c);
 		if (ISVISIBLE(c, m))

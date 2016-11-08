@@ -114,8 +114,8 @@ drawbars(void)
 void
 updatebarpos(Monitor *m)
 {
-	m->wy = m->my;
-	m->wh = m->mh;
+	m->wy = m->screen.y;
+	m->wh = m->screen.height;
 	m->wh -= bar_height;
 	m->by = m->wy;
 	m->wy = m->wy + bar_height;

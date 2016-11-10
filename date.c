@@ -6,13 +6,21 @@
 char *
 date(void)
 {
-	static char date[17];
-	time_t t;
+	static char date[19];
+	struct tm *tm;
+	time_t ts;
 
 	memset(date, '\0', sizeof(date));
-
-	t = time(NULL);
-	snprintf(date, sizeof(date), "%s", ctime(&t));
-
+	if ((ts = time(NULL)) == ((time_t) - 1)) {
+		fprintf(stderr, "time failed");
+		goto end;
+	}
+	if (!(tm = localtime(&ts))) {
+		fprintf(stderr, "localtime failed");
+		goto end;
+	}
+	if (!strftime(date, sizeof(date), "%a %b %d,  %H:%M", tm))
+		fprintf(stderr, "strftime failed");
+end:
 	return date;
 }

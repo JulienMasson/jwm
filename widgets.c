@@ -6,10 +6,12 @@
 
 /* extern widgets functions */
 extern char *date(void);
+extern char *ram(void);
 
 /* Static vars */
 static const char separator[] = " :: ";
 static char* (*widgets[])(void) = {
+	ram,
 	date
 };
 

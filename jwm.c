@@ -19,6 +19,7 @@
 #include "screen.h"
 #include "client.h"
 #include "font.h"
+#include "wallpaper.h"
 
 /* Global vars */
 Atom wmatom[WMLast], netatom[NetLast];
@@ -154,6 +155,9 @@ setup()
 
 	/* setup key */
 	grabkeys();
+
+	/* set wallpaper */
+	set_wallpaper();
 
 	/* focus main screen */
 	focus(selmon, NULL);

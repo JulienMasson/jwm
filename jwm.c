@@ -156,7 +156,8 @@ setup()
 	/* setup key */
 	grabkeys();
 
-	/* set wallpaper */
+	/* init and set wallpaper */
+	init_wallpaper();
 	set_wallpaper();
 
 	/* focus main screen */

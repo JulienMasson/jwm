@@ -3,7 +3,7 @@
 #include "util.h"
 
 /* Static vars */
-static const char *fonts[1] = { "Droid Sans:size=9" };
+static const char *fonts[1] = { "Ubuntu:size=9" };
 
 void
 setup_font(void)

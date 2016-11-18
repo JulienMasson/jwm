@@ -34,7 +34,7 @@ static void dmenu_spawn(const Arg *arg);
 /* Static vars */
 static unsigned int numlockmask = 0;
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char dmenufont[]   = "Droid Sans:size=9";
+static const char dmenufont[]   = "Ubuntu:size=9";
 static const char dmenuprompt[] = "Run command:";
 static const char *dmenucmd[]   = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *termcmd[]    = { "urxvt", NULL };

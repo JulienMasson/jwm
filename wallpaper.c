@@ -1,24 +1,17 @@
 #include <Imlib2.h>
 #include <X11/Xlib.h>
 #include <X11/extensions/Xinerama.h>
-#include <limits.h>
+#include <X11/Xatom.h>
 #include <X11/Xutil.h>
+#include <limits.h>
 #include <string.h>
 #include <stdio.h>
-#include <X11/Xatom.h>
 
 #include "wallpaper.h"
 
 #define XY_IN_RECT(x, y, rx, ry, rw, rh)				\
 	(((x) >= (rx)) && ((y) >= (ry)) && ((x) < ((rx) + (rw))) && ((y) < ((ry) + (rh))))
 
-struct __fehoptions {
-	unsigned char xinerama;
-	int xinerama_index;
-};
-typedef struct __fehoptions fehoptions;
-
-fehoptions opt;
 Display *disp = NULL;
 Visual *vis = NULL;
 Screen *scr = NULL;
@@ -33,21 +26,9 @@ XineramaScreenInfo *xinerama_screens = NULL;
 int xinerama_screen;
 int num_xinerama_screens;
 
-void init_parse_options(void)
-{
-	/* Set default options */
-	memset(&opt, 0, sizeof(fehoptions));
-
-	/* if we're using xinerama, then enable it by default */
-	opt.xinerama = 1;
-	opt.xinerama_index = -1;
-
-	return;
-}
-
 void init_xinerama(void)
 {
-	if (opt.xinerama && XineramaIsActive(disp)) {
+	if (XineramaIsActive(disp)) {
 		int major, minor, px, py, i;
 
 		/* discarded */
@@ -58,20 +39,16 @@ void init_xinerama(void)
 		XineramaQueryVersion(disp, &major, &minor);
 		xinerama_screens = XineramaQueryScreens(disp, &num_xinerama_screens);
 
-		if (opt.xinerama_index >= 0)
-			xinerama_screen = opt.xinerama_index;
-		else {
-			xinerama_screen = 0;
-			XQueryPointer(disp, root, &dw, &dw, &px, &py, &di, &di, &du);
-			for (i = 0; i < num_xinerama_screens; i++) {
-				if (XY_IN_RECT(px, py,
-					       xinerama_screens[i].x_org,
-					       xinerama_screens[i].y_org,
-					       xinerama_screens[i].width,
-					       xinerama_screens[i].height)) {
-					xinerama_screen = i;
-					break;
-				}
+		xinerama_screen = 0;
+		XQueryPointer(disp, root, &dw, &dw, &px, &py, &di, &di, &du);
+		for (i = 0; i < num_xinerama_screens; i++) {
+			if (XY_IN_RECT(px, py,
+				       xinerama_screens[i].x_org,
+				       xinerama_screens[i].y_org,
+				       xinerama_screens[i].width,
+				       xinerama_screens[i].height)) {
+				xinerama_screen = i;
+				break;
 			}
 		}
 	}
@@ -120,8 +97,7 @@ static void feh_wm_set_bg_scaled(Pixmap pmap, Imlib_Image im, int use_filelist,
 				 int x, int y, int w, int h)
 {
 	Imlib_Load_Error err = IMLIB_LOAD_ERROR_NONE;
-	im = imlib_load_image_with_error_return("/home/julien/Documents/jwm/wallpaper.jpg", &err);
-	/* im = imlib_load_image_with_error_return("/home/julien/Pictures/screenshot.png", &err); */
+	im = imlib_load_image_with_error_return(WALLPAPER_PATH, &err);
 	gib_imlib_render_image_on_drawable_at_size(pmap, im, x, y, w, h,
 						   1, 0, 1);
 
@@ -132,7 +108,6 @@ void feh_wm_set_bg(char *fil, Imlib_Image im, int centered, int scaled,
 		   int filled, int desktop, int use_filelist)
 {
 	XGCValues gcvalues;
-	XGCValues gcval;
 	GC gc;
 
 	/*
@@ -154,20 +129,11 @@ void feh_wm_set_bg(char *fil, Imlib_Image im, int centered, int scaled,
 
 	pmap_d1 = XCreatePixmap(disp, root, scr->width, scr->height, depth);
 
-	if (opt.xinerama_index >= 0) {
-		gcval.foreground = BlackPixel(disp, DefaultScreen(disp));
-		gc = XCreateGC(disp, root, GCForeground, &gcval);
-		XFillRectangle(disp, pmap_d1, gc, 0, 0, scr->width, scr->height);
-		XFreeGC(disp, gc);
-	}
-
-	if (opt.xinerama && xinerama_screens) {
+	if (xinerama_screens) {
 		for (i = 0; i < num_xinerama_screens; i++) {
-			if (opt.xinerama_index < 0 || opt.xinerama_index == i) {
-				feh_wm_set_bg_scaled(pmap_d1, im, use_filelist,
-						     xinerama_screens[i].x_org, xinerama_screens[i].y_org,
-						     xinerama_screens[i].width, xinerama_screens[i].height);
-			}
+			feh_wm_set_bg_scaled(pmap_d1, im, use_filelist,
+					     xinerama_screens[i].x_org, xinerama_screens[i].y_org,
+					     xinerama_screens[i].width, xinerama_screens[i].height);
 		}
 	}
 	else
@@ -240,8 +206,6 @@ void feh_wm_set_bg(char *fil, Imlib_Image im, int centered, int scaled,
 void
 set_wallpaper(void)
 {
-	init_parse_options();
-
 	init_x_and_imlib();
 
 	feh_wm_set_bg(NULL, NULL, 0, 1, 0, 0, 1);

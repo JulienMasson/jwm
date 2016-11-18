@@ -8,6 +8,7 @@
 #include "screen.h"
 #include "util.h"
 #include "layout.h"
+#include "wallpaper.h"
 
 /* static functions */
 static void buttonpress(XEvent *e);
@@ -154,6 +155,7 @@ configurenotify(XEvent *e)
 		if (updategeom() || dirty) {
 			drw_resize(drw, *sw, bh);
 			updatebars();
+			set_wallpaper();
 			for (m = mons; m; m = m->next) {
 				for (c = m->clients; c; c = c->next)
 					if (c->isfullscreen)

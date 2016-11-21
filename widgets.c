@@ -8,12 +8,14 @@
 extern char *date(void);
 extern char *ram(void);
 extern char *cpu(void);
+extern char *battery(void);
 
 /* Static vars */
 static const char separator[] = "      ";
 static char* (*widgets[])(void) = {
 	cpu,
 	ram,
+	battery,
 	date
 };
 

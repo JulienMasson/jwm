@@ -10,5 +10,6 @@
 
 void die(const char *fmt, ...);
 void *ecalloc(size_t nmemb, size_t size);
+void find_file_first_match(char *name, char *path, int depth, char *result, size_t size_max);
 
 #endif

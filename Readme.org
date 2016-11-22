@@ -1,0 +1,34 @@
+* JWM
+
+JWM is a window manager based on DWM: http://dwm.suckless.org/
+
+** Compile instructions
+   Compilation is only supported on Ubuntu/Debian for now
+
+*** Dependencies
+    - libx11-dev
+    - libxinerama-dev
+    - libimlib2-dev
+
+    They can be installed with:
+    #+BEGIN_SRC sh
+    sudo apt-get install libx11-dev libxinerama-dev libimlib2-dev
+    #+END_SRC
+
+*** Compiling
+
+    Compile with:
+    #+BEGIN_SRC sh
+    make
+    #+END_SRC
+
+*** Install/test
+
+    One time, add this to your ~/.xinitrc
+
+    #+BEGIN_SRC sh
+    echo ${PWD}/jwm > ~/.xinitrc
+    #+END_SRC
+
+    - open another TTY (Ctrl-Alt F3)
+    - run "startx"

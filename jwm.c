@@ -974,12 +974,27 @@ raisewindow(xcb_drawable_t win)
 	xcb_flush(conn);
 }
 
-/* Keep the window inside the screen */
+/* Move the window to the corresponding screen */
 void
 movelim(struct client *client)
 {
+	struct monitor *mon;
+	struct item *item;
 	int16_t mon_y, mon_x;
 	uint16_t mon_height, mon_width;
+	int16_t middle_x;
+
+	/* select right monitor with the middle of the client window */
+	for (item = monlist; item != NULL; item = item->next) {
+		mon = item->data;
+		middle_x = client->x + (client->width / 2);
+
+		if ((middle_x > mon->x) && (middle_x < (mon->x + mon->width))) {
+			/* change monitor if we move to an another monitor */
+			if (client->monitor != mon)
+				client->monitor = mon;
+		}
+	}
 
 	getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, client);
 
@@ -993,9 +1008,6 @@ movelim(struct client *client)
 		client->x = mon_x;
 	else if (client->x + client->width > mon_x + mon_width)
 		client->x = mon_x + mon_width - client->width;
-
-	if (client->y + client->height > mon_y + mon_height)
-		client->y = (mon_y + mon_height) - client->height;
 
 	movewindow(client->id, client->x, client->y);
 }

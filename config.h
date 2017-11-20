@@ -20,10 +20,6 @@
 /* Super/Windows key */
 #define MOD             XCB_MOD_MASK_4
 
-/* 0) offsetx          1) offsety
- * 2) maxwidth         3) maxheight */
-static const uint8_t offsets[] = { 0, 0, 0, 0 };
-
 /* default position of the cursor:
  * correct values are:
  * TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT, MIDDLE

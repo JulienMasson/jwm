@@ -120,7 +120,7 @@ static void configwin(xcb_window_t, uint16_t, const struct winconf *);
 static void sigcatch(const int);
 static void ewmh_init(void);
 static xcb_atom_t getatom(const char *);
-static void getmonsize(int8_t, int16_t *, int16_t *, uint16_t *, uint16_t *, const struct client *);
+static void getmonsize(int16_t *, int16_t *, uint16_t *, uint16_t *, const struct client *);
 #include "config.h"
 
 /* Function bodies */
@@ -339,8 +339,7 @@ forgetwin(xcb_window_t win)
 }
 
 void
-getmonsize(int8_t with_offsets, int16_t *mon_x, int16_t *mon_y,
-	   uint16_t *mon_width, uint16_t *mon_height,
+getmonsize(int16_t *mon_x, int16_t *mon_y, uint16_t *mon_width, uint16_t *mon_height,
 	   const struct client *client)
 {
 	if (NULL == client || NULL == client->monitor) {
@@ -354,13 +353,6 @@ getmonsize(int8_t with_offsets, int16_t *mon_x, int16_t *mon_y,
 		*mon_y = client->monitor->y;
 		*mon_width = client->monitor->width;
 		*mon_height = client->monitor->height;
-	}
-
-	if (with_offsets) {
-		*mon_x += offsets[0];
-		*mon_y += offsets[1];
-		*mon_width -= offsets[2];
-		*mon_height -= offsets[3];
 	}
 }
 
@@ -395,7 +387,7 @@ fitonscreen(struct client *client)
 
 	willmove = willresize = client->vertmaxed = client->hormaxed = false;
 
-	getmonsize(1, &mon_x, &mon_y, &mon_width, &mon_height, client);
+	getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, client);
 
 	if (client->maxed) {
 		client->maxed = false;
@@ -404,7 +396,7 @@ fitonscreen(struct client *client)
 		if (client->width == mon_width && client->height == mon_height) {
 			willresize = true;
 		} else {
-			getmonsize(0, &mon_x, &mon_y, &mon_width, &mon_height,
+			getmonsize(&mon_x, &mon_y, &mon_width, &mon_height,
 				   client);
 			if (client->width == mon_width && client->height
 			    == mon_height)
@@ -417,7 +409,7 @@ fitonscreen(struct client *client)
 					mon_height);
 			return;
 		} else {
-			getmonsize(1, &mon_x, &mon_y, &mon_width,
+			getmonsize(&mon_x, &mon_y, &mon_width,
 				   &mon_height, client);
 		}
 	}
@@ -989,7 +981,7 @@ movelim(struct client *client)
 	int16_t mon_y, mon_x;
 	uint16_t mon_height, mon_width;
 
-	getmonsize(1, &mon_x, &mon_y, &mon_width, &mon_height, client);
+	getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, client);
 
 	/* Is it outside the physical monitor or close to the side? */
 	if (client->y < mon_y)
@@ -1193,7 +1185,7 @@ resizelim(struct client *client)
 	int16_t mon_x, mon_y;
 	uint16_t mon_width, mon_height;
 
-	getmonsize(1, &mon_x, &mon_y, &mon_width, &mon_height, client);
+	getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, client);
 
 	/* Is it smaller than it wants to  be? */
 	if (0 != client->min_height && client->height < client->min_height)
@@ -1300,7 +1292,7 @@ maximize(void)
 		return;
 	}
 
-	getmonsize(1, &mon_x, &mon_y, &mon_width, &mon_height, focuswin);
+	getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, focuswin);
 	maximize_helper(focuswin, mon_x, mon_y, mon_width, mon_height);
 	raise_current_window();
 	xcb_flush(conn);
@@ -1315,7 +1307,7 @@ maxhalf(const Arg *arg)
 	if (NULL == focuswin || focuswin->maxed)
 		return;
 
-	getmonsize(1, &mon_x, &mon_y, &mon_width, &mon_height, focuswin);
+	getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, focuswin);
 
 	focuswin->y = mon_y;
 	focuswin->height = mon_height;
@@ -1582,7 +1574,7 @@ configurerequest(xcb_generic_event_t *ev)
 	uint32_t values[1];
 
 	if ((client = findclient(&e->window))) { /* Find the client. */
-		getmonsize(1, &mon_x, &mon_y, &mon_width, &mon_height, client);
+		getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, client);
 
 		if (e->value_mask & XCB_CONFIG_WINDOW_WIDTH)
 			if (!client->maxed && !client->hormaxed)

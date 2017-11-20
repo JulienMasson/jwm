@@ -65,7 +65,7 @@ static void focusnext_helper(bool);
 static void maxhalf(const Arg *);
 static void changescreen(const Arg *);
 static void grabkeys(void);
-static void twobwm_exit();
+static void jwm_exit();
 static bool setup_keyboard(void);
 static int  setuprandr(void);
 static void arrangewindows(void);
@@ -143,7 +143,7 @@ focusnext(const Arg *arg)
 }
 
 void
-twobwm_exit()
+jwm_exit()
 {
 	exit(EXIT_SUCCESS);
 }

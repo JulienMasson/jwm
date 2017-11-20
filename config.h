@@ -71,8 +71,8 @@ static key keys[] = {
 	{ MOD,		 XK_i,	    start,	  { .com = volume_down			 } },
 	{ MOD,		 XK_p,	    start,	  { .com = volume_toggle		 } },
 	{ MOD | CONTROL, XK_l,	    start,	  { .com = slock			 } },
-	/* Exit or restart 2bwm */
-	{ MOD | SHIFT,	 XK_q,	    twobwm_exit,  { .i	 = 0				 } },
+	/* Exit jwm */
+	{ MOD | SHIFT,	 XK_q,	    jwm_exit,     { .i	 = 0				 } },
 };
 
 /* Mouse buttons */

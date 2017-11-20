@@ -36,8 +36,15 @@ static const uint8_t offsets[] = { 0, 0, 0, 0 };
  */
 #define LOOK_INTO "WM_NAME"
 
-/* Menus and Programs */
-static const char *menucmd[] = { "dmenu_run", NULL };
+/* Programs */
+static const char *dmenu[] = { "dmenu_run", NULL };
+static const char *urxvt[] = { "urxvt", NULL };
+static const char *emacs[] = { "emacs", NULL };
+static const char *emacs_dualscreen[] = { "wmctrl", "-r", "emacs", "-e", "0,0,0,3840,1200", NULL };
+static const char *volume_up[] = { "amixer", "set", "Master", "4%+", NULL };
+static const char *volume_down[] = { "amixer", "set", "Master", "4%-", NULL };
+static const char *volume_toggle[] = { "pactl", "set-sink-mute", "0", "toggle", NULL };
+static const char *slock[] = { "slock", NULL };
 
 /* Keyboard shorcut */
 static key keys[] = {
@@ -55,9 +62,15 @@ static key keys[] = {
 	{ MOD | SHIFT,	 XK_c,	    deletewin,	  {} },
 	/* Full screen window without borders */
 	{ MOD,		 XK_f,	    maximize,	  { .i	 = TWOBWM_FULLSCREEN		 } },
-	/* Start programs */
-	{ MOD,		 XK_d,	    start,	  { .com = menucmd			 } },
-	{ MOD,		 XK_Return, start_urxvt,  {} },
+	/* Programs */
+	{ MOD,		 XK_d,	    start,	  { .com = dmenu			 } },
+	{ MOD,		 XK_Return, start,	  { .com = urxvt			 } },
+	{ MOD | SHIFT,	 XK_e,	    start,	  { .com = emacs			 } },
+	{ MOD | CONTROL, XK_t,	    start,	  { .com = emacs_dualscreen		 } },
+	{ MOD,		 XK_o,	    start,	  { .com = volume_up			 } },
+	{ MOD,		 XK_i,	    start,	  { .com = volume_down			 } },
+	{ MOD,		 XK_p,	    start,	  { .com = volume_toggle		 } },
+	{ MOD | CONTROL, XK_l,	    start,	  { .com = slock			 } },
 	/* Exit or restart 2bwm */
 	{ MOD | SHIFT,	 XK_q,	    twobwm_exit,  { .i	 = 0				 } },
 };

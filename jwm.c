@@ -59,7 +59,6 @@ static void run(void);
 static bool setup(int);
 static void install_sig_handlers(void);
 static void start(const Arg *);
-static void start_urxvt(void);
 static void mousemotion(const Arg *);
 static void focusnext(const Arg *);
 static void focusnext_helper(bool);
@@ -1185,21 +1184,6 @@ start(const Arg *arg)
 
 	setsid();
 	execvp((char *)arg->com[0], (char **)arg->com);
-}
-
-void
-start_urxvt()
-{
-	const char *urxvt[] = { "urxvt", NULL };
-
-	if (fork())
-		return;
-
-	if (conn)
-		close(screen->root);
-
-	setsid();
-	execvp((char *)urxvt[0], (char **)urxvt);
 }
 
 /* Resize with limit. */

@@ -1317,42 +1317,14 @@ maxhalf(const Arg *arg)
 
 	getmonsize(1, &mon_x, &mon_y, &mon_width, &mon_height, focuswin);
 
-	if (arg->i > 4) {
-		if (arg->i > 6) {
-			/* in folding mode */
-			if (arg->i == TWOBWM_MAXHALF_FOLD_VERTICAL)
-				focuswin->height = focuswin->height / 2;
-			else
-				focuswin->height = focuswin->height * 2;
-		} else {
-			focuswin->y = mon_y;
-			focuswin->height = mon_height;
-			focuswin->width = ((float)(mon_width) / 2);
+	focuswin->y = mon_y;
+	focuswin->height = mon_height;
+	focuswin->width = ((float)(mon_width) / 2);
 
-			if (arg->i == TWOBWM_MAXHALF_VERTICAL_LEFT)
-				focuswin->x = mon_x;
-			else
-				focuswin->x = mon_x + mon_width
-					      - focuswin->width;
-		}
-	} else {
-		if (arg->i < 2) {
-			/* in folding mode */
-			if (arg->i == TWOBWM_MAXHALF_FOLD_HORIZONTAL)
-				focuswin->width = focuswin->width / 2;
-			else
-				focuswin->width = focuswin->width * 2;
-		} else {
-			focuswin->x = mon_x;
-			focuswin->width = mon_width;
-			focuswin->height = ((float)(mon_height) / 2);
-
-			if (arg->i == TWOBWM_MAXHALF_HORIZONTAL_TOP)
-				focuswin->y = mon_y;
-			else
-				focuswin->y = mon_y + mon_height - focuswin->height;
-		}
-	}
+	if (arg->i == TWOBWM_MAXHALF_VERTICAL_LEFT)
+		focuswin->x = mon_x;
+	else
+		focuswin->x = mon_x + mon_width - focuswin->width;
 
 	moveresize(focuswin->id, focuswin->x, focuswin->y,
 		   focuswin->width, focuswin->height);

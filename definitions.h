@@ -18,18 +18,15 @@
  */
 
 #define BUTTONMASK      XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE
-#define NET_WM_FIXED    0xffffffff      // Value in WM hint which means this window is fixed on all workspaces.
-#define TWOBWM_NOWS     0xfffffffe      // This means we didn't get any window hint at all.
 #define LENGTH(x)       (sizeof(x) / sizeof(*x))
 #define MIN(X, Y)       ((X) < (Y) ? (X) : (Y))
 #define CLEANMASK(mask) (mask & ~(numlockmask | XCB_MOD_MASK_LOCK))
-#define CONTROL         XCB_MOD_MASK_CONTROL    /* Control key */
-#define ALT             XCB_MOD_MASK_1          /* ALT key */
-#define SHIFT           XCB_MOD_MASK_SHIFT      /* Shift key */
+#define CONTROL         XCB_MOD_MASK_CONTROL
+#define SHIFT           XCB_MOD_MASK_SHIFT
 
-enum { TWOBWM_MOVE, TWOBWM_RESIZE };
-enum { TWOBWM_FOCUS_NEXT, TWOBWM_FOCUS_PREVIOUS };
+enum { WIN_MOVE, WIN_RESIZE };
+enum { FOCUS_NEXT, FOCUS_PREVIOUS };
 enum { BOTTOM_RIGHT, BOTTOM_LEFT, TOP_RIGHT, TOP_LEFT, MIDDLE };
 enum { wm_delete_window, wm_change_state, NB_ATOMS };
-enum { TWOBWM_MAXHALF_VERTICAL_RIGHT, TWOBWM_MAXHALF_VERTICAL_LEFT };
-enum { TWOBWM_PREVIOUS_SCREEN, TWOBWM_NEXT_SCREEN };
+enum { MAXHALF_VERTICAL_RIGHT, MAXHALF_VERTICAL_LEFT };
+enum { PREVIOUS_SCREEN, NEXT_SCREEN };

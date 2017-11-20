@@ -1034,7 +1034,7 @@ focusnext_helper(bool arg)
 		while (cl->iconic == true && cl->wsitem->next != NULL)
 			cl = cl->wsitem->next->data;
 	} else {
-		if (arg == TWOBWM_FOCUS_NEXT) {
+		if (arg == FOCUS_NEXT) {
 			if (NULL == focuswin->wsitem->prev) {
 				/* We were at the head of list.
 				 * Focusing on last window in list unless
@@ -1321,7 +1321,7 @@ maxhalf(const Arg *arg)
 	focuswin->height = mon_height;
 	focuswin->width = ((float)(mon_width) / 2);
 
-	if (arg->i == TWOBWM_MAXHALF_VERTICAL_LEFT)
+	if (arg->i == MAXHALF_VERTICAL_LEFT)
 		focuswin->x = mon_x;
 	else
 		focuswin->x = mon_x + mon_width - focuswin->width;
@@ -1452,7 +1452,7 @@ changescreen(const Arg *arg)
 	if (NULL == focuswin || NULL == focuswin->monitor)
 		return;
 
-	if (arg->i == TWOBWM_NEXT_SCREEN)
+	if (arg->i == NEXT_SCREEN)
 		item = focuswin->monitor->item->next;
 	else
 		item = focuswin->monitor->item->prev;
@@ -1728,7 +1728,7 @@ mousemotion(const Arg *arg)
 	struct client example;
 	raise_current_window();
 
-	if (arg->i == TWOBWM_MOVE) {
+	if (arg->i == WIN_MOVE) {
 		cursor = Create_Font_Cursor(conn, 52);          /* fleur */
 	} else {
 		cursor = Create_Font_Cursor(conn, 120);         /* sizing */
@@ -1746,7 +1746,7 @@ mousemotion(const Arg *arg)
 	if (grab_reply->status != XCB_GRAB_STATUS_SUCCESS) {
 		free(grab_reply);
 
-		if (arg->i == TWOBWM_RESIZE)
+		if (arg->i == WIN_RESIZE)
 			xcb_unmap_window(conn, example.id);
 
 		return;
@@ -1769,7 +1769,7 @@ mousemotion(const Arg *arg)
 			break;
 		case XCB_MOTION_NOTIFY:
 			ev = (xcb_motion_notify_event_t *)e;
-			if (arg->i == TWOBWM_MOVE)
+			if (arg->i == WIN_MOVE)
 				mousemove(winx + ev->root_x - mx,
 					  winy + ev->root_y - my);
 			else
@@ -1782,7 +1782,7 @@ mousemotion(const Arg *arg)
 		case XCB_KEY_RELEASE:
 		case XCB_BUTTON_PRESS:
 		case XCB_BUTTON_RELEASE:
-			if (arg->i == TWOBWM_RESIZE) {
+			if (arg->i == WIN_RESIZE) {
 				ev = (xcb_motion_notify_event_t *)e;
 
 				mouseresize(focuswin, winw + ev->root_x - mx,
@@ -1799,7 +1799,7 @@ mousemotion(const Arg *arg)
 	xcb_free_cursor(conn, cursor);
 	xcb_ungrab_pointer(conn, XCB_CURRENT_TIME);
 
-	if (arg->i == TWOBWM_RESIZE)
+	if (arg->i == WIN_RESIZE)
 		xcb_unmap_window(conn, example.id);
 
 	xcb_flush(conn);

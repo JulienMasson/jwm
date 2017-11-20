@@ -50,14 +50,14 @@ static const char *slock[] = { "slock", NULL };
 static key keys[] = {
 	/* modifier           key            function           argument */
 	/* Focus to next/previous window */
-	{ MOD,		 XK_Right,  focusnext,	  { .i	 = TWOBWM_FOCUS_NEXT		 } },
-	{ MOD,		 XK_Left,   focusnext,	  { .i	 = TWOBWM_FOCUS_PREVIOUS	 } },
+	{ MOD,		 XK_Right,  focusnext,	  { .i	 = FOCUS_NEXT		  } },
+	{ MOD,		 XK_Left,   focusnext,	  { .i	 = FOCUS_PREVIOUS	  } },
 	/* Vertically left/right */
-	{ MOD | CONTROL, XK_Right,  maxhalf,	  { .i	 = TWOBWM_MAXHALF_VERTICAL_RIGHT } },
-	{ MOD | CONTROL, XK_Left,   maxhalf,	  { .i	 = TWOBWM_MAXHALF_VERTICAL_LEFT	 } },
+	{ MOD | CONTROL, XK_Right,  maxhalf,	  { .i	 = MAXHALF_VERTICAL_RIGHT } },
+	{ MOD | CONTROL, XK_Left,   maxhalf,	  { .i	 = MAXHALF_VERTICAL_LEFT  } },
 	/* Next/Previous screen */
-	{ MOD | SHIFT,	 XK_Right,  changescreen, { .i	 = TWOBWM_PREVIOUS_SCREEN	 } },
-	{ MOD | SHIFT,	 XK_Left,   changescreen, { .i	 = TWOBWM_NEXT_SCREEN		 } },
+	{ MOD | SHIFT,	 XK_Right,  changescreen, { .i	 = PREVIOUS_SCREEN	  } },
+	{ MOD | SHIFT,	 XK_Left,   changescreen, { .i	 = NEXT_SCREEN		  } },
 	/* Kill a window */
 	{ MOD | SHIFT,	 XK_c,	    deletewin,	  {} },
 	/* Full screen window without borders */
@@ -77,6 +77,6 @@ static key keys[] = {
 
 /* Mouse buttons */
 static Button buttons[] = {
-	{ MOD, XCB_BUTTON_INDEX_1, mousemotion, { .i = TWOBWM_MOVE   }, false },
-	{ MOD, XCB_BUTTON_INDEX_3, mousemotion, { .i = TWOBWM_RESIZE }, false },
+	{ MOD, XCB_BUTTON_INDEX_1, mousemotion, { .i = WIN_MOVE   }, false },
+	{ MOD, XCB_BUTTON_INDEX_3, mousemotion, { .i = WIN_RESIZE }, false },
 };

@@ -61,7 +61,7 @@ static key keys[] = {
 	/* Kill a window */
 	{ MOD | SHIFT,	 XK_c,	    deletewin,	  {} },
 	/* Full screen window without borders */
-	{ MOD,		 XK_f,	    maximize,	  { .i	 = TWOBWM_FULLSCREEN		 } },
+	{ MOD,		 XK_f,	    maximize,	  {} },
 	/* Programs */
 	{ MOD,		 XK_d,	    start,	  { .com = dmenu			 } },
 	{ MOD,		 XK_Return, start,	  { .com = urxvt			 } },

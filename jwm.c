@@ -72,7 +72,7 @@ static void arrangewindows(void);
 static void getrandr(void);
 static void raise_current_window(void);
 static void setunfocus(void);
-static void maximize(const Arg *);
+static void maximize(void);
 static void maximize_helper(struct client *, uint16_t, uint16_t, uint16_t, uint16_t);
 static void hide();
 static void clientmessage(xcb_generic_event_t *);
@@ -1285,7 +1285,7 @@ unmax(struct client *client)
 }
 
 void
-maximize(const Arg *arg)
+maximize(void)
 {
 	int16_t mon_x, mon_y;
 	uint16_t mon_width, mon_height;
@@ -1300,7 +1300,7 @@ maximize(const Arg *arg)
 		return;
 	}
 
-	getmonsize(arg->i, &mon_x, &mon_y, &mon_width, &mon_height, focuswin);
+	getmonsize(1, &mon_x, &mon_y, &mon_width, &mon_height, focuswin);
 	maximize_helper(focuswin, mon_x, mon_y, mon_width, mon_height);
 	raise_current_window();
 	xcb_flush(conn);

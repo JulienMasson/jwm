@@ -36,7 +36,6 @@
 static const char *dmenu[] = { "dmenu_run", NULL };
 static const char *urxvt[] = { "urxvt", NULL };
 static const char *emacs[] = { "emacs", NULL };
-static const char *emacs_dualscreen[] = { "wmctrl", "-r", "emacs", "-e", "0,0,0,3840,1200", NULL };
 static const char *volume_up[] = { "amixer", "set", "Master", "4%+", NULL };
 static const char *volume_down[] = { "amixer", "set", "Master", "4%-", NULL };
 static const char *volume_toggle[] = { "pactl", "set-sink-mute", "0", "toggle", NULL };
@@ -57,12 +56,12 @@ static key keys[] = {
 	/* Kill a window */
 	{ MOD | SHIFT,	 XK_c,	    deletewin,	  {} },
 	/* Full screen window without borders */
-	{ MOD,		 XK_f,	    maximize,	  {} },
+	{ MOD,		 XK_f,	    maximize,	  { .i	 = FULLSCREEN_ONE_MONITOR } },
+	{ MOD | CONTROL, XK_t,	    maximize,	  { .i	 = FULLSCREEN_ALL_MONITOR } },
 	/* Programs */
 	{ MOD,		 XK_d,	    start,	  { .com = dmenu			 } },
 	{ MOD,		 XK_Return, start,	  { .com = urxvt			 } },
 	{ MOD | SHIFT,	 XK_e,	    start,	  { .com = emacs			 } },
-	{ MOD | CONTROL, XK_t,	    start,	  { .com = emacs_dualscreen		 } },
 	{ MOD,		 XK_o,	    start,	  { .com = volume_up			 } },
 	{ MOD,		 XK_i,	    start,	  { .com = volume_down			 } },
 	{ MOD,		 XK_p,	    start,	  { .com = volume_toggle		 } },

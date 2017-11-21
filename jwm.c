@@ -72,7 +72,7 @@ static void arrangewindows(void);
 static void getrandr(void);
 static void raise_current_window(void);
 static void setunfocus(void);
-static void maximize(void);
+static void maximize(const Arg *);
 static void maximize_helper(struct client *, uint16_t, uint16_t, uint16_t, uint16_t);
 static void hide();
 static void clientmessage(xcb_generic_event_t *);
@@ -95,6 +95,7 @@ static void cleanup(void);
 static void grabbuttons(struct client *);
 static void forgetclient(struct client *);
 static void forgetwin(xcb_window_t);
+static void get_borders_all_mons(uint16_t *, uint16_t *);
 static void fitonscreen(struct client *);
 static void getoutputs(xcb_randr_output_t *, const int, xcb_timestamp_t);
 static void arrbymon(struct monitor *);
@@ -336,6 +337,30 @@ forgetwin(xcb_window_t win)
 			return;
 		}
 	}
+}
+
+void
+get_borders_all_mons(uint16_t *border_x, uint16_t *border_y)
+{
+	struct monitor *mon;
+	struct item *item;
+	uint16_t x, y, width, height;
+
+	for (item = monlist; item != NULL; item = item->next) {
+		mon = item->data;
+		if (mon->x > x) {
+			x = mon->x;
+			width = mon->width;
+		}
+		if (mon->y > y) {
+			y = mon->y;
+			height = mon->height;
+		}
+	}
+
+	/* assign values */
+	*border_x = x + width;
+	*border_y = y + height;
 }
 
 void
@@ -1289,7 +1314,7 @@ unmax(struct client *client)
 }
 
 void
-maximize(void)
+maximize(const Arg *arg)
 {
 	int16_t mon_x, mon_y;
 	uint16_t mon_width, mon_height;
@@ -1304,7 +1329,14 @@ maximize(void)
 		return;
 	}
 
-	getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, focuswin);
+	if (arg->i == FULLSCREEN_ONE_MONITOR) {
+		getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, focuswin);
+	} else if (arg->i == FULLSCREEN_ALL_MONITOR) {
+		mon_x = 0;
+		mon_y = 0;
+		get_borders_all_mons(&mon_width, &mon_height);
+	}
+
 	maximize_helper(focuswin, mon_x, mon_y, mon_width, mon_height);
 	raise_current_window();
 	xcb_flush(conn);

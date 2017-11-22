@@ -58,6 +58,9 @@ static key keys[] = {
 	/* Full screen window without borders */
 	{ MOD,		 XK_f,	    maximize,	  { .i	 = FULLSCREEN_ONE_MONITOR } },
 	{ MOD | CONTROL, XK_t,	    maximize,	  { .i	 = FULLSCREEN_ALL_MONITOR } },
+	/* Hide / Raise windows */
+	{ MOD,		 XK_n,	    hide,	  {} },
+	{ MOD,		 XK_a,	    raise_all,	  {} },
 	/* Programs */
 	{ MOD,		 XK_d,	    start,	  { .com = dmenu			 } },
 	{ MOD,		 XK_Return, start,	  { .com = urxvt			 } },

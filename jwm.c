@@ -105,6 +105,7 @@ static struct monitor *findmonbycoord(const int16_t, const int16_t);
 static void delmonitor(struct monitor *);
 static struct monitor *addmonitor(xcb_randr_output_t, char *, const int16_t, const int16_t, const uint16_t, const uint16_t);
 static void raisewindow(xcb_drawable_t);
+static void raise_all(void);
 static void movelim(struct client *);
 static void movewindow(xcb_drawable_t, const int16_t, const int16_t);
 static struct client *findclient(const xcb_drawable_t *);
@@ -997,6 +998,25 @@ raisewindow(xcb_drawable_t win)
 
 	xcb_configure_window(conn, win, XCB_CONFIG_WINDOW_STACK_MODE, values);
 	xcb_flush(conn);
+}
+
+void
+raise_all(void)
+{
+	struct client *cl = NULL;
+
+	if (wslist && wslist->data)
+		cl = wslist->data;
+	else
+		return;
+
+	do {
+		if (cl->iconic == true) {
+			cl->iconic = false;
+			xcb_map_window(conn, cl->id);
+			xcb_flush(conn);
+		}
+	} while (cl->wsitem->next && (cl = cl->wsitem->next->data));
 }
 
 /* Move the window to the corresponding screen */

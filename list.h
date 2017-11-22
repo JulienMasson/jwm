@@ -25,25 +25,6 @@ struct item {
 	struct item *	next;
 };
 
-void movetohead(struct item **mainlist, struct item *item)
-{                                   // Move element in item to the head of list mainlist.
-	if (NULL == item || NULL == mainlist || NULL == *mainlist) return;
-	/* item is NULL or we're already at head. Do nothing. */
-	if (*mainlist == item) return;
-	/* Braid together the list where we are now. */
-	if (NULL != item->prev) item->prev->next = item->next;
-
-	if (NULL != item->next) item->next->prev = item->prev;
-	/* Now we'at head, so no one before us. */
-	item->prev = NULL;
-	/* Old head is our next. */
-	item->next = *mainlist;
-	/* Old head needs to know about us. */
-	item->next->prev = item;
-	/* Remember the new head. */
-	*mainlist = item;
-}
-
 struct item *additem(struct item **mainlist) // Create space for a new item and add it to the head of mainlist.
 {                                   // Returns item or NULL if out of memory.
 	struct item *item;

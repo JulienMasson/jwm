@@ -1678,7 +1678,6 @@ configurerequest(xcb_generic_event_t *ev)
 		if (!client->maxed) {
 			resizelim(client);
 			movelim(client);
-			fitonscreen(client);
 		}
 	} else {
 		/* Unmapped window, pass all options except border width. */

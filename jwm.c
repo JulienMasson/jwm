@@ -1024,8 +1024,8 @@ movelim(struct client *client)
 	struct monitor *mon;
 	struct item *item;
 	int16_t mon_y, mon_x;
-	uint16_t mon_height, mon_width;
 	int16_t middle_x;
+	uint16_t border_x, border_y;
 
 	/* select right monitor with the middle of the client window */
 	for (item = monlist; item != NULL; item = item->next) {
@@ -1039,18 +1039,18 @@ movelim(struct client *client)
 		}
 	}
 
-	getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, client);
+	get_borders_all_mons(&border_x, &border_y);
 
 	/* Is it outside the physical monitor or close to the side? */
 	if (client->y < mon_y)
 		client->y = mon_y;
-	else if (client->y + client->height > mon_y + mon_height)
-		client->y = mon_y + mon_height - client->height;
+	else if (client->y + client->height > border_y)
+		client->y = border_y - client->height;
 
 	if (client->x < mon_x)
 		client->x = mon_x;
-	else if (client->x + client->width > mon_x + mon_width)
-		client->x = mon_x + mon_width - client->width;
+	else if (client->x + client->width > border_x)
+		client->x = border_x - client->width;
 
 	movewindow(client->id, client->x, client->y);
 }

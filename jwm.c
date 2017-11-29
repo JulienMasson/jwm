@@ -345,7 +345,7 @@ get_borders_all_mons(uint16_t *border_x, uint16_t *border_y)
 {
 	struct monitor *mon;
 	struct item *item;
-	uint16_t x, y, width, height;
+	uint16_t x=0, width=0, height=0;
 
 	for (item = monlist; item != NULL; item = item->next) {
 		mon = item->data;
@@ -353,15 +353,13 @@ get_borders_all_mons(uint16_t *border_x, uint16_t *border_y)
 			x = mon->x;
 			width = mon->width;
 		}
-		if (mon->y > y) {
-			y = mon->y;
+		if (mon->height > height)
 			height = mon->height;
-		}
 	}
 
 	/* assign values */
 	*border_x = x + width;
-	*border_y = y + height;
+	*border_y = height;
 }
 
 void

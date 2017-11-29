@@ -1237,20 +1237,25 @@ start(const Arg *arg)
 void
 resizelim(struct client *client)
 {
-	int16_t mon_x, mon_y;
-	uint16_t mon_width, mon_height;
+	uint16_t border_x, border_y;
 
-	getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, client);
+	get_borders_all_mons(&border_x, &border_y);
 
-	/* Is it smaller than it wants to  be? */
+	/* Minimum height */
 	if (0 != client->min_height && client->height < client->min_height)
 		client->height = client->min_height;
+
+	/* Minimum width */
 	if (0 != client->min_width && client->width < client->min_width)
 		client->width = client->min_width;
-	if (client->x + client->width > mon_x + mon_width)
-		client->width = mon_width - (client->x - mon_x);
-	if (client->y + client->height > mon_y + mon_height)
-		client->height = mon_height - (client->y - mon_y);
+
+	/* Maximum x */
+	if (client->x + client->width > border_x)
+		client->width = border_x - client->x;
+
+	/* Maximum y */
+	if (client->y + client->height > border_y)
+		client->height = border_y - client->y;
 
 	resize(client->id, client->width, client->height);
 }

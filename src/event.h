@@ -17,17 +17,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIST_H
-#define LIST_H
+#ifndef EVENT_H
+#define EVENT_H
 
-struct list {
-	void		*data;
-	struct list	*prev;
-	struct list	*next;
-};
+void event_init(void);
 
-struct list *list_add(struct list **list_head, void *data);
-
-void list_remove(struct list **list_head, struct list *element);
+void event_loop(void);
 
 #endif

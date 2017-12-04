@@ -17,17 +17,20 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIST_H
-#define LIST_H
+#ifndef ACTION_H
+#define ACTION_H
 
-struct list {
-	void		*data;
-	struct list	*prev;
-	struct list	*next;
-};
+#include "types.h"
 
-struct list *list_add(struct list **list_head, void *data);
-
-void list_remove(struct list **list_head, struct list *element);
+void focusnext(const Arg *arg);
+void maxhalf(const Arg *arg);
+void changescreen(const Arg *arg);
+void deletewin(const Arg *arg);
+void maximize(const Arg *arg);
+void hide(const Arg *arg);
+void raise_all(const Arg *arg);
+void start(const Arg *arg);
+void jwm_exit(const Arg *arg);
+void mousemotion(const Arg *arg);
 
 #endif

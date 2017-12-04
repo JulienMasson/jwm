@@ -17,17 +17,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIST_H
-#define LIST_H
+#ifndef MONITOR_H
+#define MONITOR_H
 
-struct list {
-	void		*data;
-	struct list	*prev;
-	struct list	*next;
+#include <xcb/randr.h>
+#include "list.h"
+
+struct monitor {
+	xcb_randr_output_t	 id;
+	char			*name;
+	int16_t			 y, x;	        /* X and Y */
+	uint16_t		 width, height;	/* Width/Height in pixels */
+	struct list		*element;	/* Pointer to our place in output list */
 };
 
-struct list *list_add(struct list **list_head, void *data);
+void monitor_init(void);
 
-void list_remove(struct list **list_head, struct list *element);
+struct monitor *monitor_find_by_coord(const int16_t x, const int16_t y);
+
+void monitor_event(uint8_t response_type);
+
+void monitor_borders(uint16_t *border_x, uint16_t *border_y);
 
 #endif

@@ -28,3 +28,11 @@ To build jwm:
     $ git clone https://github.com/JulienMasson/jwm
     $ cd jwm
     $ make
+
+
+Coding Style
+============
+
+Use the script in tools folder:
+
+    $ ./tools/check_coding_style.sh

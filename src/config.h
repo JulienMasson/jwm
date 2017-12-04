@@ -1,8 +1,8 @@
 /*
- * This file is part of the jwm distribution (https://github.com/JulienMasson/jwm).
- * Copyright (c) 2017 Julien Masson.
+ * This file is part of the jwm distribution:
+ * https://github.com/JulienMasson/jwm
  *
- * jwm is derived from 2bwm (https://github.com/venam/2bwm)
+ * Copyright (c) 2017 Julien Masson.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,20 +17,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#include <X11/keysym.h>
+
+#include "definitions.h"
+#include "action.h"
+#include "key.h"
+
 /* Super/Windows key */
 #define MOD             XCB_MOD_MASK_4
-
-/* default position of the cursor:
- * correct values are:
- * TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT, MIDDLE
- * All these are relative to the current window. */
-#define CURSOR_POSITION MIDDLE
-
-/* Windows that won't have a border.
- * It uses substring comparison with what is found in the WM_NAME
- * attribute of the window. You can test this using `xprop WM_NAME`
- */
-#define LOOK_INTO "WM_NAME"
 
 /* Programs */
 static const char *dmenu[] = { "dmenu_run", NULL };
@@ -75,6 +72,8 @@ static key keys[] = {
 
 /* Mouse buttons */
 static Button buttons[] = {
-	{ MOD, XCB_BUTTON_INDEX_1, mousemotion, { .i = WIN_MOVE   }, false },
-	{ MOD, XCB_BUTTON_INDEX_3, mousemotion, { .i = WIN_RESIZE }, false },
+	{ MOD, XCB_BUTTON_INDEX_1, mousemotion, { .i = WIN_MOVE   } },
+	{ MOD, XCB_BUTTON_INDEX_3, mousemotion, { .i = WIN_RESIZE } },
 };
+
+#endif

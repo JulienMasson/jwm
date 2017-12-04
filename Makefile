@@ -3,7 +3,7 @@ OBJ_DIR := obj
 SRC_DIR := src
 
 # flags
-CFLAGS := -Os -std=c99 -Wunused
+CFLAGS := -Os -Wunused
 LDFLAGS :=
 
 # libs and include

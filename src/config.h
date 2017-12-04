@@ -20,15 +20,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <X11/keysym.h>
-
-#include "definitions.h"
-#include "action.h"
-#include "key.h"
-
-/* Super/Windows key */
-#define MOD             XCB_MOD_MASK_4
-
 /* Programs */
 static const char *dmenu[] = { "dmenu_run", NULL };
 static const char *urxvt[] = { "urxvt", NULL };
@@ -68,12 +59,6 @@ static key keys[] = {
 	{ MOD | CONTROL, XK_l,	    start,	  { .com = slock			 } },
 	/* Exit jwm */
 	{ MOD | SHIFT,	 XK_q,	    jwm_exit,     { .i	 = 0				 } },
-};
-
-/* Mouse buttons */
-static Button buttons[] = {
-	{ MOD, XCB_BUTTON_INDEX_1, mousemotion, { .i = WIN_MOVE   } },
-	{ MOD, XCB_BUTTON_INDEX_3, mousemotion, { .i = WIN_RESIZE } },
 };
 
 #endif

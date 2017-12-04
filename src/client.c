@@ -20,12 +20,12 @@
 #include <xcb/xcb.h>
 #include <xcb/xcb_icccm.h>
 
-#include "jwm.h"
+#include "global.h"
 #include "list.h"
-#include "types.h"
 #include "client.h"
 #include "window.h"
 #include "action.h"
+#include "atom.h"
 
 static void addtoclientlist(const xcb_drawable_t id)
 {
@@ -195,7 +195,7 @@ void client_message(xcb_client_message_event_t *ev)
 	struct client *cl;
 	const Arg fake_arg;
 
-	if ((ev->type == ATOM[wm_change_state] && ev->format == 32
+	if ((ev->type == atom_get(wm_change_state) && ev->format == 32
 	     && ev->data.data32[0] == XCB_ICCCM_WM_STATE_ICONIC)
 	    || ev->type == ewmh->_NET_ACTIVE_WINDOW) {
 		cl = client_find(&ev->window);

@@ -18,23 +18,27 @@
  */
 
 #include <stdlib.h>
+#include <signal.h>
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
 #include <xcb/randr.h>
 
-#include "jwm.h"
+#include "global.h"
 #include "monitor.h"
 #include "action.h"
-#include "key.h"
 #include "window.h"
 #include "client.h"
+#include "input.h"
 
 void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *e);
+
+/* Signal code. Non-zero if we've been interruped by a signal. */
+static int sigcode;
 
 static void keypress(xcb_generic_event_t *e)
 {
 	xcb_key_press_event_t *ev = (xcb_key_press_event_t *)e;
-	key_handler(ev);
+	input_key_handler(ev);
 }
 
 static void maprequest(xcb_generic_event_t *e)
@@ -52,7 +56,7 @@ static void configurerequest(xcb_generic_event_t *e)
 static void buttonpress(xcb_generic_event_t *e)
 {
 	xcb_button_press_event_t *ev = (xcb_button_press_event_t *)e;
-	button_handler(ev);
+	input_button_handler(ev);
 }
 
 static void destroynotify(xcb_generic_event_t *e)
@@ -79,8 +83,34 @@ static void clientmessage(xcb_generic_event_t *e)
 	client_message(ev);
 }
 
+static void sigcatch(const int sig)
+{
+	sigcode = sig;
+}
+
+static void install_sig_handlers(void)
+{
+	struct sigaction sa;
+
+	sa.sa_handler = SIG_IGN;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_NOCLDSTOP;
+	/*could not initialize signal handler */
+	if (sigaction(SIGCHLD, &sa, NULL) == -1)
+		exit(-1);
+	sa.sa_handler = sigcatch;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 1; /* Restart if interrupted by handler */
+	if (sigaction(SIGINT, &sa, NULL) == -1
+	    || sigaction(SIGHUP, &sa, NULL) == -1
+	    || sigaction(SIGTERM, &sa, NULL) == -1)
+		exit(-1);
+}
+
 void event_init(void)
 {
+	install_sig_handlers();
+
 	/* set events */
 	int i;
 	for (i = 0; i < XCB_NO_OPERATION; i++)
@@ -121,4 +151,10 @@ void event_loop(void)
 			free(ev);
 		}
 	}
+}
+
+void event_exit(void)
+{
+	/* the WM has stopped running, because sigcode is not 0 */
+	exit(sigcode);
 }

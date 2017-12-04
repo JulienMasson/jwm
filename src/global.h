@@ -17,13 +17,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EVENT_H
-#define EVENT_H
+#ifndef GLOBAL_H
+#define GLOBAL_H
 
-void event_init(void);
+#include <xcb/xcb.h>
+#include <xcb/xcb_ewmh.h>
+#include <xcb/xcb_icccm.h>
 
-void event_loop(void);
-
-void event_exit(void);
+extern unsigned int numlockmask;
+extern xcb_connection_t *conn;
+extern xcb_screen_t *screen;
+extern struct list *winlist;
+extern struct client *focuswin;
+extern xcb_ewmh_connection_t *ewmh;
+extern void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *e);
 
 #endif

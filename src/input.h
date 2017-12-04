@@ -17,13 +17,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EVENT_H
-#define EVENT_H
+#ifndef INPUT_H
+#define INPUT_H
 
-void event_init(void);
+#include <X11/keysymdef.h>
+#include <xcb/xcb_keysyms.h>
 
-void event_loop(void);
+#include "action.h"
 
-void event_exit(void);
+typedef struct {
+	unsigned int	mod;
+	xcb_keysym_t	keysym;
+	void (*func)(const Arg *);
+	const Arg	arg;
+} key;
+
+bool input_init(void);
+
+void input_grab_buttons(struct client *c);
+
+void input_key_handler(xcb_key_press_event_t *ev);
+
+void input_button_handler(xcb_button_press_event_t *ev);
 
 #endif

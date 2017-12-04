@@ -17,13 +17,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EVENT_H
-#define EVENT_H
+#ifndef EWMH_H
+#define EWMH_H
 
-void event_init(void);
+void ewmh_init(int scrno);
 
-void event_loop(void);
-
-void event_exit(void);
+void ewmh_exit(void);
 
 #endif

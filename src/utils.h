@@ -17,13 +17,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EVENT_H
-#define EVENT_H
+#ifndef UTILS_H
+#define UTILS_H
 
-void event_init(void);
-
-void event_loop(void);
-
-void event_exit(void);
+#define LENGTH(x)       (sizeof(x) / sizeof(*x))
+#define MIN(X, Y)       ((X) < (Y) ? (X) : (Y))
 
 #endif

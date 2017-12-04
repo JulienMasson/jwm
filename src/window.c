@@ -19,14 +19,15 @@
 
 #include <xcb/xcb_icccm.h>
 
-#include "jwm.h"
-#include "key.h"
+#include "global.h"
 #include "client.h"
+#include "input.h"
 
 /* default position of the cursor:
  * correct values are:
  * TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT, MIDDLE
  * All these are relative to the current window. */
+enum { BOTTOM_RIGHT, BOTTOM_LEFT, TOP_RIGHT, TOP_LEFT, MIDDLE };
 #define CURSOR_POSITION MIDDLE
 
 /* Window configuration data. */
@@ -143,7 +144,7 @@ void window_set_focus(struct client *client)
 	/* Remember the new window as the current focused window. */
 	focuswin = client;
 
-	grabbuttons(client);
+	input_grab_buttons(client);
 }
 
 void window_moveresize(xcb_drawable_t win, const uint16_t x, const uint16_t y,

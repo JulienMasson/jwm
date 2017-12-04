@@ -20,7 +20,27 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include "types.h"
+#include <stdbool.h>
+
+#include "monitor.h"
+#include "list.h"
+
+struct sizepos {
+	int16_t		x, y;
+	uint16_t	width, height;
+};
+
+struct client {                         // Everything we know about a window.
+	xcb_drawable_t	id;             // ID of this window.
+	bool		usercoord;      // X,Y was set by -geom.
+	int16_t		x, y;           // X/Y coordinate.
+	uint16_t	width, height;  // Width,Height in pixels.
+	struct sizepos	origsize;       // Original size if we're currently maxed.
+	uint16_t	max_width, max_height, min_width, min_height;
+	bool		fixed, vertmaxed, hormaxed, maxed, verthor, iconic;
+	struct monitor *monitor;        // The physical output this window is on.
+	struct list *	win;            // Pointer to our place in global windows list.
+};
 
 struct client *client_find(const xcb_drawable_t *win);
 void client_update_list(void);

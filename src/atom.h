@@ -17,13 +17,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EVENT_H
-#define EVENT_H
+#ifndef UTILS_H
+#define UTILS_H
 
-void event_init(void);
+enum { wm_delete_window, wm_change_state, NB_ATOMS };
 
-void event_loop(void);
+void atom_init(void);
 
-void event_exit(void);
+xcb_atom_t atom_get(int atom);
 
 #endif

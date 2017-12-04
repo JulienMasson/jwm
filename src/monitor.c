@@ -21,9 +21,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "jwm.h"
+#include "global.h"
 #include "monitor.h"
 #include "window.h"
+#include "client.h"
+#include "utils.h"
 
 /* List of all physical monitor outputs. */
 struct list *monlist;

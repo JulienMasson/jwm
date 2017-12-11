@@ -19,10 +19,15 @@ Compilation
 ============
 
 Here are the dependencies:
++ x11-xcb
 + xcb-randr
 + xcb-keysyms
 + xcb-icccm
 + xcb-ewmh
+
+Install these packages:
+
+    $ sudo apt-get install libx11-xcb-dev libxcb-randr0-dev libxcb-keysyms1-dev libxcb-icccm4-dev libxcb-ewmh-dev
 
 To build jwm:
 
@@ -30,6 +35,20 @@ To build jwm:
     $ cd jwm
     $ make
 
+External software
+=================
+
+Some keys are bind to external software:
++ rofi
++ urxvt
++ emacs
++ amixer
++ pactl
++ i3lock-fancy
+
+To use it, please install these packages:
+
+    $ sudo apt-get install rofi rxvt-unicode emacs alsa-utils i3lock-fancy
 
 Coding Style
 ============

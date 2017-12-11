@@ -18,6 +18,8 @@
  */
 
 #include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "global.h"
 #include "action.h"
@@ -25,6 +27,8 @@
 #include "client.h"
 #include "window.h"
 #include "monitor.h"
+#include "log.h"
+#include "conf.h"
 
 #define BUTTONMASK      XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE
 
@@ -367,8 +371,7 @@ static xcb_cursor_t Create_Font_Cursor(xcb_connection_t *conn, uint16_t glyph)
 }
 
 /* Move window win as a result of pointer motion to coordinates rel_x,rel_y. */
-void
-mousemove(const int16_t rel_x, const int16_t rel_y)
+void mousemove(const int16_t rel_x, const int16_t rel_y)
 {
 	if (focuswin == NULL)
 		return;
@@ -379,8 +382,7 @@ mousemove(const int16_t rel_x, const int16_t rel_y)
 	window_move_limit(focuswin);
 }
 
-void
-mouseresize(struct client *client, const int16_t rel_x, const int16_t rel_y)
+void mouseresize(struct client *client, const int16_t rel_x, const int16_t rel_y)
 {
 	if (focuswin->id == screen->root || focuswin->maxed)
 		return;
@@ -495,4 +497,15 @@ void mousemotion(const Arg *arg)
 		xcb_unmap_window(conn, example.id);
  
 	xcb_flush(conn);
+}
+
+
+void reload_conf(const Arg *arg)
+{
+	/* read conf */
+	if (conf_read() == -1)
+		LOGE("Fail to read conf");
+	else {
+		log_set_level(global_conf.log_level);
+	}
 }

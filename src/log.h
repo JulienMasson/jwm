@@ -17,30 +17,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ACTION_H
-#define ACTION_H
+#ifndef LOG_H
+#define LOG_H
 
-enum { WIN_MOVE, WIN_RESIZE };
-enum { FOCUS_NEXT, FOCUS_PREVIOUS };
-enum { MAXHALF_VERTICAL_RIGHT, MAXHALF_VERTICAL_LEFT };
-enum { PREVIOUS_SCREEN, NEXT_SCREEN };
-enum { FULLSCREEN_ONE_MONITOR, FULLSCREEN_ALL_MONITOR };
+enum { LOG_NOTHING, LOG_ERROR, LOG_WARN, LOG_INFO, LOG_DEBUG };
 
-typedef union {
-	const char **	com;
-	const int8_t	i;
-} Arg;
+#define LOGE(...) log_log(LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)
+#define LOGW(...) log_log(LOG_WARN, __FILE__, __LINE__, __VA_ARGS__)
+#define LOGI(...) log_log(LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
+#define LOGD(...) log_log(LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
 
-void focusnext(const Arg *arg);
-void maxhalf(const Arg *arg);
-void changescreen(const Arg *arg);
-void deletewin(const Arg *arg);
-void maximize(const Arg *arg);
-void hide(const Arg *arg);
-void raise_all(const Arg *arg);
-void start(const Arg *arg);
-void jwm_exit(const Arg *arg);
-void mousemotion(const Arg *arg);
-void reload_conf(const Arg *arg);
+#define TRACE() log_log(LOG_DEBUG, __FILE__, __LINE__, "%s", __FUNCTION__)
+
+void log_init(void);
+
+void log_set_level(int level);
+
+void log_log(int level, const char *file, int line, const char *fmt, ...);
 
 #endif

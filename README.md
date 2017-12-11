@@ -1,5 +1,6 @@
 jwm
-==========
+===
+
 A minimalist floating WM, written over the XCB library and based on 2bwm.
 
 jwm does not come with any bar or panel.

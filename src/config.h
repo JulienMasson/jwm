@@ -21,13 +21,16 @@
 #define CONFIG_H
 
 /* Programs */
-static const char *dmenu[] = { "dmenu_run", NULL };
+static const char *rofi_run[] =
+{ "rofi", "-show", "run", "-theme", "flat-orange", NULL };
+static const char *rofi_windows[] =
+{ "rofi", "-show", "window", "-theme", "flat-orange", NULL };
 static const char *urxvt[] = { "urxvt", NULL };
 static const char *emacs[] = { "emacs", NULL };
 static const char *volume_up[] = { "amixer", "set", "Master", "4%+", NULL };
 static const char *volume_down[] = { "amixer", "set", "Master", "4%-", NULL };
 static const char *volume_toggle[] = { "pactl", "set-sink-mute", "0", "toggle", NULL };
-static const char *slock[] = { "slock", NULL };
+static const char *i3lock[] = { "i3lock-fancy", NULL };
 
 /* Keyboard shorcut */
 static key keys[] = {
@@ -49,14 +52,17 @@ static key keys[] = {
 	/* Hide / Raise windows */
 	{ MOD,		 XK_n,	    hide,	  {} },
 	{ MOD,		 XK_a,	    raise_all,	  {} },
+	/* Reload conf */
+	{ MOD,		 XK_r,	    reload_conf,  {} },
 	/* Programs */
-	{ MOD,		 XK_d,	    start,	  { .com = dmenu			 } },
+	{ MOD,		 XK_d,	    start,	  { .com = rofi_run			 } },
+	{ MOD | CONTROL, XK_d,	    start,	  { .com = rofi_windows			 } },
 	{ MOD,		 XK_Return, start,	  { .com = urxvt			 } },
 	{ MOD | SHIFT,	 XK_e,	    start,	  { .com = emacs			 } },
 	{ MOD,		 XK_o,	    start,	  { .com = volume_up			 } },
 	{ MOD,		 XK_i,	    start,	  { .com = volume_down			 } },
 	{ MOD,		 XK_p,	    start,	  { .com = volume_toggle		 } },
-	{ MOD | CONTROL, XK_l,	    start,	  { .com = slock			 } },
+	{ MOD | CONTROL, XK_l,	    start,	  { .com = i3lock			 } },
 	/* Exit jwm */
 	{ MOD | SHIFT,	 XK_q,	    jwm_exit,     { .i	 = 0				 } },
 };

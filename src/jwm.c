@@ -19,6 +19,13 @@
 
 #include <stdbool.h>
 #include "global.h"
+#include "log.h"
+#include "ewmh.h"
+#include "monitor.h"
+#include "input.h"
+#include "atom.h"
+#include "event.h"
+#include "conf.h"
 
 /* Globals */
 xcb_connection_t *conn;                 /* Connection to X server. */
@@ -97,6 +104,11 @@ int main(int argc, char **argv)
 {
 	int scrno;
 
+	/* init conf and log */
+	conf_init();
+	log_init();
+
+	/* call cleanup on normal process termination */
 	atexit(cleanup);
 
 	if (!xcb_connection_has_error(conn = xcb_connect(NULL, &scrno)))

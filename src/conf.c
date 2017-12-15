@@ -21,57 +21,74 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 #include "log.h"
 #include "conf.h"
 
-#define CONF_FILE "/home/lab/.config/jwm/jwmrc"
-
+/* global vars */
 struct conf global_conf;
+static char *conf_path;
 
 static void parse_line(char *line, ssize_t nread)
 {
 	char key[nread], value[nread];
+	static char log_file[256];
 
 	memset(key, '\0', nread);
 	memset(value, '\0', nread);
 
-	sscanf(line, "%[^=]=%s", &key, &value);
-
-	if (strlen(value) > 0)
-		if (strncmp(key, "log_level", nread) == 0) {
-			int log_level = atoi(value);
-			global_conf.log_level = log_level;
+	/* key and value successfully matched and assigned */
+	if (sscanf(line, "%[^=]=%s", &key, &value) == 2)
+		if (strncmp(key, "log_level", nread) == 0)
+			global_conf.log_level = atoi(value);
+		else if (strncmp(key, "log_file", nread) == 0) {
+			memset(log_file, '\0', 256);
+			snprintf(log_file, 256, "%s", value);
+			global_conf.log_file = log_file;
 		}
-}
-
-void conf_init(void)
-{
-	/* default conf */
-	global_conf.log_level = LOG_WARN;
-
-	if (conf_read() == -1)
-		LOGE("Fail to read conf");
 }
 
 int conf_read(void)
 {
-        FILE *fp;
+	FILE *fp;
 	char *line = NULL;
 	size_t len = 0;
 	ssize_t nread;
 
-        if ((fp = fopen(CONF_FILE, "r")) == NULL) {
+	fp = fopen(conf_path, "r");
+	if (fp == NULL) {
 		LOGE("%s", strerror(errno));
 		return -1;
 	}
 
-	while ((nread = getline(&line, &len, fp)) != -1) {
+	while ((nread = getline(&line, &len, fp)) != -1)
 		parse_line(line, nread);
-	}
 
 	fclose(fp);
 	if (line)
 		free(line);
 
 	return 0;
+}
+
+void conf_init(char *path)
+{
+	static char conf_path_default[256];
+
+	/* conf file exist and readable */
+	if (path && (access(path, F_OK | R_OK) != -1))
+		conf_path = path;
+	else {
+		/* default conf file */
+		memset(conf_path_default, '\0', 256);
+		snprintf(conf_path_default, 256, "%s/.jwmrc", getenv("HOME"));
+		conf_path = conf_path_default;
+	}
+
+	/* default value of global conf */
+	global_conf.log_level = LOG_WARN;
+	global_conf.log_file = NULL;
+
+	/* read config */
+	conf_read();
 }

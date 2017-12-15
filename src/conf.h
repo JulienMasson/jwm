@@ -21,12 +21,13 @@
 #define CONF_H
 
 struct conf {
-	int log_level;
+	int	 log_level;
+	char	*log_file;
 };
 
 extern struct conf global_conf;
 
-void conf_init(void);
+void conf_init(char *path);
 
 int conf_read(void);
 

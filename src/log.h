@@ -27,11 +27,9 @@ enum { LOG_NOTHING, LOG_ERROR, LOG_WARN, LOG_INFO, LOG_DEBUG };
 #define LOGI(...) log_log(LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
 #define LOGD(...) log_log(LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
 
-#define TRACE() log_log(LOG_DEBUG, __FILE__, __LINE__, "%s", __FUNCTION__)
+#define TRACE() log_log(LOG_DEBUG, __FILE__, __LINE__, "%s", __func__)
 
 void log_init(void);
-
-void log_set_level(int level);
 
 void log_log(int level, const char *file, int line, const char *fmt, ...);
 

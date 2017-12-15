@@ -502,10 +502,8 @@ void mousemotion(const Arg *arg)
 
 void reload_conf(const Arg *arg)
 {
-	/* read conf */
 	if (conf_read() == -1)
 		LOGE("Fail to read conf");
-	else {
-		log_set_level(global_conf.log_level);
-	}
+	else
+		log_init();
 }

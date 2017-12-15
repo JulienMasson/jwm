@@ -18,6 +18,8 @@
  */
 
 #include <stdbool.h>
+#include <stdio.h>
+#include <getopt.h>
 #include "global.h"
 #include "log.h"
 #include "ewmh.h"
@@ -57,7 +59,7 @@ xcb_screen_of_display(xcb_connection_t *con, int screen)
 	return NULL;
 }
 
-static bool setup(int scrno)
+static bool init(int scrno)
 {
 	unsigned int values[1] = {
 		XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
@@ -76,11 +78,11 @@ static bool setup(int scrno)
 	/* init screen */
 	cookie = xcb_change_window_attributes_checked(conn,
 						      screen->root,
-						      XCB_CW_EVENT_MASK, values); 
+						      XCB_CW_EVENT_MASK, values);
 	error = xcb_request_check(conn, cookie);
 	if (error)
 		return false;
-	
+
 	/* ewmh init */
 	ewmh_init(scrno);
 
@@ -100,20 +102,65 @@ static bool setup(int scrno)
 	return true;
 }
 
+void usage(void)
+{
+	printf("NAME\n"
+	       "       jwm - A minimalist floating WM, written over the XCB\n"
+	       "\n"
+	       "SYNOPSIS\n"
+	       "       jwm [OPTION...]\n"
+	       "\n"
+	       "OPTIONS\n"
+	       "       -c, --conf\n"
+	       "              Specifies which configuration file to use instead of the default.\n"
+	       "\n"
+	       "       -h, --help\n"
+	       "              Display this help and exits.\n"
+	       "\n");
+}
+
 int main(int argc, char **argv)
 {
-	int scrno;
+	int screenp, ch;
+	char *conf_file = NULL;
+	struct option long_options[] = {
+		{"conf", required_argument, NULL, 'c'},
+		{"help", no_argument, NULL, 'h'},
+		{NULL, 0, NULL, 0}
+	};
 
-	/* init conf and log */
-	conf_init();
+	/* parse args */
+	while ((ch = getopt_long(argc, argv, "c:h:", long_options, NULL)) != -1) {
+		switch (ch) {
+		case 'c':
+			conf_file = optarg;
+			break;
+		case 'h':
+			usage();
+			exit(EXIT_SUCCESS);
+			break;
+		}
+	}
+
+	/* init log and load global conf */
+	conf_init(conf_file);
 	log_init();
 
 	/* call cleanup on normal process termination */
 	atexit(cleanup);
 
-	if (!xcb_connection_has_error(conn = xcb_connect(NULL, &scrno)))
-		if (setup(scrno))
+	/* init X connection and start main loop */
+	LOGI("Start connection with X server");
+	conn = xcb_connect(NULL, &screenp);
+	if (xcb_connection_has_error(conn))
+		LOGE("Connection has shut down due to a fatal error");
+	else
+		if (init(screenp)) {
+			LOGI("Start main loop");
 			event_loop();
+		}
 
+	/* exit from the main loop */
+	LOGW("Exit main loop");
 	event_exit();
 }

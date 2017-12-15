@@ -20,36 +20,38 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdarg.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
 #include "log.h"
 #include "conf.h"
 
-#define LOG_FILE "/home/lab/.config/jwm/log"
-
-static int log_level;
-static const char *level_names[] = {
+/* global vars */
+static const char * const level_names[] = {
 	"ERROR", "WARN", "INFO", "DEBUG"
 };
-static const char *level_colors[] = {
+static const char * const level_colors[] = {
 	"\x1b[31m", "\x1b[33m", "\x1b[34m", "\x1b[32m"
 };
 
 void log_init(void)
 {
+	static char log_file_default[256];
+
+	/* if file doesn't exist, set to default */
+	if (access(global_conf.log_file, F_OK | R_OK) == -1) {
+		memset(log_file_default, '\0', 256);
+		snprintf(log_file_default, 256, "%s/.jwm.log", getenv("HOME"));
+		global_conf.log_file = log_file_default;
+	}
+
 	/* redirect stdout */
-        freopen(LOG_FILE, "a", stdout);
+	freopen(global_conf.log_file, "a", stdout);
 	setbuf(stdout, NULL);
 
 	/* redirect stderr */
-        freopen(LOG_FILE, "a", stderr);
+	freopen(global_conf.log_file, "a", stderr);
 	setbuf(stderr, NULL);
-
-	/* set log level from global conf */
-	log_level = global_conf.log_level;
-}
-
-void log_set_level(int level)
-{
-	log_level = level;
 }
 
 void log_log(int level, const char *file, int line, const char *fmt, ...)
@@ -57,26 +59,27 @@ void log_log(int level, const char *file, int line, const char *fmt, ...)
 	time_t t;
 	struct tm *lt;
 	va_list args;
-	char buf[16];
+	char date[16];
 
-	if (level <= log_level) {
+	if (level <= global_conf.log_level) {
 		 /* shift level to select right colors/name */
-		level = level + 1;
+		level = level - 1;
 
-		/* Get current time */
+		/* Get current date */
 		t = time(NULL);
 		lt = localtime(&t);
-		buf[strftime(buf, sizeof(buf), "%H:%M:%S", lt)] = '\0';
+		date[strftime(date, sizeof(date), "%H:%M:%S", lt)] = '\0';
 
 		/* print header: date level file line */
-		fprintf(stderr,
-			"%s %s%-5s\x1b[0m \x1b[33m%s:%-4d\x1b[0m ",
-			buf, level_colors[level], level_names[level], file, line);
+		printf("%s %s%-5s\x1b[0m \x1b[33m%s:%-4d\x1b[0m",
+		       date,
+		       level_colors[level], level_names[level],
+		       file, line);
 
 		/* print args */
 		va_start(args, fmt);
 		vfprintf(stderr, fmt, args);
 		va_end(args);
-		fprintf(stderr, "\n");
+		printf("\n");
 	}
 }

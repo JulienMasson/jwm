@@ -3,7 +3,7 @@ OBJ_DIR := obj
 SRC_DIR := src
 
 # flags
-CFLAGS := -Os -Wunused
+CFLAGS := -Os -Wunused -g
 LDFLAGS :=
 
 # libs and include

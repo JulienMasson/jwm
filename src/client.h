@@ -37,7 +37,7 @@ struct client {                         // Everything we know about a window.
 	uint16_t	width, height;  // Width,Height in pixels.
 	struct sizepos	origsize;       // Original size if we're currently maxed.
 	uint16_t	max_width, max_height, min_width, min_height;
-	bool		fixed, vertmaxed, hormaxed, maxed, verthor, iconic;
+	bool		maxed, iconic;
 	struct monitor *monitor;        // The physical output this window is on.
 	struct list *	win;            // Pointer to our place in global windows list.
 };

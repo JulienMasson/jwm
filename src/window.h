@@ -40,7 +40,6 @@ void window_unmax(struct client *client);
 void window_max(struct client *client, uint16_t mon_x, uint16_t mon_y,
 		uint16_t mon_width, uint16_t mon_height);
 void window_maprequest(xcb_map_request_event_t *ev);
-struct client window_create_temp(void);
 void window_configurerequest(xcb_configure_request_event_t *ev);
 
 #endif

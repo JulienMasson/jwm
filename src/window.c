@@ -144,7 +144,7 @@ void window_set_focus(struct client *client)
 	/* Remember the new window as the current focused window. */
 	focuswin = client;
 
-	input_grab_buttons(client);
+	input_grab_buttons(client->id);
 }
 
 void window_moveresize(xcb_drawable_t win, const uint16_t x, const uint16_t y,
@@ -254,34 +254,10 @@ void window_fitonscreen(struct client *client)
 
 	getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, client);
 
-	if (client->maxed) {
-		client->maxed = false;
-	} else {
-		/* not maxed but look as if it was maxed, then make it maxed */
-		if (client->width == mon_width && client->height == mon_height) {
-			willresize = true;
-		} else {
-			getmonsize(&mon_x, &mon_y, &mon_width, &mon_height,
-				   client);
-			if (client->width == mon_width && client->height
-			    == mon_height)
-				willresize = true;
-		}
-		if (willresize) {
-			client->x = mon_x;
-			client->y = mon_y;
-			window_max(client, mon_x, mon_y, mon_width, mon_height);
-			return;
-		} else {
-			getmonsize(&mon_x, &mon_y, &mon_width,
-				   &mon_height, client);
-		}
-	}
-
+	/* outside the physical monitor */
 	if (client->x > mon_x + mon_width || client->y > mon_y + mon_height
 	    || client->x < mon_x || client->y < mon_y) {
 		willmove = true;
-		/* Is it outside the physical monitor? */
 		if (client->x > mon_x + mon_width)
 			client->x = mon_x + mon_width;
 
@@ -294,14 +270,13 @@ void window_fitonscreen(struct client *client)
 			client->y = mon_y;
 	}
 
-	/* Is it smaller than it wants to  be? */
-	if (0 != client->min_height && client->height < client->min_height) {
+	/* Minimum size of the client */
+	if (client->min_height != 0 && client->height < client->min_height) {
 		client->height = client->min_height;
-
 		willresize = true;
 	}
 
-	if (0 != client->min_width && client->width < client->min_width) {
+	if (client->min_width != 0 && client->width < client->min_width) {
 		client->width = client->min_width;
 		willresize = true;
 	}
@@ -312,17 +287,16 @@ void window_fitonscreen(struct client *client)
 		client->x = mon_x;
 		client->width = mon_width;
 		willmove = willresize = true;
-	} else
-	if (client->x + client->width > mon_x + mon_width) {
-		client->x = mon_x + mon_width;
+	} else 	if (client->x + client->width > mon_x + mon_width) {
+		client->x = mon_x + mon_width - client->width;
 		willmove = true;
 	}
+
 	if (client->height > mon_height) {
 		client->y = mon_y;
 		client->height = mon_height;
 		willmove = willresize = true;
-	} else
-	if (client->y + client->height > mon_y + mon_height) {
+	} else 	if (client->y + client->height > mon_y + mon_height) {
 		client->y = mon_y + mon_height - client->height;
 		willmove = true;
 	}
@@ -387,54 +361,11 @@ void window_unmax(struct client *client)
 	client->width = client->origsize.width;
 	client->height = client->origsize.height;
 
-	client->maxed = 0;
+	client->maxed = false;
 	window_moveresize(client->id, client->x, client->y,
 		   client->width, client->height);
 
 	window_center_pointer(client->id, client);
-}
-
-struct client window_create_temp(void)
-{
-	struct client temp_win;
-	uint32_t values[1] = { 0 };
-
-	temp_win.id = xcb_generate_id(conn);
-	xcb_create_window(conn,
-				/* depth */
-			  XCB_COPY_FROM_PARENT,
-				/* window Id */
-			  temp_win.id,
-				/* parent window */
-			  screen->root,
-				/* x, y */
-			  focuswin->x,
-			  focuswin->y,
-			  /* width, height */
-			  focuswin->width,
-			  focuswin->height,
-				/* border width */
-			  0,
-				/* class */
-			  XCB_WINDOW_CLASS_INPUT_OUTPUT,
-				/* visual */
-			  screen->root_visual,
-			  XCB_CW_BORDER_PIXEL,
-			  values
-			  );
-
-	xcb_change_window_attributes(conn, temp_win.id,
-				     XCB_CW_BACK_PIXEL, values);
-
-	temp_win.x = focuswin->x;
-	temp_win.y = focuswin->y;
-	temp_win.width = focuswin->width;
-	temp_win.height = focuswin->height;
-	temp_win.monitor = focuswin->monitor;
-	temp_win.min_height = focuswin->min_height;
-	temp_win.min_width = focuswin->min_height;
-
-	return temp_win;
 }
 
 static bool window_getgeom(const xcb_drawable_t *win, int16_t *x, int16_t *y,
@@ -496,7 +427,6 @@ static struct client *window_setup(xcb_window_t win)
 		return NULL;
 
 	element = list_add(&winlist, client);
-
 	if (element == NULL)
 		return NULL;
 
@@ -507,7 +437,7 @@ static struct client *window_setup(xcb_window_t win)
 	client->max_width = screen->width_in_pixels;
 	client->max_height = screen->height_in_pixels;
 	client->usercoord = client->iconic = false;
-
+	client->maxed = false;
 	client->monitor = NULL;
 	client->win = element;
 
@@ -581,7 +511,8 @@ void window_maprequest(xcb_map_request_event_t *ev)
 		if (!window_get_pointer(&screen->root, &client->x, &client->y))
 			client->x = client->y = 0;
 
-		client->x -= client->width / 2;    client->y -= client->height / 2;
+		client->x -= client->width / 2;
+		client->y -= client->height / 2;
 		window_move(client->id, client->x, client->y);
 	}
 

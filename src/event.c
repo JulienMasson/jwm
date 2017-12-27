@@ -107,23 +107,48 @@ static void install_sig_handlers(void)
 		exit(-1);
 }
 
-void event_init(void)
+bool event_init(void)
 {
-	install_sig_handlers();
+	unsigned int values[1] = {
+		XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
+		| XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
+		| XCB_EVENT_MASK_BUTTON_PRESS
+	};
+	xcb_void_cookie_t cookie;
+	xcb_generic_error_t *error;
+	int i;
+
+	/* Root screen listen to "values" events */
+	cookie = xcb_change_window_attributes_checked(conn,
+						      screen->root,
+						      XCB_CW_EVENT_MASK,
+						      values);
+	error = xcb_request_check(conn, cookie);
+	if (error) {
+		LOGE("Change window attributes failed: %d", error->error_code);
+		return false;
+	}
 
 	/* set events */
-	int i;
 	for (i = 0; i < XCB_NO_OPERATION; i++)
 		events[i] = NULL;
 
-	events[XCB_KEY_PRESS] = keypress;
+	/* XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT */
 	events[XCB_MAP_REQUEST] = maprequest;
 	events[XCB_CONFIGURE_REQUEST] = configurerequest;
-	events[XCB_BUTTON_PRESS] = buttonpress;
+	events[XCB_CLIENT_MESSAGE] = clientmessage;
+
+	/* XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY */
 	events[XCB_DESTROY_NOTIFY] = destroynotify;
 	events[XCB_ENTER_NOTIFY] = enternotify;
 	events[XCB_UNMAP_NOTIFY] = unmapnotify;
-	events[XCB_CLIENT_MESSAGE] = clientmessage;
+
+	/* XCB_EVENT_MASK_BUTTON_PRESS */
+	events[XCB_BUTTON_PRESS] = buttonpress;
+	events[XCB_KEY_PRESS] = keypress;
+
+	install_sig_handlers();
+	return true;
 }
 
 void event_loop(void)
@@ -134,7 +159,6 @@ void event_loop(void)
 
 	while (sigcode == 0) {
 
-		/* the WM is running */
 		xcb_flush(conn);
 
 		if (xcb_connection_has_error(conn))

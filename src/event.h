@@ -20,7 +20,7 @@
 #ifndef EVENT_H
 #define EVENT_H
 
-void event_init(void);
+bool event_init(void);
 
 void event_loop(void);
 

@@ -34,7 +34,7 @@ typedef struct {
 
 bool input_init(void);
 
-void input_grab_buttons(struct client *c);
+void input_grab_buttons(xcb_window_t grab_window);
 
 void input_key_handler(xcb_key_press_event_t *ev);
 

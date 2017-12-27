@@ -30,6 +30,5 @@ extern xcb_screen_t *screen;
 extern struct list *winlist;
 extern struct client *focuswin;
 extern xcb_ewmh_connection_t *ewmh;
-extern void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *e);
 
 #endif

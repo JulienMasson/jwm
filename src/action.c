@@ -38,10 +38,12 @@ void focusnext_helper(bool arg)
 	struct client *cl = NULL;
 
 	/* If we currently have no focus focus first in list. */
-	if (NULL == focuswin || NULL == focuswin->win) {
-		cl = winlist->data;
-		while (cl->iconic == true && cl->win->next != NULL)
-			cl = cl->win->next->data;
+	if (focuswin == NULL || focuswin->win == NULL) {
+		if (winlist != NULL && winlist->data != NULL) {
+			cl = winlist->data;
+			while (cl->iconic == true && cl->win->next != NULL)
+				cl = cl->win->next->data;
+		}
 	} else {
 		if (arg == FOCUS_NEXT) {
 			if (NULL == focuswin->win->prev) {
@@ -108,7 +110,7 @@ void focusnext_helper(bool arg)
 		}
 	}
 	/* if NULL focuswin */
-	if (NULL != cl && focuswin != cl && cl->iconic == false) {
+	if (cl != NULL && focuswin != cl && cl->iconic == false) {
 		window_raise(cl->id);
 		window_center_pointer(cl->id, cl);
 		window_set_focus(cl);
@@ -125,7 +127,7 @@ void maxhalf(const Arg *arg)
 	int16_t mon_x, mon_y;
 	uint16_t mon_width, mon_height;
 
-	if (NULL == focuswin || focuswin->maxed)
+	if (focuswin == NULL || focuswin->maxed)
 		return;
 
 	getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, focuswin);
@@ -142,7 +144,6 @@ void maxhalf(const Arg *arg)
 	window_moveresize(focuswin->id, focuswin->x, focuswin->y,
 		   focuswin->width, focuswin->height);
 
-	focuswin->verthor = true;
 	window_raise_current();
 	window_fitonscreen(focuswin);
 	window_center_pointer(focuswin->id, focuswin);
@@ -235,40 +236,11 @@ static void unmax(struct client *client)
 	client->width = client->origsize.width;
 	client->height = client->origsize.height;
 
-	client->maxed = client->hormaxed = 0;
+	client->maxed = false;
 	window_moveresize(client->id, client->x, client->y,
 		   client->width, client->height);
 
 	window_center_pointer(client->id, client);
-}
-
-static void saveorigsize(struct client *client)
-{
-	client->origsize.x = client->x;
-	client->origsize.y = client->y;
-	client->origsize.width = client->width;
-	client->origsize.height = client->height;
-}
-
-static void maximize_helper(struct client *client,
-			    uint16_t mon_x, uint16_t mon_y,
-			    uint16_t mon_width, uint16_t mon_height)
-{
-	uint32_t values[4];
-
-	values[0] = 0;
-	saveorigsize(client);
-	xcb_configure_window(conn, client->id, XCB_CONFIG_WINDOW_BORDER_WIDTH,
-			     values);
-
-	client->x = mon_x;
-	client->y = mon_y;
-	client->width = mon_width;
-	client->height = mon_height;
-
-	window_moveresize(client->id, client->x, client->y, client->width,
-		   client->height);
-	client->maxed = true;
 }
 
 void maximize(const Arg *arg)
@@ -294,7 +266,7 @@ void maximize(const Arg *arg)
 		monitor_borders(&mon_width, &mon_height);
 	}
 
-	maximize_helper(focuswin, mon_x, mon_y, mon_width, mon_height);
+	window_max(focuswin, mon_x, mon_y, mon_width, mon_height);
 	window_raise_current();
 	xcb_flush(conn);
 }
@@ -356,7 +328,7 @@ void jwm_exit(const Arg *arg)
 	exit(EXIT_SUCCESS);
 }
 
-static xcb_cursor_t Create_Font_Cursor(xcb_connection_t *conn, uint16_t glyph)
+static xcb_cursor_t create_font_cursor(xcb_connection_t *conn, uint16_t glyph)
 {
 	static xcb_font_t cursor_font;
 
@@ -391,8 +363,6 @@ void mouseresize(struct client *client, const int16_t rel_x, const int16_t rel_y
 	client->height = abs(rel_y);
 
 	window_resize_limit(client);
-	client->vertmaxed = false;
-	client->hormaxed = false;
 }
 
 void mousemotion(const Arg *arg)
@@ -400,102 +370,87 @@ void mousemotion(const Arg *arg)
 	int16_t mx, my, winx, winy, winw, winh;
 	xcb_query_pointer_reply_t *pointer;
 	xcb_grab_pointer_reply_t *grab_reply;
-	xcb_motion_notify_event_t *ev = NULL;
-	xcb_generic_event_t *e = NULL;
-	bool ungrab;
+	xcb_cursor_t cursor;
+	xcb_query_pointer_cookie_t cookie_query;
+	xcb_grab_pointer_cookie_t cookie_grab;
 
-	pointer = xcb_query_pointer_reply(conn,
-					  xcb_query_pointer(conn, screen->root), 0
-					  );
-
-	if (!pointer || focuswin->maxed) {
-		free(pointer);
+	/* get pointer coordinates */
+	cookie_query = xcb_query_pointer(conn, screen->root);
+	pointer = xcb_query_pointer_reply(conn, cookie_query, 0);
+	if ((pointer == NULL) || focuswin->maxed)
 		return;
-	}
-
 	mx = pointer->root_x;
 	my = pointer->root_y;
+
+	/* focus coordinates */
 	winx = focuswin->x;
 	winy = focuswin->y;
 	winw = focuswin->width;
 	winh = focuswin->height;
 
-	xcb_cursor_t cursor;
-	struct client example;
+	/* pointer outside the focus */
+	if (mx < winx || mx > winx + winw || my < winy || my > winy + winh)
+		return;
+
+	/* raise focus window */
 	window_raise_current();
 
-	if (arg->i == WIN_MOVE) {
-		cursor = Create_Font_Cursor(conn, 52);          /* fleur */
-	} else {
-		cursor = Create_Font_Cursor(conn, 120);         /* sizing */
-		example = window_create_temp();
-		xcb_map_window(conn, example.id);
-	}
+	/* create/setup cursor */
+	if (arg->i == WIN_MOVE)
+		cursor = create_font_cursor(conn, 52);          /* fleur */
+	else
+		cursor = create_font_cursor(conn, 120);         /* sizing */
 
-	grab_reply = xcb_grab_pointer_reply(conn, xcb_grab_pointer(conn, 0,
-								   screen->root, BUTTONMASK | XCB_EVENT_MASK_BUTTON_MOTION
-								   | XCB_EVENT_MASK_POINTER_MOTION, XCB_GRAB_MODE_ASYNC,
-								   XCB_GRAB_MODE_ASYNC, XCB_NONE, cursor, XCB_CURRENT_TIME)
-					    , NULL
-					    );
-
+	cookie_grab = xcb_grab_pointer(conn,
+				       0,
+				       screen->root,
+				       BUTTONMASK | XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_POINTER_MOTION,
+				       XCB_GRAB_MODE_ASYNC,
+				       XCB_GRAB_MODE_ASYNC,
+				       XCB_NONE,
+				       cursor,
+				       XCB_CURRENT_TIME);
+	grab_reply = xcb_grab_pointer_reply(conn, cookie_grab, NULL);
 	if (grab_reply->status != XCB_GRAB_STATUS_SUCCESS) {
 		free(grab_reply);
-
-		if (arg->i == WIN_RESIZE)
-			xcb_unmap_window(conn, example.id);
-
 		return;
 	}
-
 	free(grab_reply);
-	ungrab = false;
 
-	do {
-		if (NULL != e)
-			free(e);
+	/* loop until release buttons */
+	xcb_generic_event_t *ev = NULL;
+	xcb_motion_notify_event_t *ev_motion = NULL;
+	bool button_released = false;
 
-		while (!(e = xcb_wait_for_event(conn)))
-			xcb_flush(conn);
+	while (button_released == false) {
 
-		switch (e->response_type & ~0x80) {
-		case XCB_CONFIGURE_REQUEST:
-		case XCB_MAP_REQUEST:
-			events[e->response_type & ~0x80](e);
-			break;
-		case XCB_MOTION_NOTIFY:
-			ev = (xcb_motion_notify_event_t *)e;
-			if (arg->i == WIN_MOVE)
-				mousemove(winx + ev->root_x - mx,
-					  winy + ev->root_y - my);
-			else
-				mouseresize(&example, winw + ev->root_x - mx,
-					    winh + ev->root_y - my);
-			xcb_flush(conn);
-			break;
-		case XCB_KEY_PRESS:
-		case XCB_KEY_RELEASE:
-		case XCB_BUTTON_PRESS:
-		case XCB_BUTTON_RELEASE:
-			if (arg->i == WIN_RESIZE) {
-				ev = (xcb_motion_notify_event_t *)e;
-				mouseresize(focuswin, winw + ev->root_x - mx,
-					    winh + ev->root_y - my);
+		xcb_flush(conn);
+
+		if ((ev = xcb_wait_for_event(conn))) {
+
+			switch (ev->response_type & ~0x80) {
+			case XCB_MOTION_NOTIFY:
+				ev_motion = (xcb_motion_notify_event_t *)ev;
+				if (arg->i == WIN_MOVE)
+					mousemove(winx + ev_motion->root_x - mx,
+						  winy + ev_motion->root_y - my);
+				else
+					mouseresize(focuswin,
+						    winw + ev_motion->root_x - mx,
+						    winh + ev_motion->root_y - my);
+				break;
+			case XCB_BUTTON_RELEASE:
+				button_released = true;
+				break;
 			}
- 
-			ungrab = true;
-			break;
+
+			free(ev);
 		}
-	} while (!ungrab && focuswin != NULL);
+	}
  
 	free(pointer);
-	free(e);
 	xcb_free_cursor(conn, cursor);
 	xcb_ungrab_pointer(conn, XCB_CURRENT_TIME);
- 
-	if (arg->i == WIN_RESIZE)
-		xcb_unmap_window(conn, example.id);
- 
 	xcb_flush(conn);
 }
 

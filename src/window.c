@@ -67,7 +67,7 @@ void window_raise(xcb_drawable_t win)
 	xcb_flush(conn);
 }
 
-void window_raise_current(void)
+void window_raise_focus(void)
 {
 	window_raise(focuswin->id);
 }

@@ -28,6 +28,7 @@
 #include "atom.h"
 #include "event.h"
 #include "conf.h"
+#include "cursor.h"
 
 /* global vars */
 xcb_connection_t *conn;                 /* Connection to X server. */
@@ -85,6 +86,9 @@ static bool init(int scrno)
 	/* init input, keyboard, button ... */
 	if (!input_init())
 		return false;
+
+	/* init cursor */
+	cursor_init();
 
 	return true;
 }

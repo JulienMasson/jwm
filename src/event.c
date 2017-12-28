@@ -29,6 +29,7 @@
 #include "window.h"
 #include "client.h"
 #include "input.h"
+#include "log.h"
 
 void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *e);
 

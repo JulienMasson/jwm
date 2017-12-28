@@ -23,7 +23,7 @@
 void get_borders_all_mons(uint16_t *border_x, uint16_t *border_y);
 void getmonsize(int16_t *mon_x, int16_t *mon_y, uint16_t *mon_width,
 		uint16_t *mon_height, const struct client *client);
-void window_raise_current(void);
+void window_raise_focus(void);
 void window_raise(xcb_drawable_t win);
 void window_center_pointer(xcb_drawable_t win, struct client *cl);
 void window_set_unfocus(void);

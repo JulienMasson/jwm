@@ -29,8 +29,7 @@
 #include "monitor.h"
 #include "log.h"
 #include "conf.h"
-
-#define BUTTONMASK      XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE
+#include "cursor.h"
 
 /* Change focus to next in window ring. */
 void focusnext_helper(bool arg)
@@ -144,7 +143,7 @@ void maxhalf(const Arg *arg)
 	window_moveresize(focuswin->id, focuswin->x, focuswin->y,
 		   focuswin->width, focuswin->height);
 
-	window_raise_current();
+	window_raise_focus();
 	window_fitonscreen(focuswin);
 	window_center_pointer(focuswin->id, focuswin);
 }
@@ -177,7 +176,7 @@ void changescreen(const Arg *arg)
 	focuswin->y = focuswin->monitor->height * ypercentage
 		+ focuswin->monitor->y + 0.5;
 
-	window_raise_current();
+	window_raise_focus();
 	window_fitonscreen(focuswin);
 	window_move_limit(focuswin);
 	window_center_pointer(focuswin->id, focuswin);
@@ -267,7 +266,7 @@ void maximize(const Arg *arg)
 	}
 
 	window_max(focuswin, mon_x, mon_y, mon_width, mon_height);
-	window_raise_current();
+	window_raise_focus();
 	xcb_flush(conn);
 }
 
@@ -328,20 +327,6 @@ void jwm_exit(const Arg *arg)
 	exit(EXIT_SUCCESS);
 }
 
-static xcb_cursor_t create_font_cursor(xcb_connection_t *conn, uint16_t glyph)
-{
-	static xcb_font_t cursor_font;
-
-	cursor_font = xcb_generate_id(conn);
-	xcb_open_font(conn, cursor_font, strlen("cursor"), "cursor");
-	xcb_cursor_t cursor = xcb_generate_id(conn);
-	xcb_create_glyph_cursor(conn, cursor, cursor_font, cursor_font, glyph,
-				glyph + 1, 0x3232, 0x3232, 0x3232, 0xeeee, 0xeeee, 0xeeec
-				);
-
-	return cursor;
-}
-
 /* Move window win as a result of pointer motion to coordinates rel_x,rel_y. */
 void mousemove(const int16_t rel_x, const int16_t rel_y)
 {
@@ -367,20 +352,14 @@ void mouseresize(struct client *client, const int16_t rel_x, const int16_t rel_y
 
 void mousemotion(const Arg *arg)
 {
-	int16_t mx, my, winx, winy, winw, winh;
-	xcb_query_pointer_reply_t *pointer;
-	xcb_grab_pointer_reply_t *grab_reply;
-	xcb_cursor_t cursor;
-	xcb_query_pointer_cookie_t cookie_query;
-	xcb_grab_pointer_cookie_t cookie_grab;
+	int16_t winx, winy, winw, winh;
 
-	/* get pointer coordinates */
-	cookie_query = xcb_query_pointer(conn, screen->root);
-	pointer = xcb_query_pointer_reply(conn, cookie_query, 0);
-	if ((pointer == NULL) || focuswin->maxed)
+	/* check if we focus on window none max */
+	if (focuswin && focuswin->maxed)
 		return;
-	mx = pointer->root_x;
-	my = pointer->root_y;
+
+	/* raise focus window */
+	window_raise_focus();
 
 	/* focus coordinates */
 	winx = focuswin->x;
@@ -389,33 +368,20 @@ void mousemotion(const Arg *arg)
 	winh = focuswin->height;
 
 	/* pointer outside the focus */
+	int16_t mx, my;
+	cursor_get_coordinates(&mx, &my);
 	if (mx < winx || mx > winx + winw || my < winy || my > winy + winh)
 		return;
 
-	/* raise focus window */
-	window_raise_current();
-
 	/* create/setup cursor */
 	if (arg->i == WIN_MOVE)
-		cursor = create_font_cursor(conn, 52);          /* fleur */
+		cursor_set(focuswin->id, MOVE);
 	else
-		cursor = create_font_cursor(conn, 120);         /* sizing */
+		cursor_set(focuswin->id, SIZING);
 
-	cookie_grab = xcb_grab_pointer(conn,
-				       0,
-				       screen->root,
-				       BUTTONMASK | XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_POINTER_MOTION,
-				       XCB_GRAB_MODE_ASYNC,
-				       XCB_GRAB_MODE_ASYNC,
-				       XCB_NONE,
-				       cursor,
-				       XCB_CURRENT_TIME);
-	grab_reply = xcb_grab_pointer_reply(conn, cookie_grab, NULL);
-	if (grab_reply->status != XCB_GRAB_STATUS_SUCCESS) {
-		free(grab_reply);
-		return;
-	}
-	free(grab_reply);
+	/* root window grabs control of the pointer.
+	   further pointer events are reported only to root window */
+	cursor_grab();
 
 	/* loop until release buttons */
 	xcb_generic_event_t *ev = NULL;
@@ -447,11 +413,9 @@ void mousemotion(const Arg *arg)
 			free(ev);
 		}
 	}
- 
-	free(pointer);
-	xcb_free_cursor(conn, cursor);
-	xcb_ungrab_pointer(conn, XCB_CURRENT_TIME);
-	xcb_flush(conn);
+
+	/* releases the pointer */
+	cursor_ungrab();
 }
 
 

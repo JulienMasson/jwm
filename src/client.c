@@ -143,7 +143,7 @@ void client_enter(xcb_enter_notify_event_t *ev)
 		/* If we're entering the same window we focus now,
 		 * then don't bother focusing. */
 
-		if (NULL != focuswin && ev->event == focuswin->id)
+		if (focuswin != NULL && ev->event == focuswin->id)
 			return;
 
 		/* Otherwise, set focus to the window we just entered if we

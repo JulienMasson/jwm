@@ -33,6 +33,7 @@ static void parse_line(char *line, ssize_t nread)
 {
 	char key[nread], value[nread];
 	static char log_file[256];
+	static char wallpaper[256];
 
 	memset(key, '\0', nread);
 	memset(value, '\0', nread);
@@ -45,6 +46,10 @@ static void parse_line(char *line, ssize_t nread)
 			memset(log_file, '\0', 256);
 			snprintf(log_file, 256, "%s", value);
 			global_conf.log_file = log_file;
+		} else if (strncmp(key, "wallpaper", nread) == 0) {
+			memset(wallpaper, '\0', 256);
+			snprintf(wallpaper, 256, "%s", value);
+			global_conf.wallpaper = wallpaper;
 		}
 }
 
@@ -88,6 +93,7 @@ void conf_init(char *path)
 	/* default value of global conf */
 	global_conf.log_level = LOG_WARN;
 	global_conf.log_file = NULL;
+	global_conf.wallpaper = NULL;
 
 	/* read config */
 	conf_read();

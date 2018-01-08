@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <getopt.h>
+#include <unistd.h>
 #include "global.h"
 #include "log.h"
 #include "ewmh.h"
@@ -29,12 +30,12 @@
 #include "event.h"
 #include "conf.h"
 #include "cursor.h"
-#include <cairo/cairo-xcb.h>
 #include <xcb/xcb_aux.h>
 
 /* global vars */
 xcb_connection_t *conn;                 /* Connection to X server. */
 xcb_screen_t *screen;                   /* Our current screen. */
+xcb_visualtype_t *visual;               /* Visual type */
 struct list *winlist;                   /* Global list of all client windows. */
 struct client *focuswin;                /* Current focus window. */
 
@@ -47,54 +48,10 @@ void cleanup(void)
 	xcb_disconnect(conn);
 }
 
-static void set_wallpaper(int scrno)
-{
-    /* create a pixmap  */
-    xcb_pixmap_t p = xcb_generate_id(conn);
-    uint16_t width = screen->width_in_pixels;
-    uint16_t height = screen->height_in_pixels;
-    xcb_create_pixmap(conn, screen->root_depth, p, screen->root, width, height);
-
-    /* create surface for wallpaper */
-    cairo_surface_t *src = cairo_image_surface_create_from_png(global_conf.wallpaper);
-    int image_height = cairo_image_surface_get_height(src);
-    int image_width = cairo_image_surface_get_width(src);
-
-    /* create surface for root screen and paint the wallpaper */
-    xcb_visualtype_t *visual = xcb_aux_get_visualtype(conn, scrno, screen->root_visual);
-    cairo_surface_t *dest = cairo_xcb_surface_create(conn, p, visual, width, height);
-    cairo_t *cr = cairo_create(dest);
-    float scale_width = ((float) width) / ((float) image_width);
-    float scale_height = ((float) height) / ((float) image_height);
-    cairo_scale(cr, scale_width, scale_height);
-    cairo_set_source_surface(cr, src, 0, 0);
-    cairo_paint(cr);
-    cairo_surface_flush(dest);
-
-    /* Change the wallpaper */
-    xcb_change_window_attributes(conn, screen->root, XCB_CW_BACK_PIXMAP, &p);
-    xcb_clear_area(conn, 0, screen->root, 0, 0, 0, 0);
-    xcb_flush(conn);
-
-    /* free resources */
-    xcb_free_pixmap(conn, p);
-    cairo_destroy(cr);
-    cairo_surface_destroy(src);
-    cairo_surface_destroy(dest);
-}
-
 static bool init(int scrno)
 {
-	/* get screen */
-	screen = xcb_aux_get_screen(conn, scrno);
-	if (!screen) {
-		LOGE("Get screen of display failed");
-		return false;
-	}
-
-	/* wallpaper */
-	if (global_conf.wallpaper)
-	    set_wallpaper(scrno);
+	/* init all monitors */
+	monitor_init();
 
 	/* init events */
 	if (!event_init()) {
@@ -107,9 +64,6 @@ static bool init(int scrno)
 
 	/* atom init */
 	atom_init();
-
-	/* init all monitors */
-	monitor_init();
 
 	/* init input, keyboard, button ... */
 	if (!input_init())
@@ -140,7 +94,7 @@ void usage(void)
 
 int main(int argc, char **argv)
 {
-	int screenp, ch;
+	int scrno, ch;
 	char *conf_file = NULL;
 	struct option long_options[] = {
 		{"conf", required_argument, NULL, 'c'},
@@ -168,16 +122,31 @@ int main(int argc, char **argv)
 	/* call cleanup on normal process termination */
 	atexit(cleanup);
 
-	/* init X connection and start main loop */
+	/* init X connection */
 	LOGI("Start connection with X server");
-	conn = xcb_connect(NULL, &screenp);
-	if (xcb_connection_has_error(conn))
+	conn = xcb_connect(NULL, &scrno);
+	if (xcb_connection_has_error(conn)) {
 		LOGE("Connection has shut down due to a fatal error");
-	else
-		if (init(screenp)) {
-			LOGI("Start main loop");
-			event_loop();
-		}
+		exit(EXIT_FAILURE);
+	}
+
+	/* get screen and infos */
+	screen = xcb_aux_get_screen(conn, scrno);
+	if (!screen) {
+		LOGE("Get screen failed");
+		exit(EXIT_FAILURE);
+	}
+	visual = xcb_aux_get_visualtype(conn, scrno, screen->root_visual);
+	if (!visual) {
+		LOGE("Get visual type failed");
+		exit(EXIT_FAILURE);
+	}
+
+	/* init components and start main loop */
+	if (init(scrno)) {
+	    LOGI("Start main loop");
+	    event_loop();
+	}
 
 	/* exit from the main loop */
 	LOGW("Exit main loop");

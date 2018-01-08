@@ -20,12 +20,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <cairo/cairo-xcb.h>
 
 #include "global.h"
 #include "monitor.h"
 #include "window.h"
 #include "client.h"
 #include "utils.h"
+#include "conf.h"
 
 /* List of all physical monitor outputs. */
 struct list *monlist;
@@ -229,6 +231,51 @@ static void getoutputs(xcb_randr_output_t *outputs, const int len,
 	} /* for */
 }
 
+static void set_wallpaper(void)
+{
+	struct monitor *mon;
+	struct list *element;
+	float scale_width, scale_height;
+
+	/* create a pixmap  */
+	xcb_pixmap_t p = xcb_generate_id(conn);
+	uint16_t width = screen->width_in_pixels;
+	uint16_t height = screen->height_in_pixels;
+	xcb_create_pixmap(conn, screen->root_depth, p, screen->root, width, height);
+
+	/* create surface from png file */
+	cairo_surface_t *src = cairo_image_surface_create_from_png(global_conf.wallpaper);
+	int image_height = cairo_image_surface_get_height(src);
+	int image_width = cairo_image_surface_get_width(src);
+
+	/* loop through monitors and paint the scaled image */
+	cairo_surface_t *dest = cairo_xcb_surface_create(conn, p, visual, width, height);
+	cairo_t *cr = cairo_create(dest);
+	for (element = monlist; element != NULL; element = element->next) {
+		mon = element->data;
+
+		scale_width = ((float) mon->width) / ((float) image_width);
+		scale_height = ((float) mon->height) / ((float) image_height);
+
+		cairo_scale(cr, scale_width, scale_height);
+		cairo_set_source_surface(cr, src, mon->x / scale_width, mon->y / scale_height);
+		cairo_paint(cr);
+		cairo_scale(cr, 1 / scale_width, 1 / scale_height);
+	}
+	cairo_surface_flush(dest);
+
+	/* change root window background pixmap */
+	xcb_change_window_attributes(conn, screen->root, XCB_CW_BACK_PIXMAP, &p);
+	xcb_clear_area(conn, 0, screen->root, 0, 0, 0, 0);
+	xcb_flush(conn);
+
+	/* free resources */
+	xcb_free_pixmap(conn, p);
+	cairo_surface_destroy(src);
+	cairo_surface_destroy(dest);
+	cairo_destroy(cr);
+}
+
 /* Get RANDR resources and figure out how many outputs there are. */
 static void monitor_update(void)
 {
@@ -252,6 +299,10 @@ static void monitor_update(void)
 	/* Request information for all outputs. */
 	getoutputs(outputs, len, timestamp);
 	free(res);
+
+	/* wallpaper */
+	if (global_conf.wallpaper)
+	    set_wallpaper();
 }
 
 /* Set up RANDR extension. Get the extension base and subscribe to events */

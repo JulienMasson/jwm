@@ -24,9 +24,9 @@
 #include <xcb/xcb_ewmh.h>
 #include <xcb/xcb_icccm.h>
 
-extern unsigned int numlockmask;
 extern xcb_connection_t *conn;
 extern xcb_screen_t *screen;
+extern xcb_visualtype_t *visual;
 extern struct list *winlist;
 extern struct client *focuswin;
 extern xcb_ewmh_connection_t *ewmh;

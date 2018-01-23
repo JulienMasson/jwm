@@ -36,8 +36,6 @@
 xcb_connection_t *conn;                 /* Connection to X server. */
 xcb_screen_t *screen;                   /* Our current screen. */
 xcb_visualtype_t *visual;               /* Visual type */
-struct list *winlist;                   /* Global list of all client windows. */
-struct client *focuswin;                /* Current focus window. */
 
 void cleanup(void)
 {

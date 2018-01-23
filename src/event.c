@@ -45,13 +45,13 @@ static void keypress(xcb_generic_event_t *e)
 static void maprequest(xcb_generic_event_t *e)
 {
 	xcb_map_request_event_t *ev = (xcb_map_request_event_t *)e;
-	window_maprequest(ev);
+	client_map_request(ev);
 }
 
 static void configurerequest(xcb_generic_event_t *e)
 {
 	xcb_configure_request_event_t *ev = (xcb_configure_request_event_t *)e;
-	window_configurerequest(ev);
+	client_configure_request(ev);
 }
 
 static void buttonpress(xcb_generic_event_t *e)

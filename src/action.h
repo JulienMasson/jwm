@@ -21,9 +21,7 @@
 #define ACTION_H
 
 enum { WIN_MOVE, WIN_RESIZE };
-enum { FOCUS_NEXT, FOCUS_PREVIOUS };
 enum { MAXHALF_VERTICAL_RIGHT, MAXHALF_VERTICAL_LEFT };
-enum { PREVIOUS_SCREEN, NEXT_SCREEN };
 enum { FULLSCREEN_ONE_MONITOR, FULLSCREEN_ALL_MONITOR };
 
 typedef union {
@@ -31,16 +29,15 @@ typedef union {
 	const int8_t	i;
 } Arg;
 
-void focusnext(const Arg *arg);
-void maxhalf(const Arg *arg);
-void changescreen(const Arg *arg);
-void deletewin(const Arg *arg);
+void change_focus(const Arg *arg);
+void max_half(const Arg *arg);
+void delete_window(const Arg *arg);
 void maximize(const Arg *arg);
 void hide(const Arg *arg);
 void raise_all(const Arg *arg);
 void start(const Arg *arg);
 void jwm_exit(const Arg *arg);
-void mousemotion(const Arg *arg);
+void mouse_motion(const Arg *arg);
 void reload_conf(const Arg *arg);
 
 #endif

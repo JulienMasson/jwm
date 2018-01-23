@@ -28,7 +28,7 @@ struct monitor {
 	char			*name;
 	int16_t			 y, x;	        /* X and Y */
 	uint16_t		 width, height;	/* Width/Height in pixels */
-	struct list		*element;	/* Pointer to our place in output list */
+	struct list		*index;	        /* Pointer to our place in output list */
 };
 
 void monitor_init(void);

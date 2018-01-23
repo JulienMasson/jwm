@@ -23,8 +23,6 @@
 /* Programs */
 static const char *rofi_run[] =
 { "rofi", "-show", "run", "-theme", "flat-orange", NULL };
-static const char *rofi_windows[] =
-{ "rofi", "-show", "window", "-theme", "flat-orange", NULL };
 static const char *urxvt[] = { "urxvt", NULL };
 static const char *emacs[] = { "emacs", NULL };
 static const char *volume_up[] = { "amixer", "set", "Master", "4%+", NULL };
@@ -34,29 +32,25 @@ static const char *i3lock[] = { "i3lock-fancy", NULL };
 
 /* Keyboard shorcut */
 static key keys[] = {
-	/* modifier           key            function           argument */
+	/* modifier      key        function           argument */
 	/* Focus to next/previous window */
-	{ MOD,		 XK_Right,  focusnext,	  { .i	 = FOCUS_NEXT		  } },
-	{ MOD,		 XK_Left,   focusnext,	  { .i	 = FOCUS_PREVIOUS	  } },
+	{ MOD,		 XK_Right,  change_focus, { .i	 = CLIENT_NEXT		  } },
+	{ MOD,		 XK_Left,   change_focus, { .i	 = CLIENT_PREVIOUS	  } },
 	/* Vertically left/right */
-	{ MOD | CONTROL, XK_Right,  maxhalf,	  { .i	 = MAXHALF_VERTICAL_RIGHT } },
-	{ MOD | CONTROL, XK_Left,   maxhalf,	  { .i	 = MAXHALF_VERTICAL_LEFT  } },
-	/* Next/Previous screen */
-	{ MOD | SHIFT,	 XK_Right,  changescreen, { .i	 = PREVIOUS_SCREEN	  } },
-	{ MOD | SHIFT,	 XK_Left,   changescreen, { .i	 = NEXT_SCREEN		  } },
+	{ MOD | CONTROL, XK_Right,  max_half,	  { .i	 = MAXHALF_VERTICAL_RIGHT } },
+	{ MOD | CONTROL, XK_Left,   max_half,	  { .i	 = MAXHALF_VERTICAL_LEFT  } },
 	/* Kill a window */
-	{ MOD | SHIFT,	 XK_c,	    deletewin,	  {} },
+	{ MOD | SHIFT,	 XK_c,	    delete_window,{} },
 	/* Full screen window without borders */
 	{ MOD,		 XK_f,	    maximize,	  { .i	 = FULLSCREEN_ONE_MONITOR } },
 	{ MOD | CONTROL, XK_t,	    maximize,	  { .i	 = FULLSCREEN_ALL_MONITOR } },
 	/* Hide / Raise windows */
-	{ MOD,		 XK_n,	    hide,	  {} },
+	{ MOD,		 XK_h,	    hide,	  {} },
 	{ MOD,		 XK_a,	    raise_all,	  {} },
 	/* Reload conf */
 	{ MOD,		 XK_r,	    reload_conf,  {} },
 	/* Programs */
 	{ MOD,		 XK_d,	    start,	  { .com = rofi_run			 } },
-	{ MOD | CONTROL, XK_d,	    start,	  { .com = rofi_windows			 } },
 	{ MOD,		 XK_Return, start,	  { .com = urxvt			 } },
 	{ MOD | SHIFT,	 XK_e,	    start,	  { .com = emacs			 } },
 	{ MOD,		 XK_o,	    start,	  { .com = volume_up			 } },

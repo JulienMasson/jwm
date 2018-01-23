@@ -31,283 +31,136 @@
 #include "conf.h"
 #include "cursor.h"
 
-/* Change focus to next in window ring. */
-void focusnext_helper(bool arg)
+void change_focus(const Arg *arg)
 {
-	struct client *cl = NULL;
+	struct client *focus = client_get_focus();
+	struct client *client = NULL;
 
-	/* If we currently have no focus focus first in list. */
-	if (focuswin == NULL || focuswin->win == NULL) {
-		if (winlist != NULL && winlist->data != NULL) {
-			cl = winlist->data;
-			while (cl->iconic == true && cl->win->next != NULL)
-				cl = cl->win->next->data;
-		}
-	} else {
-		if (arg == FOCUS_NEXT) {
-			if (NULL == focuswin->win->prev) {
-				/* We were at the head of list.
-				 * Focusing on last window in list unless
-				 * we were already there.*/
-				cl = winlist->data;
+	/* no focus, search first client */
+	if (focus == NULL)
+		client = client_get_first_from_head();
+	else
+		client = client_get_circular(focus, arg->i);
 
-				/* Go to the end of the list */
-				while (cl->win->next != NULL)
-					cl = cl->win->next->data;
-				/* walk backward until we find
-				 * a window that isn't iconic */
-				while (cl->iconic == true)
-					cl = cl->win->prev->data;
-			} else
-			if (focuswin != winlist->data) {
-				cl = focuswin->win->prev->data;
-				while (cl->iconic == true
-				       && cl->win->prev
-				       != NULL)
-					cl = cl->win->prev->data;
-				/* move to the head an didn't find a
-				 * window to focus so move to the end
-				 * starting from the focused win */
-				if (cl->iconic == true) {
-					cl = focuswin;
-					/* Go to the end of the list */
-					while (cl->win->next
-					       != NULL)
-						cl = cl->win->next->data;
-					while (cl->iconic == true)
-						cl = cl->win->prev->data;
-				}
-			}
-		} else {
-			/* We were at the tail of list.
-			 * Focusing on last window in list unless we
-			 * were already there.*/
-			if (NULL == focuswin->win->next) {
-				/* We were at the end of list.
-				 * Focusing on first window in list unless we
-				 * were already there. */
-				cl = winlist->data;
-				while (cl->iconic && cl->win->next
-				       != NULL)
-					cl = cl->win->next->data;
-			} else {
-				cl = focuswin->win->next->data;
-				while (cl->iconic == true
-				       && cl->win->next
-				       != NULL)
-					cl = cl->win->next->data;
-				/* we reached the end of the list without a
-				 * new win to focus, so reloop from the head */
-				if (cl->iconic == true) {
-					cl = winlist->data;
-					while (cl->iconic
-					       && cl->win->next
-					       != NULL)
-						cl = cl->win->next->data;
-				}
-			}
-		}
-	}
-	/* if NULL focuswin */
-	if (cl != NULL && focuswin != cl && cl->iconic == false) {
-		window_raise(cl->id);
-		window_center_pointer(cl->id, cl);
-		window_set_focus(cl);
+	/* found a client. show it */
+	if (client != NULL && client != focus) {
+		window_raise(client->id);
+		window_center_pointer(client->id, client->width, client->height);
+		window_set_focus(client->id);
 	}
 }
 
-void focusnext(const Arg *arg)
-{
-	focusnext_helper(arg->i > 0);
-}
-
-void maxhalf(const Arg *arg)
+void max_half(const Arg *arg)
 {
 	int16_t mon_x, mon_y;
 	uint16_t mon_width, mon_height;
+	struct client *focus = client_get_focus();
 
-	if (focuswin == NULL || focuswin->maxed)
+	if (focus == NULL || focus->maxed)
 		return;
 
-	getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, focuswin);
+	/* get monitor area of the focus */
+	mon_x = focus->monitor->x;
+	mon_y = focus->monitor->y;
+	mon_width = focus->monitor->width;
+	mon_height = focus->monitor->height;
 
-	focuswin->y = mon_y;
-	focuswin->height = mon_height;
-	focuswin->width = ((float)(mon_width) / 2);
+	/* change height and width */
+	focus->y = mon_y;
+	focus->height = mon_height;
+	focus->width = ((float)(mon_width) / 2);
 
+	/* change position in X */
 	if (arg->i == MAXHALF_VERTICAL_LEFT)
-		focuswin->x = mon_x;
+		focus->x = mon_x;
 	else
-		focuswin->x = mon_x + mon_width - focuswin->width;
+		focus->x = mon_x + mon_width - focus->width;
 
-	window_moveresize(focuswin->id, focuswin->x, focuswin->y,
-		   focuswin->width, focuswin->height);
-
-	window_raise_focus();
-	window_fitonscreen(focuswin);
-	window_center_pointer(focuswin->id, focuswin);
+	/* resize and show it */
+	window_move_resize(focus->id, focus->x, focus->y, focus->width, focus->height);
+	window_raise(focus->id);
+	window_center_pointer(focus->id, focus->width, focus->height);
 }
 
-void changescreen(const Arg *arg)
+void delete_window(const Arg *arg)
 {
-	struct list *element;
-	float xpercentage, ypercentage;
+	struct client *focus = client_get_focus();
 
-	if (NULL == focuswin || NULL == focuswin->monitor)
-		return;
-
-	if (arg->i == NEXT_SCREEN)
-		element = focuswin->monitor->element->next;
-	else
-		element = focuswin->monitor->element->prev;
-
-	if (NULL == element)
-		return;
-
-	xpercentage = (float)((focuswin->x - focuswin->monitor->x)
-			      / (focuswin->monitor->width));
-	ypercentage = (float)((focuswin->y - focuswin->monitor->y)
-			      / (focuswin->monitor->height));
-
-	focuswin->monitor = element->data;
-
-	focuswin->x = focuswin->monitor->width * xpercentage
-		+ focuswin->monitor->x + 0.5;
-	focuswin->y = focuswin->monitor->height * ypercentage
-		+ focuswin->monitor->y + 0.5;
-
-	window_raise_focus();
-	window_fitonscreen(focuswin);
-	window_move_limit(focuswin);
-	window_center_pointer(focuswin->id, focuswin);
-}
-
-void deletewin(const Arg *arg)
-{
-	bool use_delete = false;
-	xcb_icccm_get_wm_protocols_reply_t protocols;
-	xcb_get_property_cookie_t cookie;
-	uint32_t i;
-
-	if (NULL == focuswin)
-		return;
-
-	/* Check if WM_DELETE is supported.  */
-	cookie = xcb_icccm_get_wm_protocols_unchecked(conn, focuswin->id,
-						      ewmh->WM_PROTOCOLS);
-
-	if (xcb_icccm_get_wm_protocols_reply(conn, cookie, &protocols, NULL)
-	    == 1) {
-		for (i = 0; i < protocols.atoms_len; i++)
-			if (protocols.atoms[i] == atom_get(wm_delete_window)) {
-				xcb_client_message_event_t ev = {
-					.response_type	= XCB_CLIENT_MESSAGE,
-					.format		= 32,
-					.sequence	= 0,
-					.window		= focuswin->id,
-					.type		= ewmh->WM_PROTOCOLS,
-					.data.data32	= {
-						atom_get(wm_delete_window),
-						XCB_CURRENT_TIME
-					}
-				};
-
-				xcb_send_event(conn, false, focuswin->id,
-					       XCB_EVENT_MASK_NO_EVENT,
-					       (char *)&ev
-					       );
-
-				use_delete = true;
-				break;
-			}
-		xcb_icccm_get_wm_protocols_reply_wipe(&protocols);
-	}
-	if (!use_delete) xcb_kill_client(conn, focuswin->id);
+	if (focus != NULL)
+		window_delete(focus->id);
 }
 
 static void unmax(struct client *client)
 {
-	if (NULL == client)
-		return;
-
 	client->x = client->origsize.x;
 	client->y = client->origsize.y;
 	client->width = client->origsize.width;
 	client->height = client->origsize.height;
-
 	client->maxed = false;
-	window_moveresize(client->id, client->x, client->y,
-		   client->width, client->height);
+}
 
-	window_center_pointer(client->id, client);
+static void max(struct client *client)
+{
+	client->origsize.x = client->x;
+	client->origsize.y = client->y;
+	client->origsize.width = client->width;
+	client->origsize.height = client->height;
+	client->maxed = true;
 }
 
 void maximize(const Arg *arg)
 {
-	int16_t mon_x, mon_y;
-	uint16_t mon_width, mon_height;
+	struct client *focus = client_get_focus();
 
-	if (NULL == focuswin)
+	if (focus == NULL)
 		return;
 
-	/* Check if maximized already. If so, revert to stored geometry. */
-	if (focuswin->maxed) {
-		unmax(focuswin);
-		focuswin->maxed = false;
-		return;
+	/* if maximized already, restore saved geometry. */
+	if (focus->maxed)
+		unmax(focus);
+	else {
+		/* change geometry */
+		max(focus);
+		if (arg->i == FULLSCREEN_ONE_MONITOR) {
+			focus->x = focus->monitor->x;
+			focus->y = focus->monitor->y;
+			focus->width = focus->monitor->width;
+			focus->height = focus->monitor->height;
+		} else if (arg->i == FULLSCREEN_ALL_MONITOR) {
+			focus->x = 0;
+			focus->y = 0;
+			monitor_borders(&focus->width, &focus->height);
+		}
 	}
 
-	if (arg->i == FULLSCREEN_ONE_MONITOR) {
-		getmonsize(&mon_x, &mon_y, &mon_width, &mon_height, focuswin);
-	} else if (arg->i == FULLSCREEN_ALL_MONITOR) {
-		mon_x = 0;
-		mon_y = 0;
-		monitor_borders(&mon_width, &mon_height);
-	}
-
-	window_max(focuswin, mon_x, mon_y, mon_width, mon_height);
-	window_raise_focus();
-	xcb_flush(conn);
+	/* resize and show it */
+	window_move_resize(focus->id, focus->x, focus->y, focus->width, focus->height);
+	window_raise(focus->id);
+	window_center_pointer(focus->id, focus->width, focus->height);
 }
 
 void hide(const Arg *arg)
 {
-	if (focuswin == NULL)
+	struct client *focus = client_get_focus();
+
+	if (focus == NULL)
 		return;
 
-	long data[] = {
-		XCB_ICCCM_WM_STATE_ICONIC,
-		ewmh->_NET_WM_STATE_HIDDEN,
-		XCB_NONE
-	};
+	window_unmap(focus->id);
+	focus->iconic = true;
+}
 
-	/* Unmap window and declare iconic. Unmapping will generate an
-	 * UnmapNotify event so we can forget about the window later. */
-	focuswin->iconic = true;
-
-	xcb_unmap_window(conn, focuswin->id);
-	xcb_change_property(conn, XCB_PROP_MODE_REPLACE, focuswin->id,
-			    ewmh->_NET_WM_STATE, ewmh->_NET_WM_STATE, 32, 3, data);
-
-	xcb_flush(conn);
+static void raise_client(struct client *client)
+{
+	if (client->iconic == true) {
+		client->iconic = false;
+		window_show(client->id);
+	}
 }
 
 void raise_all(const Arg *arg)
 {
-	struct client *cl = NULL;
-
-	if (winlist && winlist->data)
-		cl = winlist->data;
-	else
-		return;
-
-	do {
-		if (cl->iconic == true) {
-			cl->iconic = false;
-			xcb_map_window(conn, cl->id);
-			xcb_flush(conn);
-		}
-	} while (cl->win->next && (cl = cl->win->next->data));
+	client_foreach(raise_client);
 }
 
 void start(const Arg *arg)
@@ -327,45 +180,41 @@ void jwm_exit(const Arg *arg)
 	exit(EXIT_SUCCESS);
 }
 
-/* Move window win as a result of pointer motion to coordinates rel_x,rel_y. */
-void mousemove(const int16_t rel_x, const int16_t rel_y)
+static void mouse_move(struct client *focus, const int16_t rel_x, const int16_t rel_y)
 {
-	if (focuswin == NULL)
-		return;
+	focus->x = rel_x;
+	focus->y = rel_y;
 
-	focuswin->x = rel_x;
-	focuswin->y = rel_y;
-
-	window_move_limit(focuswin);
+	client_check_coordinates(focus);
+	window_move(focus->id, focus->x, focus->y);
 }
 
-void mouseresize(struct client *client, const int16_t rel_x, const int16_t rel_y)
+static void mouse_resize(struct client *focus, const int16_t rel_x, const int16_t rel_y)
 {
-	if (focuswin->id == screen->root || focuswin->maxed)
-		return;
+	focus->width = abs(rel_x);
+	focus->height = abs(rel_y);
 
-	client->width = abs(rel_x);
-	client->height = abs(rel_y);
-
-	window_resize_limit(client);
+	client_check_coordinates(focus);
+	window_resize(focus->id, focus->width, focus->height);
 }
 
-void mousemotion(const Arg *arg)
+void mouse_motion(const Arg *arg)
 {
 	int16_t winx, winy, winw, winh;
+	struct client *focus = client_get_focus();
 
 	/* check if we focus on window none max */
-	if (focuswin && focuswin->maxed)
+	if (focus && focus->maxed)
 		return;
 
 	/* raise focus window */
-	window_raise_focus();
+	window_raise(focus->id);
 
 	/* focus coordinates */
-	winx = focuswin->x;
-	winy = focuswin->y;
-	winw = focuswin->width;
-	winh = focuswin->height;
+	winx = focus->x;
+	winy = focus->y;
+	winw = focus->width;
+	winh = focus->height;
 
 	/* pointer outside the focus */
 	int16_t mx, my;
@@ -375,9 +224,9 @@ void mousemotion(const Arg *arg)
 
 	/* create/setup cursor */
 	if (arg->i == WIN_MOVE)
-		cursor_set(focuswin->id, MOVE);
+		cursor_set(focus->id, MOVE);
 	else
-		cursor_set(focuswin->id, SIZING);
+		cursor_set(focus->id, SIZING);
 
 	/* root window grabs control of the pointer.
 	   further pointer events are reported only to root window */
@@ -398,12 +247,13 @@ void mousemotion(const Arg *arg)
 			case XCB_MOTION_NOTIFY:
 				ev_motion = (xcb_motion_notify_event_t *)ev;
 				if (arg->i == WIN_MOVE)
-					mousemove(winx + ev_motion->root_x - mx,
-						  winy + ev_motion->root_y - my);
+					mouse_move(focus,
+						   winx + ev_motion->root_x - mx,
+						   winy + ev_motion->root_y - my);
 				else
-					mouseresize(focuswin,
-						    winw + ev_motion->root_x - mx,
-						    winh + ev_motion->root_y - my);
+					mouse_resize(focus,
+						     winw + ev_motion->root_x - mx,
+						     winh + ev_motion->root_y - my);
 				break;
 			case XCB_BUTTON_RELEASE:
 				button_released = true;

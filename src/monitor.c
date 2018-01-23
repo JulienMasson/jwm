@@ -29,8 +29,8 @@
 #include "utils.h"
 #include "conf.h"
 
-/* List of all physical monitor outputs. */
-struct list *monlist;
+/* list of all monitor */
+struct list *monitors_head;
 
 /* Beginning of RANDR extension events. */
 int randrbase;
@@ -39,20 +39,20 @@ static struct monitor *monitor_add(xcb_randr_output_t id, char *name,
 				   const int16_t x, const int16_t y,
 				   const uint16_t width, const uint16_t height)
 {
-	struct list *element;
+	struct list *index;
 	struct monitor *mon;
 
 	mon = malloc(sizeof(struct monitor));
 	if (mon == NULL)
 		return NULL;
 
-	element = list_add(&monlist, mon);
-	if (element == NULL)
+	index = list_add(&monitors_head, mon);
+	if (index == NULL)
 		return NULL;
 
 	mon->id = id;
 	mon->name = name;
-	mon->element = element;
+	mon->index = index;
 	mon->x = x;
 	mon->y = y;
 	mon->width = width;
@@ -63,7 +63,7 @@ static struct monitor *monitor_add(xcb_randr_output_t id, char *name,
 
 static void monitor_remove(struct monitor *mon)
 {
-	list_remove(&monlist, mon->element);
+	list_remove(&monitors_head, mon->index);
 }
 
 static struct monitor *monitor_find_clones(xcb_randr_output_t id,
@@ -71,10 +71,10 @@ static struct monitor *monitor_find_clones(xcb_randr_output_t id,
 					   const int16_t y)
 {
 	struct monitor *clonemon;
-	struct list *element;
+	struct list *index;
 
-	for (element = monlist; element != NULL; element = element->next) {
-		clonemon = element->data;
+	for (index = monitors_head; index != NULL; index = index->next) {
+		clonemon = index->data;
 
 		/* Check for same position. */
 		if (id != clonemon->id && clonemon->x == x && clonemon->y == y)
@@ -87,10 +87,10 @@ static struct monitor *monitor_find_clones(xcb_randr_output_t id,
 static struct monitor *monitor_find_by_id(xcb_randr_output_t id)
 {
 	struct monitor *mon;
-	struct list *element;
+	struct list *index;
 
-	for (element = monlist; element != NULL; element = element->next) {
-		mon = element->data;
+	for (index = monitors_head; index != NULL; index = index->next) {
+		mon = index->data;
 
 		if (id == mon->id)
 			return mon;
@@ -102,10 +102,10 @@ static struct monitor *monitor_find_by_id(xcb_randr_output_t id)
 struct monitor *monitor_find_by_coord(const int16_t x, const int16_t y)
 {
 	struct monitor *mon;
-	struct list *element;
+	struct list *index;
 
-	for (element = monlist; element != NULL; element = element->next) {
-		mon = element->data;
+	for (index = monitors_head; index != NULL; index = index->next) {
+		mon = index->data;
 
 		if (x >= mon->x && x <= mon->x + mon->width && y >= mon->y && y
 		    <= mon->y + mon->height)
@@ -114,127 +114,113 @@ struct monitor *monitor_find_by_coord(const int16_t x, const int16_t y)
 
 	/* Window coordinates are outside all physical monitors.
 	 * Choose the first screen.*/
-	return monlist->data;
+	return monitors_head->data;
 }
 
-static void monitor_reaarange_windows(struct monitor *monitor)
+static struct monitor *monitor_get_first_from_head(void)
 {
-	struct client *client;
-	struct list *element;
+	struct monitor *monitor = NULL;
 
-	for (element = winlist; element != NULL; element = element->next) {
-		client = element->data;
-
-		if (client->monitor == monitor)
-			window_fitonscreen(client);
+	if (monitors_head != NULL && monitors_head->data != NULL) {
+		monitor = monitors_head->data;
+		while (monitor->index->next != NULL)
+			monitor = monitor->index->next->data;
 	}
+
+	return monitor;
 }
 
-/* Walk through all the RANDR outputs (number of outputs == len) there */
-static void getoutputs(xcb_randr_output_t *outputs, const int len,
-		       xcb_timestamp_t timestamp)
+static void monitor_check_client(struct client *cl)
 {
-	int i;
+	struct monitor *mon;
+	struct list *index_monitor;
+	struct monitor *first_monitor = monitor_get_first_from_head();
+
+	bool test = false;
+
+	/* loop through monitors */
+	for (index_monitor = monitors_head; index_monitor != NULL; index_monitor = index_monitor->next) {
+		mon = index_monitor->data;
+
+		if (cl->monitor == mon)
+			test = true;
+	}
+
+	/* monitor of this client no found in monitors list
+	   assign it to the first monitor  */
+	if (test == false) {
+		cl->monitor = first_monitor;
+		client_fit_on_screen(cl);
+	}
+	test = false;
+}
+
+static void monitor_handle_output(xcb_randr_output_t id, xcb_randr_get_output_info_reply_t *output, xcb_timestamp_t timestamp)
+{
+	xcb_randr_get_crtc_info_cookie_t cookie;
+	xcb_randr_get_crtc_info_reply_t *crtc = NULL;
+	struct monitor *mon, *clonemon, *new;
 	int name_len;
 	char *name;
 
-	/* was at time timestamp. */
-	xcb_randr_get_crtc_info_cookie_t icookie;
-	xcb_randr_get_crtc_info_reply_t *crtc = NULL;
-	xcb_randr_get_output_info_reply_t *output;
-	struct monitor *mon, *clonemon;
-	struct list *element;
-	xcb_randr_get_output_info_cookie_t ocookie[len];
+	/* check crtc and physical output connected */
+	if ((output->crtc != XCB_NONE) && (output->connection == XCB_RANDR_CONNECTION_CONNECTED)) {
 
-	for (i = 0; i < len; i++)
-		ocookie[i] = xcb_randr_get_output_info(conn, outputs[i],
-						       timestamp);
+		/* get crtc info */
+		cookie = xcb_randr_get_crtc_info(conn, output->crtc, timestamp);
+		crtc = xcb_randr_get_crtc_info_reply(conn, cookie, NULL);
+		if (crtc == NULL)
+			return;
 
-	/* Loop through all outputs. */
-	for (i = 0; i < len; i++) {
-		if ((output = xcb_randr_get_output_info_reply(conn, ocookie[i],
-							      NULL)) == NULL)
-			continue;
+		/* check if it's a clone. */
+		clonemon = monitor_find_clones(id, crtc->x, crtc->y);
+		if (clonemon != NULL)
+			return;
 
-		name_len = MIN(16, xcb_randr_get_output_info_name_length(output));
-		name = malloc(name_len + 1);
+		/* check if monitor already in the list */
+		mon = monitor_find_by_id(id);
+		if (mon == NULL) {
+			/* get name of monitor */
+			name_len = MIN(16, xcb_randr_get_output_info_name_length(output));
+			name = malloc(name_len + 1);
+			snprintf(name, name_len + 1, "%.*s", name_len, xcb_randr_get_output_info_name(output));
 
-		snprintf(name, name_len + 1, "%.*s", name_len,
-			 xcb_randr_get_output_info_name(output));
+			/* add to the list */
+			monitor_add(id, name, crtc->x, crtc->y, crtc->width, crtc->height);
+		} else
+			/* We know this monitor. Update information.
+			 * If it's smaller than before, rearrange windows. */
+			if (crtc->x != mon->x || crtc->y != mon->y ||
+			    crtc->width != mon->width || crtc->height != mon->height) {
+				if (crtc->x != mon->x)
+					mon->x = crtc->x;
+				if (crtc->y != mon->y)
+					mon->y = crtc->y;
+				if (crtc->width != mon->width)
+					mon->width = crtc->width;
+				if (crtc->height != mon->height)
+					mon->height = crtc->height;
 
-		if (output->crtc != XCB_NONE) {
-			icookie = xcb_randr_get_crtc_info(conn, output->crtc,
-							  timestamp);
-			crtc = xcb_randr_get_crtc_info_reply(conn, icookie, NULL);
-			if (crtc == NULL)
-				return;
-
-			/* Check if it's a clone. */
-			clonemon = monitor_find_clones(outputs[i], crtc->x, crtc->y);
-			if (clonemon != NULL)
-				continue;
-
-			/* Do we know this monitor already? */
-			if (NULL == (mon = monitor_find_by_id(outputs[i]))) {
-				monitor_add(outputs[i], name, crtc->x, crtc->y,
-					   crtc->width, crtc->height);
-			} else
-				/* We know this monitor. Update information.
-				 * If it's smaller than before, rearrange windows. */
-				if (crtc->x != mon->x || crtc->y != mon->y || crtc->width
-				    != mon->width || crtc->height
-				    != mon->height) {
-					if (crtc->x != mon->x)
-						mon->x = crtc->x;
-					if (crtc->y != mon->y)
-						mon->y = crtc->y;
-					if (crtc->width != mon->width)
-						mon->width = crtc->width;
-					if (crtc->height != mon->height)
-						mon->height = crtc->height;
-
-					monitor_reaarange_windows(mon);
-				}
-			free(crtc);
-		} else {
-			/* Check if it was used before. If it was, do something. */
-			if ((mon = monitor_find_by_id(outputs[i]))) {
-				struct client *client;
-
-				for (element = winlist; element != NULL; element = element->next) {
-					/* Check all windows on this monitor
-					 * and move them to the next or to the
-					 * first monitor if there is no next. */
-					client = element->data;
-
-					if (client->monitor == mon) {
-						if (client->monitor->element->next == NULL) {
-							if (monlist == NULL)
-								client->monitor = NULL;
-							else
-								client->monitor = monlist->data;
-						} else {
-							client->monitor = client->monitor->element->next->data;
-						}
-						window_fitonscreen(client);
-					}
-				}
-
-				/* It's not active anymore. Forget about it. */
-				monitor_remove(mon);
+				client_monitor_updated(mon);
 			}
-		}
-		if (output != NULL)
-			free(output);
+		free(crtc);
+	} else {
+		/* move clients from this monitor and remove it */
+		mon = monitor_find_by_id(id);
+		if (mon) {
+			new = monitor_get_first_from_head();
+			if (new)
+				client_monitor_reassign(mon, new);
 
-		free(name);
-	} /* for */
+			monitor_remove(mon);
+		}
+	}
 }
 
 static void set_wallpaper(void)
 {
 	struct monitor *mon;
-	struct list *element;
+	struct list *index;
 	float scale_width, scale_height;
 
 	/* create a pixmap  */
@@ -251,8 +237,8 @@ static void set_wallpaper(void)
 	/* loop through monitors and paint the scaled image */
 	cairo_surface_t *dest = cairo_xcb_surface_create(conn, p, visual, width, height);
 	cairo_t *cr = cairo_create(dest);
-	for (element = monlist; element != NULL; element = element->next) {
-		mon = element->data;
+	for (index = monitors_head; index != NULL; index = index->next) {
+		mon = index->data;
 
 		scale_width = ((float) mon->width) / ((float) image_width);
 		scale_height = ((float) mon->height) / ((float) image_height);
@@ -276,28 +262,41 @@ static void set_wallpaper(void)
 	cairo_destroy(cr);
 }
 
-/* Get RANDR resources and figure out how many outputs there are. */
 static void monitor_update(void)
 {
-	int len;
+	int i, len;
+	xcb_randr_get_screen_resources_current_cookie_t rcookie;
+	xcb_randr_get_screen_resources_current_reply_t *res;
+	xcb_randr_get_output_info_cookie_t ocookie;
+	xcb_randr_get_output_info_reply_t *output;
+	xcb_randr_output_t *outputs;
+	xcb_timestamp_t timestamp;
 
-	xcb_randr_get_screen_resources_current_cookie_t rcookie
-		= xcb_randr_get_screen_resources_current(conn, screen->root);
-	xcb_randr_get_screen_resources_current_reply_t *res
-		= xcb_randr_get_screen_resources_current_reply(conn, rcookie,
-							       NULL);
-
+	/* get screen resources */
+	rcookie = xcb_randr_get_screen_resources_current(conn, screen->root);
+	res = xcb_randr_get_screen_resources_current_reply(conn, rcookie, NULL);
 	if (res == NULL)
 		return;
 
-	xcb_timestamp_t timestamp = res->config_timestamp;
-
-	len = xcb_randr_get_screen_resources_current_outputs_length(res);
-	xcb_randr_output_t *outputs
-		= xcb_randr_get_screen_resources_current_outputs(res);
-
 	/* Request information for all outputs. */
-	getoutputs(outputs, len, timestamp);
+	outputs = xcb_randr_get_screen_resources_current_outputs(res);
+	len = xcb_randr_get_screen_resources_current_outputs_length(res);
+	timestamp = res->config_timestamp;
+
+	/* loop though all outputs */
+	for (i = 0; i < len; i++) {
+		ocookie = xcb_randr_get_output_info(conn, outputs[i], timestamp);
+		output = xcb_randr_get_output_info_reply(conn, ocookie, NULL);
+		if (output != NULL) {
+			monitor_handle_output(outputs[i], output, timestamp);
+			free(output);
+		}
+	}
+
+	/* TODO: do we need to do this everytime ???? */
+	client_foreach(monitor_check_client);
+
+	/* free resources */
 	free(res);
 
 	/* wallpaper */
@@ -305,11 +304,9 @@ static void monitor_update(void)
 	    set_wallpaper();
 }
 
-/* Set up RANDR extension. Get the extension base and subscribe to events */
 void monitor_init(void)
 {
-	const xcb_query_extension_reply_t *extension
-		= xcb_get_extension_data(conn, &xcb_randr_id);
+	const xcb_query_extension_reply_t *extension = xcb_get_extension_data(conn, &xcb_randr_id);
 
 	if (!extension->present)
 		randrbase = -1;
@@ -321,9 +318,7 @@ void monitor_init(void)
 			       XCB_RANDR_NOTIFY_MASK_SCREEN_CHANGE
 			       | XCB_RANDR_NOTIFY_MASK_OUTPUT_CHANGE
 			       | XCB_RANDR_NOTIFY_MASK_CRTC_CHANGE
-			       | XCB_RANDR_NOTIFY_MASK_OUTPUT_PROPERTY
-		);
-
+			       | XCB_RANDR_NOTIFY_MASK_OUTPUT_PROPERTY);
 }
 
 void monitor_event(uint8_t response_type)
@@ -335,11 +330,11 @@ void monitor_event(uint8_t response_type)
 void monitor_borders(uint16_t *border_x, uint16_t *border_y)
 {
 	struct monitor *mon;
-	struct list *element;
+	struct list *index;
 	uint16_t x = 0, width = 0, height = 0;
 
-	for (element = monlist; element != NULL; element = element->next) {
-		mon = element->data;
+	for (index = monitors_head; index != NULL; index = index->next) {
+		mon = index->data;
 		if (mon->x + mon->width > x + width) {
 			x = mon->x;
 			width = mon->width;

@@ -20,26 +20,29 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-void get_borders_all_mons(uint16_t *border_x, uint16_t *border_y);
-void getmonsize(int16_t *mon_x, int16_t *mon_y, uint16_t *mon_width,
-		uint16_t *mon_height, const struct client *client);
-void window_raise_focus(void);
-void window_raise(xcb_drawable_t win);
-void window_center_pointer(xcb_drawable_t win, struct client *cl);
-void window_set_unfocus(void);
-void window_set_focus(struct client *client);
-void window_moveresize(xcb_drawable_t win, const uint16_t x, const uint16_t y,
-		       const uint16_t width, const uint16_t height);
-void window_resize(xcb_drawable_t win, const uint16_t width, const uint16_t height);
-void window_resize_limit(struct client *client);
-void window_fitonscreen(struct client *client);
-void window_arrange_all(void);
-void window_move(xcb_drawable_t win, const int16_t x, const int16_t y);
-void window_move_limit(struct client *client);
-void window_unmax(struct client *client);
-void window_max(struct client *client, uint16_t mon_x, uint16_t mon_y,
-		uint16_t mon_width, uint16_t mon_height);
-void window_maprequest(xcb_map_request_event_t *ev);
-void window_configurerequest(xcb_configure_request_event_t *ev);
+#include <stdbool.h>
+
+struct winconf {
+	int16_t		x, y;
+	uint16_t	width, height;
+	uint8_t		stackmode;
+};
+
+void window_show(xcb_window_t win);
+void window_raise(xcb_window_t win);
+void window_center_pointer(xcb_window_t win, int16_t width, int16_t height);
+void window_set_focus(xcb_window_t win);
+void window_move(xcb_window_t win, const uint16_t x, const uint16_t y);
+void window_resize(xcb_window_t win, const uint16_t width, const uint16_t height);
+void window_move_resize(xcb_window_t win, const uint16_t x, const uint16_t y, const uint16_t width, const uint16_t height);
+bool window_get_geom(xcb_window_t win, int16_t *x, int16_t *y, uint16_t *width, uint16_t *height);
+bool window_check_type(xcb_window_t win);
+void window_setup(xcb_window_t win);
+void window_get_limits_size(xcb_window_t win, uint16_t *max_width, uint16_t *max_height, uint16_t *min_width, uint16_t *min_height);
+bool window_hint_us_position(xcb_window_t win);
+bool window_get_pointer(const xcb_window_t *win, int16_t *x, int16_t *y);
+void window_config(xcb_window_t win, uint16_t mask, const struct winconf *wc);
+void window_delete(xcb_window_t win);
+void window_unmap(xcb_window_t win);
 
 #endif

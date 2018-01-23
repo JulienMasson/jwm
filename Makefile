@@ -3,7 +3,12 @@ OBJ_DIR := obj
 SRC_DIR := src
 
 # flags
-CFLAGS := -Os -Wunused -g
+DEBUG := 0
+ifeq ($(DEBUG), 1)
+CFLAGS := -Wunused -O0 -g
+else
+CFLAGS := -Wunused -Os
+endif
 LDFLAGS :=
 
 # libs and include

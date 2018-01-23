@@ -43,8 +43,8 @@ typedef struct {
 } Button;
 
 static Button buttons[] = {
-	{ MOD, XCB_BUTTON_INDEX_1, mousemotion, { .i = WIN_MOVE   } },
-	{ MOD, XCB_BUTTON_INDEX_3, mousemotion, { .i = WIN_RESIZE } },
+	{ MOD, XCB_BUTTON_INDEX_1, mouse_motion, { .i = WIN_MOVE   } },
+	{ MOD, XCB_BUTTON_INDEX_3, mouse_motion, { .i = WIN_RESIZE } },
 };
 
 /* wrapper to get xcb keycodes from keysymbol */
@@ -95,8 +95,7 @@ bool input_init(void)
 				     keys[i].mod,
 				     keycode[k],
 				     XCB_GRAB_MODE_ASYNC,
-				     XCB_GRAB_MODE_ASYNC
-				);
+				     XCB_GRAB_MODE_ASYNC);
 		free(keycode);
 	}
 
@@ -141,8 +140,7 @@ void input_button_handler(xcb_button_press_event_t *ev)
 	unsigned int i;
 
 	for (i = 0; i < LENGTH(buttons); i++)
-		if (focuswin &&
-		    buttons[i].func &&
+		if (buttons[i].func &&
 		    buttons[i].button == ev->detail &&
 		    buttons[i].mask == ev->state)
 			buttons[i].func(&(buttons[i].arg));

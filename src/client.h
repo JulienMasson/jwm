@@ -25,25 +25,44 @@
 #include "monitor.h"
 #include "list.h"
 
+enum client_search_t {
+	CLIENT_NEXT,
+	CLIENT_PREVIOUS
+};
+
 struct sizepos {
 	int16_t		x, y;
 	uint16_t	width, height;
 };
 
-struct client {                         // Everything we know about a window.
-	xcb_drawable_t	id;             // ID of this window.
-	bool		usercoord;      // X,Y was set by -geom.
+struct client {
+	xcb_window_t	id;             // ID of this window.
 	int16_t		x, y;           // X/Y coordinate.
 	uint16_t	width, height;  // Width,Height in pixels.
 	struct sizepos	origsize;       // Original size if we're currently maxed.
 	uint16_t	max_width, max_height, min_width, min_height;
 	bool		maxed, iconic;
 	struct monitor *monitor;        // The physical output this window is on.
-	struct list *	win;            // Pointer to our place in global windows list.
+	struct list    *index;          // Pointer to our place in global windows list.
 };
 
-struct client *client_find(const xcb_drawable_t *win);
-void client_update_list(void);
+/* accessors */
+void client_foreach(void (*func)(struct client *client));
+struct client *client_get_focus(void);
+struct client *client_get_first_from_head(void);
+struct client *client_get_circular(struct client *start, enum client_search_t direction);
+
+/* fit client on screen */
+void client_check_coordinates(struct client *client);
+void client_fit_on_screen(struct client *client);
+
+/* monitor attached to client */
+void client_monitor_updated(struct monitor *mon);
+void client_monitor_reassign(struct monitor *old, struct monitor *new);
+
+/* events handler */
+void client_map_request(xcb_map_request_event_t *ev);
+void client_configure_request(xcb_configure_request_event_t *ev);
 void client_destroy(xcb_destroy_notify_event_t *ev);
 void client_enter(xcb_enter_notify_event_t *ev);
 void client_unmap(xcb_unmap_notify_event_t *ev);

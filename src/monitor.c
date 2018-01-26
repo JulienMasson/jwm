@@ -217,11 +217,15 @@ static void monitor_handle_output(xcb_randr_output_t id, xcb_randr_get_output_in
 	}
 }
 
-static void set_wallpaper(void)
+void monitor_set_wallpaper(void)
 {
 	struct monitor *mon;
 	struct list *index;
 	float scale_width, scale_height;
+
+	/* check if we can access wallpaper path */
+	if ((global_conf.wallpaper == NULL) || (file_access(global_conf.wallpaper) == false))
+		return;
 
 	/* create a pixmap  */
 	xcb_pixmap_t p = xcb_generate_id(conn);
@@ -299,9 +303,8 @@ static void monitor_update(void)
 	/* free resources */
 	free(res);
 
-	/* wallpaper */
-	if (global_conf.wallpaper)
-	    set_wallpaper();
+	/* set wallpaper on all monitors */
+	monitor_set_wallpaper();
 }
 
 void monitor_init(void)

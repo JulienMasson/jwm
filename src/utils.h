@@ -20,7 +20,11 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <stdbool.h>
+
 #define LENGTH(x)       (sizeof(x) / sizeof(*x))
 #define MIN(X, Y)       ((X) < (Y) ? (X) : (Y))
+
+bool file_access(const char *pathname);
 
 #endif

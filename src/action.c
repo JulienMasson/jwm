@@ -273,6 +273,8 @@ void reload_conf(const Arg *arg)
 {
 	if (conf_read() == -1)
 		LOGE("Fail to read conf");
-	else
+	else {
 		log_init();
+		monitor_set_wallpaper();
+	}
 }

@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include "log.h"
 #include "conf.h"
+#include "utils.h"
 
 /* global vars */
 struct conf global_conf;
@@ -81,7 +82,7 @@ void conf_init(char *path)
 	static char conf_path_default[256];
 
 	/* conf file exist and readable */
-	if (path && (access(path, F_OK | R_OK) != -1))
+	if (path && (file_access(path) == true))
 		conf_path = path;
 	else {
 		/* default conf file */

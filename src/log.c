@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include "log.h"
 #include "conf.h"
+#include "utils.h"
 
 /* global vars */
 static const char * const level_names[] = {
@@ -39,7 +40,7 @@ void log_init(void)
 	static char log_file_default[256];
 
 	/* if file doesn't exist, set to default */
-	if (access(global_conf.log_file, F_OK | R_OK) == -1) {
+	if (file_access(global_conf.log_file) == false) {
 		memset(log_file_default, '\0', 256);
 		snprintf(log_file_default, 256, "%s/.jwm.log", getenv("HOME"));
 		global_conf.log_file = log_file_default;

@@ -23,13 +23,39 @@
 #include "window.h"
 #include "atom.h"
 
+xcb_window_t window_create(uint16_t x, uint16_t y, uint16_t width, uint16_t height)
+{
+	xcb_window_t id = xcb_generate_id(conn);
+	uint32_t mask = XCB_CW_BACK_PIXEL;
+	uint32_t values[1] = { screen->black_pixel };
+
+	xcb_create_window(conn,
+			  /* depth */
+			  screen->root_depth,
+			  /* window id */
+			  id,
+			  /* parent window */
+			  screen->root,
+			  /* coordinates */
+			  x,
+			  y,
+			  width,
+			  height,
+			  /* border size */
+			  0,
+			  /* class */
+			  XCB_WINDOW_CLASS_INPUT_OUTPUT,
+			  /* visual */
+			  screen->root_visual,
+			  mask,
+			  values
+	);
+
+	return id;
+}
+
 void window_show(xcb_window_t win)
 {
-	long data[] = {
-		XCB_ICCCM_WM_STATE_NORMAL,
-		XCB_NONE
-	};
-
 	xcb_map_window(conn, win);
 	xcb_flush(conn);
 }

@@ -31,6 +31,7 @@ struct winconf {
 	uint8_t		stackmode;
 };
 
+xcb_window_t window_create(uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void window_show(xcb_window_t win);
 void window_raise(xcb_window_t win);
 void window_center_pointer(xcb_window_t win, int16_t width, int16_t height);

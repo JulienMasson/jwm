@@ -31,7 +31,6 @@ void window_show(xcb_window_t win)
 	};
 
 	xcb_map_window(conn, win);
-	xcb_change_property(conn, XCB_PROP_MODE_REPLACE, win, ewmh->_NET_WM_STATE, ewmh->_NET_WM_STATE, 32, 2, data);
 	xcb_flush(conn);
 }
 

@@ -2,7 +2,7 @@
  * This file is part of the jwm distribution:
  * https://github.com/JulienMasson/jwm
  *
- * Copyright (c) 2017 Julien Masson.
+ * Copyright (c) 2018 Julien Masson.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,33 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ACTION_H
-#define ACTION_H
+#include "global.h"
+#include "panel.h"
+#include "window.h"
+#include "monitor.h"
 
-enum { WIN_MOVE, WIN_RESIZE };
-enum { MAXHALF_VERTICAL_RIGHT, MAXHALF_VERTICAL_LEFT };
-enum { FULLSCREEN_ONE_MONITOR, FULLSCREEN_ALL_MONITOR };
+#define PANEL_HEIGHT 120
 
-typedef union {
-	const char **	com;
-	const int8_t	i;
-} Arg;
+struct panel panel;
 
-void change_focus(const Arg *arg);
-void max_half(const Arg *arg);
-void delete_window(const Arg *arg);
-void maximize(const Arg *arg);
-void hide(const Arg *arg);
-void raise_all(const Arg *arg);
-void start(const Arg *arg);
-void jwm_exit(const Arg *arg);
-void mouse_motion(const Arg *arg);
-void reload_conf(const Arg *arg);
-void panel_toggle(const Arg *arg);
+void panel_init(void)
+{
+	uint16_t border_x, border_y;
+	monitor_borders(&border_x, &border_y);
 
-#endif
+	/* init panel values */
+	panel.id = window_create(0, 0, border_x, PANEL_HEIGHT);
+	panel.x = 0;
+	panel.y = 0;
+	panel.width = border_x;
+	panel.height = PANEL_HEIGHT;
+	panel.enable = true;
+
+	/* show panel */
+	window_show(panel.id);
+}
+
+struct panel *panel_get(void)
+{
+	return &panel;
+}

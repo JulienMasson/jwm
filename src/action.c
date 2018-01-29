@@ -30,6 +30,7 @@
 #include "log.h"
 #include "conf.h"
 #include "cursor.h"
+#include "panel.h"
 
 void change_focus(const Arg *arg)
 {
@@ -183,7 +184,14 @@ void jwm_exit(const Arg *arg)
 static void mouse_move(struct client *focus, const int16_t rel_x, const int16_t rel_y)
 {
 	uint16_t border_x, border_y;
+	uint16_t panel_height = 0;
+	struct panel *panel = panel_get();
+
 	monitor_borders(&border_x, &border_y);
+
+	/* check panel enable */
+	if (panel->enable == true)
+		panel_height = panel->height;
 
 	/* assign values of mouse motion */
 	focus->x = rel_x;
@@ -192,8 +200,8 @@ static void mouse_move(struct client *focus, const int16_t rel_x, const int16_t 
 	/* check if we are outside borders */
 	if (focus->x < 0)
 		focus->x = 0;
-	if (focus->y < 0)
-		focus->y = 0;
+	if (focus->y < panel_height)
+		focus->y = panel_height;
 	if (focus->x + focus->width > border_x)
 		focus->x = border_x - focus->width;
 	if (focus->y + focus->height > border_y)
@@ -306,5 +314,21 @@ void reload_conf(const Arg *arg)
 	else {
 		log_init();
 		monitor_set_wallpaper();
+	}
+}
+
+void panel_toggle(const Arg *arg)
+{
+	struct panel *panel = panel_get();
+
+	if (panel->enable == true) {
+		panel->enable = false;
+		window_unmap(panel->id);
+	} else {
+		panel->enable = true;
+		window_show(panel->id);
+
+		/* fit all client if needed */
+		client_foreach(client_fit_on_screen);
 	}
 }

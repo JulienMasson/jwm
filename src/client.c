@@ -27,6 +27,7 @@
 #include "action.h"
 #include "atom.h"
 #include "input.h"
+#include "panel.h"
 
 /* list of all client windows */
 struct list *clients_head;
@@ -179,6 +180,7 @@ void client_fit_on_screen(struct client *client)
 	int16_t mon_x, mon_y;
 	uint16_t mon_width, mon_height;
 	bool willmove, willresize;
+	struct panel *panel = panel_get();
 
 	willmove = willresize = false;
 
@@ -190,6 +192,12 @@ void client_fit_on_screen(struct client *client)
 	mon_y = client->monitor->y;
 	mon_width = client->monitor->width;
 	mon_height = client->monitor->height;
+
+	/* change area if panel enable */
+	if (panel->enable == true) {
+		mon_y = mon_y + panel->height;
+		mon_height = mon_height - panel->height;
+	}
 
 	/* outside the physical monitor */
 	if (client->x > mon_x + mon_width || client->y > mon_y + mon_height

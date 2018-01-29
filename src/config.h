@@ -49,6 +49,8 @@ static key keys[] = {
 	{ MOD,		 XK_a,	    raise_all,	  {} },
 	/* Reload conf */
 	{ MOD,		 XK_r,	    reload_conf,  {} },
+	/* Toggle panel */
+	{ MOD,		 XK_p,	    panel_toggle, {} },
 	/* Programs */
 	{ MOD,		 XK_d,	    start,	  { .com = rofi_run			 } },
 	{ MOD,		 XK_Return, start,	  { .com = urxvt			 } },

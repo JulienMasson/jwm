@@ -30,6 +30,7 @@
 #include "event.h"
 #include "conf.h"
 #include "cursor.h"
+#include "panel.h"
 #include <xcb/xcb_aux.h>
 
 /* global vars */
@@ -50,6 +51,9 @@ static bool init(int scrno)
 {
 	/* init all monitors */
 	monitor_init();
+
+	/* init panel */
+	panel_init();
 
 	/* init events */
 	if (!event_init()) {

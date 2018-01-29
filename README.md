@@ -13,6 +13,7 @@ Features
 * Multi-screen support
 * Fullscreen on one or all monitors
 * Display wallpaper
+* Toggle panel
 * Reload conf
 * Start programs
 
@@ -85,6 +86,7 @@ Mod key is referred to "windows" key.
 | `Mod-h`           | Hide focus window                          |
 | `Mod-a`           | Raise all hidden windows                   |
 | `Mod-r`           | Reload conf                                |
+| `Mod-p`           | Toggle panel                               |
 | `Mod-d`           | Start rofi                                 |
 | `Mod-Return`      | Start urxvt                                |
 | `Mod-Shift, e`    | Start emacs                                |

@@ -164,22 +164,9 @@ struct client *client_get_circular(struct client *start, enum client_search_t di
 	return client;
 }
 
-void client_check_coordinates(struct client *client)
+void client_check_monitor(struct client *client)
 {
-	uint16_t border_x, border_y;
 	struct monitor *current_mon;
-
-	monitor_borders(&border_x, &border_y);
-
-	/* check if we are outside borders */
-	if (client->x < 0)
-		client->x = 0;
-	if (client->y < 0)
-		client->y = 0;
-	if (client->x + client->width > border_x)
-		client->x = border_x - client->width;
-	if (client->y + client->height > border_y)
-		client->y = border_y - client->height;
 
 	/* check if we change monitor */
 	current_mon = monitor_find_by_coord(client->x, client->y);

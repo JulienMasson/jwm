@@ -182,19 +182,43 @@ void jwm_exit(const Arg *arg)
 
 static void mouse_move(struct client *focus, const int16_t rel_x, const int16_t rel_y)
 {
+	uint16_t border_x, border_y;
+	monitor_borders(&border_x, &border_y);
+
+	/* assign values of mouse motion */
 	focus->x = rel_x;
 	focus->y = rel_y;
 
-	client_check_coordinates(focus);
+	/* check if we are outside borders */
+	if (focus->x < 0)
+		focus->x = 0;
+	if (focus->y < 0)
+		focus->y = 0;
+	if (focus->x + focus->width > border_x)
+		focus->x = border_x - focus->width;
+	if (focus->y + focus->height > border_y)
+		focus->y = border_y - focus->height;
+
+	client_check_monitor(focus);
 	window_move(focus->id, focus->x, focus->y);
 }
 
 static void mouse_resize(struct client *focus, const int16_t rel_x, const int16_t rel_y)
 {
+	uint16_t border_x, border_y;
+	monitor_borders(&border_x, &border_y);
+
+	/* assign values of mouse motion */
 	focus->width = abs(rel_x);
 	focus->height = abs(rel_y);
 
-	client_check_coordinates(focus);
+	/* check if we are outside borders */
+	if (focus->x + focus->width > border_x)
+		focus->width = border_x - focus->x;
+	if (focus->y + focus->height > border_y)
+		focus->height = border_y - focus->y;
+
+	client_check_monitor(focus);
 	window_resize(focus->id, focus->width, focus->height);
 }
 

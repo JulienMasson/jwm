@@ -17,8 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef ATOM_H
+#define ATOM_H
 
 enum { wm_delete_window, wm_change_state, NB_ATOMS };
 

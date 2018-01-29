@@ -295,3 +295,31 @@ void window_unmap(xcb_window_t win)
 	xcb_change_property(conn, XCB_PROP_MODE_REPLACE, win, ewmh->_NET_WM_STATE, ewmh->_NET_WM_STATE, 32, 3, data);
 	xcb_flush(conn);
 }
+
+static uint32_t window_get_color(const char *hex)
+{
+	uint32_t rgb48;
+	char strgroups[7] = {
+		hex[1], hex[2], hex[3], hex[4], hex[5], hex[6], '\0'
+	};
+
+	rgb48 = strtol(strgroups, NULL, 16);
+	return rgb48 | 0xff000000;
+}
+
+void window_toggle_borders(xcb_window_t win, bool enable)
+{
+	uint32_t values[1];
+
+	if (enable == true) {
+			values[0] = WINDOW_BORDER_WIDTH;
+			xcb_configure_window(conn, win, XCB_CONFIG_WINDOW_BORDER_WIDTH, values);
+
+			values[0] = window_get_color(WINDOW_BORDER_COLOR);
+			xcb_change_window_attributes(conn, win, XCB_CW_BORDER_PIXEL, values);
+	} else {
+		values[0] = 0;
+		xcb_configure_window(conn, win, XCB_CONFIG_WINDOW_BORDER_WIDTH, values);
+	}
+	xcb_flush(conn);
+}

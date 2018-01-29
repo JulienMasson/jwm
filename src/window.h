@@ -22,6 +22,9 @@
 
 #include <stdbool.h>
 
+#define WINDOW_BORDER_WIDTH 1
+#define WINDOW_BORDER_COLOR "#fb8512"
+
 struct winconf {
 	int16_t		x, y;
 	uint16_t	width, height;
@@ -44,5 +47,6 @@ bool window_get_pointer(const xcb_window_t *win, int16_t *x, int16_t *y);
 void window_config(xcb_window_t win, uint16_t mask, const struct winconf *wc);
 void window_delete(xcb_window_t win);
 void window_unmap(xcb_window_t win);
+void window_toggle_borders(xcb_window_t win, bool enable);
 
 #endif

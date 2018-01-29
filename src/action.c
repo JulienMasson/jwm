@@ -210,6 +210,9 @@ void mouse_motion(const Arg *arg)
 	/* raise focus window */
 	window_raise(focus->id);
 
+	/* set borders */
+	window_toggle_borders(focus->id, true);
+
 	/* focus coordinates */
 	winx = focus->x;
 	winy = focus->y;
@@ -266,6 +269,9 @@ void mouse_motion(const Arg *arg)
 
 	/* releases the pointer */
 	cursor_ungrab();
+
+	/* disable borders */
+	window_toggle_borders(focus->id, false);
 }
 
 

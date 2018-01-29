@@ -228,7 +228,7 @@ void mouse_motion(const Arg *arg)
 	struct client *focus = client_get_focus();
 
 	/* check if we focus on window none max */
-	if (focus && focus->maxed)
+	if ((focus == NULL) || focus->maxed)
 		return;
 
 	/* raise focus window */

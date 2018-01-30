@@ -24,10 +24,57 @@
 #include "window.h"
 #include "monitor.h"
 
+#define PANEL_REFRESH 60
 #define PANEL_HEIGHT 20
 #define PANEL_TEXT_SIZE 14
 
 struct panel *panel = NULL;
+
+void panel_init(void)
+{
+	int16_t border_x, border_y;
+	uint16_t border_width, border_height;
+
+	monitor_borders(&border_x, &border_y, &border_width, &border_height);
+	panel = malloc(sizeof(struct panel));
+
+	/* init panel values */
+	panel->id = window_create(border_x, border_y, border_width, PANEL_HEIGHT);
+	panel->x = border_x;
+	panel->y = border_y;
+	panel->width = border_width;
+	panel->height = PANEL_HEIGHT;
+	panel->enable = true;
+	panel->refresh = PANEL_REFRESH;
+
+	/* show panel */
+	window_show(panel->id);
+}
+
+struct panel *panel_get(void)
+{
+	return panel;
+}
+
+void panel_update_geom(void)
+{
+	int16_t border_x, border_y;
+	uint16_t border_width, border_height;
+	monitor_borders(&border_x, &border_y, &border_width, &border_height);
+
+	if (panel && ((border_x != panel->x) ||
+		      (border_y != panel->y) ||
+		      (border_width != panel->width))) {
+		/* set new values */
+		panel->x = border_x;
+		panel->y = border_y;
+		panel->width = border_width;
+
+		/* move, resize and show panel */
+		window_move_resize(panel->id, border_x, border_y, border_width, PANEL_HEIGHT);
+		panel_draw();
+	}
+}
 
 static void draw_clock(cairo_t *cr)
 {
@@ -48,7 +95,7 @@ static void draw_clock(cairo_t *cr)
 	cairo_show_text(cr, date);
 }
 
-static void panel_draw(void)
+void panel_draw(void)
 {
 	cairo_surface_t *src = cairo_xcb_surface_create(conn, panel->id, visual,
 							panel->width - panel->x,
@@ -72,43 +119,6 @@ static void panel_draw(void)
 	/* free resources */
 	cairo_surface_destroy(src);
 	cairo_destroy(cr);
-}
-
-void panel_init(void)
-{
-	int16_t border_x, border_y;
-	uint16_t border_width, border_height;
-
-	monitor_borders(&border_x, &border_y, &border_width, &border_height);
-	panel = malloc(sizeof(struct panel));
-
-	/* init panel values */
-	panel->id = window_create(border_x, border_y, border_width, PANEL_HEIGHT);
-	panel->x = border_x;
-	panel->y = border_y;
-	panel->width = border_width;
-	panel->height = PANEL_HEIGHT;
-	panel->enable = true;
-
-	/* show panel */
-	window_show(panel->id);
-}
-
-struct panel *panel_get(void)
-{
-	return panel;
-}
-
-void panel_update_geom(void)
-{
-	int16_t border_x, border_y;
-	uint16_t border_width, border_height;
-	monitor_borders(&border_x, &border_y, &border_width, &border_height);
-
-	if (panel && ((border_x != panel->x) ||
-		      (border_y != panel->y) ||
-		      (border_width != panel->width)))
-		window_move_resize(panel->id, border_x, border_y, border_width, PANEL_HEIGHT);
 }
 
 void panel_event(xcb_expose_event_t *ev)

@@ -17,8 +17,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <errno.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <sys/timerfd.h>
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
 #include <xcb/randr.h>
@@ -158,28 +160,76 @@ void event_loop(void)
 {
 	xcb_generic_event_t *ev;
 
+	/* panel refresh */
+	struct panel *panel = panel_get();
+	int timer_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+	struct itimerspec itimer;
+	itimer.it_value.tv_sec = panel->refresh;
+	itimer.it_value.tv_nsec = 0;
+	itimer.it_interval.tv_sec = panel->refresh;
+	itimer.it_interval.tv_nsec = 0;
+	if (timerfd_settime(timer_fd, 0, &itimer, NULL))
+		LOGE("Failed to start timer");
+
+	/* X events */
+	int xfd = xcb_get_file_descriptor(conn);
+
+	/* select vars */
+	int rc;
+	fd_set fds;
+	int max_fd = timer_fd > xfd ? timer_fd : xfd;
+
 	sigcode = 0;
 
 	while (sigcode == 0) {
 
-		xcb_flush(conn);
+		/* init file descriptors */
+		FD_ZERO(&fds);
+		FD_SET(xfd, &fds);
+		FD_SET(timer_fd, &fds);
 
-		if (xcb_connection_has_error(conn))
-			abort();
+		/* waiting until file descriptors become "ready" */
+		rc = select(max_fd + 1, &fds, NULL, NULL, NULL);
+		if (rc < 0) {
+			if (errno == EINTR)
+				break;
+			LOGE("select()");
+			break;
+		}
 
-		if ((ev = xcb_wait_for_event(conn))) {
+		/* check which fd is available to read */
+		for (int fd = 0; fd <= max_fd; fd++) {
 
-			/* expose event only for panel */
-			if ((ev->response_type & ~0x80) == XCB_EXPOSE)
-				panel_event((xcb_expose_event_t *)ev);
+			if (FD_ISSET(fd, &fds)) {
 
-			/* monitor event */
-			monitor_event(ev->response_type);
+				/* X events */
+				if (fd == xfd) {
+					if (xcb_connection_has_error(conn))
+						abort();
 
-			if (events[ev->response_type & ~0x80])
-				events[ev->response_type & ~0x80](ev);
+					while ((ev = xcb_poll_for_event(conn))) {
 
-			free(ev);
+						/* expose event only for panel */
+						if ((ev->response_type & ~0x80) == XCB_EXPOSE)
+							panel_event((xcb_expose_event_t *)ev);
+
+						/* monitor event */
+						monitor_event(ev->response_type);
+
+						if (events[ev->response_type & ~0x80])
+							events[ev->response_type & ~0x80](ev);
+
+						free(ev);
+					}
+
+					xcb_flush(conn);
+
+				} else if (fd == timer_fd) {
+					/* panel refresh */
+					panel_draw();
+					timerfd_settime(timer_fd, 0, &itimer, NULL);
+				}
+			}
 		}
 	}
 }

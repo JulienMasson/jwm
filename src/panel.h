@@ -27,11 +27,13 @@ struct panel {
 	int16_t		x, y;
 	uint16_t	width, height;
 	bool		enable;
+	time_t		refresh;
 };
 
 void panel_init(void);
 struct panel *panel_get(void);
 void panel_update_geom(void);
+void panel_draw(void);
 void panel_event(xcb_expose_event_t *ev);
 
 #endif

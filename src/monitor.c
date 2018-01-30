@@ -28,6 +28,7 @@
 #include "client.h"
 #include "utils.h"
 #include "conf.h"
+#include "panel.h"
 
 /* list of all monitor */
 struct list *monitors_head;
@@ -298,6 +299,7 @@ static void monitor_update(void)
 	}
 
 	/* TODO: do we need to do this everytime ???? */
+	panel_update_geom();
 	client_foreach(monitor_check_client);
 
 	/* free resources */

@@ -31,5 +31,6 @@ struct panel {
 
 void panel_init(void);
 struct panel *panel_get(void);
+void panel_update_geom(void);
 
 #endif

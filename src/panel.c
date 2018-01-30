@@ -22,7 +22,7 @@
 #include "window.h"
 #include "monitor.h"
 
-#define PANEL_HEIGHT 120
+#define PANEL_HEIGHT 20
 
 struct panel *panel = NULL;
 
@@ -50,4 +50,15 @@ struct panel *panel_get(void)
 {
 	return panel;
 }
+
+void panel_update_geom(void)
+{
+	int16_t border_x, border_y;
+	uint16_t border_width, border_height;
+	monitor_borders(&border_x, &border_y, &border_width, &border_height);
+
+	if (panel && ((border_x != panel->x) ||
+		      (border_y != panel->y) ||
+		      (border_width != panel->width)))
+		window_move_resize(panel->id, border_x, border_y, border_width, PANEL_HEIGHT);
 }

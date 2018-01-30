@@ -24,26 +24,30 @@
 
 #define PANEL_HEIGHT 120
 
-struct panel panel;
+struct panel *panel = NULL;
 
 void panel_init(void)
 {
-	uint16_t border_x, border_y;
-	monitor_borders(&border_x, &border_y);
+	int16_t border_x, border_y;
+	uint16_t border_width, border_height;
+
+	monitor_borders(&border_x, &border_y, &border_width, &border_height);
+	panel = malloc(sizeof(struct panel));
 
 	/* init panel values */
-	panel.id = window_create(0, 0, border_x, PANEL_HEIGHT);
-	panel.x = 0;
-	panel.y = 0;
-	panel.width = border_x;
-	panel.height = PANEL_HEIGHT;
-	panel.enable = true;
+	panel->id = window_create(border_x, border_y, border_width, PANEL_HEIGHT);
+	panel->x = border_x;
+	panel->y = border_y;
+	panel->width = border_width;
+	panel->height = PANEL_HEIGHT;
+	panel->enable = true;
 
 	/* show panel */
-	window_show(panel.id);
+	window_show(panel->id);
 }
 
 struct panel *panel_get(void)
 {
-	return &panel;
+	return panel;
+}
 }

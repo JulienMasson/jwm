@@ -330,23 +330,35 @@ void monitor_event(uint8_t response_type)
 		monitor_update();
 }
 
-void monitor_borders(uint16_t *border_x, uint16_t *border_y)
+void monitor_borders(int16_t *x, int16_t *y, uint16_t *width, uint16_t *height)
 {
 	struct monitor *mon;
 	struct list *index;
-	uint16_t x = 0, width = 0, height = 0;
+	int16_t min_x = INT16_MAX, min_y = INT16_MAX;
+	uint16_t max_width = 0, max_height = 0;
 
 	for (index = monitors_head; index != NULL; index = index->next) {
 		mon = index->data;
-		if (mon->x + mon->width > x + width) {
-			x = mon->x;
-			width = mon->width;
-		}
-		if (mon->height > height)
-			height = mon->height;
+
+		/* set minimum value in X */
+		if (mon->x < min_x)
+			min_x = mon->x;
+
+		/* set minimum value in Y */
+		if (mon->y < min_y)
+			min_y = mon->y;
+
+		/* set max value of width */
+		max_width += mon->width;
+
+		/* set max value of height */
+		if (mon->height > max_height)
+			max_height = mon->height;
 	}
 
 	/* assign values */
-	*border_x = x + width;
-	*border_y = height;
+	*x = min_x;
+	*y = min_y;
+	*width = max_width;
+	*height = max_height;
 }

@@ -39,6 +39,6 @@ struct monitor *monitor_find_by_coord(const int16_t x, const int16_t y);
 
 void monitor_event(uint8_t response_type);
 
-void monitor_borders(uint16_t *border_x, uint16_t *border_y);
+void monitor_borders(int16_t *x, int16_t *y, uint16_t *width, uint16_t *height);
 
 #endif

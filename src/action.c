@@ -127,11 +127,11 @@ void maximize(const Arg *arg)
 			focus->y = focus->monitor->y;
 			focus->width = focus->monitor->width;
 			focus->height = focus->monitor->height;
-		} else if (arg->i == FULLSCREEN_ALL_MONITOR) {
-			focus->x = 0;
-			focus->y = 0;
-			monitor_borders(&focus->width, &focus->height);
-		}
+		} else if (arg->i == FULLSCREEN_ALL_MONITOR)
+			monitor_borders(&focus->x,
+					&focus->y,
+					&focus->width,
+					&focus->height);
 	}
 
 	/* resize and show it */
@@ -183,11 +183,12 @@ void jwm_exit(const Arg *arg)
 
 static void mouse_move(struct client *focus, const int16_t rel_x, const int16_t rel_y)
 {
-	uint16_t border_x, border_y;
+	int16_t border_x, border_y;
+	uint16_t border_width, border_height;
 	uint16_t panel_height = 0;
 	struct panel *panel = panel_get();
 
-	monitor_borders(&border_x, &border_y);
+	monitor_borders(&border_x, &border_y, &border_width, &border_height);
 
 	/* check panel enable */
 	if (panel->enable == true)
@@ -198,14 +199,14 @@ static void mouse_move(struct client *focus, const int16_t rel_x, const int16_t 
 	focus->y = rel_y;
 
 	/* check if we are outside borders */
-	if (focus->x < 0)
-		focus->x = 0;
-	if (focus->y < panel_height)
-		focus->y = panel_height;
-	if (focus->x + focus->width > border_x)
-		focus->x = border_x - focus->width;
-	if (focus->y + focus->height > border_y)
-		focus->y = border_y - focus->height;
+	if (focus->x < border_x)
+		focus->x = border_x;
+	if (focus->y < border_y + panel_height)
+		focus->y = border_y + panel_height;
+	if (focus->x + focus->width > border_x + border_width)
+		focus->x = border_x + border_width - focus->width;
+	if (focus->y + focus->height > border_y + border_height)
+		focus->y = border_y + border_height - focus->height;
 
 	client_check_monitor(focus);
 	window_move(focus->id, focus->x, focus->y);
@@ -213,18 +214,19 @@ static void mouse_move(struct client *focus, const int16_t rel_x, const int16_t 
 
 static void mouse_resize(struct client *focus, const int16_t rel_x, const int16_t rel_y)
 {
-	uint16_t border_x, border_y;
-	monitor_borders(&border_x, &border_y);
+	int16_t border_x, border_y;
+	uint16_t border_width, border_height;
+	monitor_borders(&border_x, &border_y, &border_width, &border_height);
 
 	/* assign values of mouse motion */
 	focus->width = abs(rel_x);
 	focus->height = abs(rel_y);
 
 	/* check if we are outside borders */
-	if (focus->x + focus->width > border_x)
-		focus->width = border_x - focus->x;
-	if (focus->y + focus->height > border_y)
-		focus->height = border_y - focus->y;
+	if (focus->x + focus->width > border_x + border_width)
+		focus->width = border_x + border_width - focus->x;
+	if (focus->y + focus->height > border_y + border_height)
+		focus->height = border_y + border_height - focus->y;
 
 	client_check_monitor(focus);
 	window_resize(focus->id, focus->width, focus->height);

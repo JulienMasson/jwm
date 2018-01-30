@@ -30,6 +30,7 @@
 #include "client.h"
 #include "input.h"
 #include "log.h"
+#include "panel.h"
 
 void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *e);
 
@@ -114,6 +115,7 @@ bool event_init(void)
 		XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
 		| XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
 		| XCB_EVENT_MASK_BUTTON_PRESS
+		| XCB_EVENT_MASK_EXPOSURE
 	};
 	xcb_void_cookie_t cookie;
 	xcb_generic_error_t *error;
@@ -166,6 +168,10 @@ void event_loop(void)
 			abort();
 
 		if ((ev = xcb_wait_for_event(conn))) {
+
+			/* expose event only for panel */
+			if ((ev->response_type & ~0x80) == XCB_EXPOSE)
+				panel_event((xcb_expose_event_t *)ev);
 
 			/* monitor event */
 			monitor_event(ev->response_type);

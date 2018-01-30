@@ -32,5 +32,6 @@ struct panel {
 void panel_init(void);
 struct panel *panel_get(void);
 void panel_update_geom(void);
+void panel_event(xcb_expose_event_t *ev);
 
 #endif

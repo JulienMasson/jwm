@@ -26,8 +26,8 @@
 xcb_window_t window_create(uint16_t x, uint16_t y, uint16_t width, uint16_t height)
 {
 	xcb_window_t id = xcb_generate_id(conn);
-	uint32_t mask = XCB_CW_BACK_PIXEL;
-	uint32_t values[1] = { screen->black_pixel };
+	uint32_t mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+	uint32_t values[2] = { screen->black_pixel, XCB_EVENT_MASK_EXPOSURE};
 
 	xcb_create_window(conn,
 			  /* depth */

@@ -87,6 +87,7 @@ static void client_remove(struct client *client)
 
 	/* remove from clients_head list */
 	list_remove(&clients_head, client->index);
+	panel_draw();
 }
 
 void client_foreach(void (*func)(struct client *client))
@@ -288,6 +289,7 @@ static void client_set_focus(struct client *client)
 		window_set_focus(client->id);
 		input_grab_buttons(client->id);
 		focus = client;
+		panel_draw();
 	}
 }
 

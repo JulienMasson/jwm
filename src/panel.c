@@ -31,6 +31,12 @@
 
 struct panel *panel = NULL;
 
+struct panel_client_data {
+	struct monitor	*mon;
+	double		*pos;
+	double		*max_width;
+};
+
 void panel_init(void)
 {
 	int16_t border_x, border_y;
@@ -93,7 +99,7 @@ void panel_update_geom(void)
 	}
 }
 
-static void draw_clock(void)
+static void draw_clock(double *max_width)
 {
 	cairo_text_extents_t extents;
 	time_t t;
@@ -108,18 +114,24 @@ static void draw_clock(void)
 	/* paint it in cairo */
 	cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
 	cairo_text_extents(panel->cr, date, &extents);
-	cairo_move_to(panel->cr, panel->width - extents.width - 5, PANEL_TEXT_SIZE);
+	*max_width = panel->width - extents.width - 5;
+	cairo_move_to(panel->cr, *max_width, PANEL_TEXT_SIZE);
 	cairo_show_text(panel->cr, date);
 }
 
 static void draw_client(struct client *client, void *data)
 {
-	static double pos = 5;
 	cairo_text_extents_t extents;
 	xcb_get_property_cookie_t cookie;
 	xcb_icccm_get_text_property_reply_t prop;
 	struct client *focus = client_get_focus();
+	struct panel_client_data *client_data = (struct panel_client_data *)data;
 
+	/* check monitor */
+	if (client->monitor != client_data->mon)
+		return;
+
+	/* get window name of the client */
 	cookie = xcb_icccm_get_text_property(conn, client->id, XCB_ATOM_WM_NAME);
 	if (xcb_icccm_get_text_property_reply(conn, cookie, &prop, NULL)) {
 
@@ -129,30 +141,41 @@ static void draw_client(struct client *client, void *data)
 		else
 			cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
 		cairo_text_extents(panel->cr, prop.name, &extents);
-		cairo_move_to(panel->cr, pos, PANEL_TEXT_SIZE);
+		cairo_move_to(panel->cr, *client_data->pos, PANEL_TEXT_SIZE);
 		cairo_show_text(panel->cr, prop.name);
 
-		/* shift pos */
-		if (client->index->next == NULL)
-			pos = 5;
-		else
-			pos += extents.width + 10;
+		/* update position if next client */
+		if (client->index->next != NULL)
+			*client_data->pos += extents.width + 10;
 	}
+}
+
+static void draw_by_monitor(struct monitor *mon, void *data)
+{
+	struct panel_client_data *client_data = (struct panel_client_data *)data;
+	client_data->mon = mon;
+	*client_data->pos = mon->x;
+
+	client_foreach(draw_client, (void *)client_data);
 }
 
 void panel_draw(void)
 {
+	double pos = 0;
+	double max_width = 0;
+	struct panel_client_data client_data = { NULL, &pos, &max_width};
+
 	if (panel->enable == true) {
 		/* fill panel black */
 		cairo_set_source_rgb(panel->cr, 0, 0, 0);
 		cairo_rectangle(panel->cr, panel->x, panel->y, panel->width, panel->height);
 		cairo_fill(panel->cr);
 
-		/* draw clients */
-		client_foreach(draw_client, NULL);
+		/* draw clock and get max_width */
+		draw_clock(client_data.max_width);
 
-		/* draw clock */
-		draw_clock();
+		/* draw clients */
+		monitor_foreach(draw_by_monitor, (void *)&client_data);
 
 		/* flush */
 		cairo_surface_flush(panel->src);

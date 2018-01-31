@@ -306,8 +306,10 @@ void mouse_motion(const Arg *arg)
 
 	/* disable borders */
 	window_toggle_borders(focus->id, false);
-}
 
+	/* update panel */
+	panel_draw();
+}
 
 void reload_conf(const Arg *arg)
 {

@@ -67,6 +67,20 @@ static void monitor_remove(struct monitor *mon)
 	list_remove(&monitors_head, mon->index);
 }
 
+void monitor_foreach(void (*func)(struct monitor *monitor, void *data), void *data)
+{
+	struct monitor *monitor;
+	struct list *index;
+
+	if (func == NULL)
+		return;
+
+	for (index = monitors_head; index != NULL; index = index->next) {
+		monitor = index->data;
+		func(monitor, data);
+	}
+}
+
 static struct monitor *monitor_find_clones(xcb_randr_output_t id,
 					   const int16_t x,
 					   const int16_t y)

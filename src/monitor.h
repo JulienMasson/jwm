@@ -31,14 +31,18 @@ struct monitor {
 	struct list		*index;	        /* Pointer to our place in output list */
 };
 
+/* init */
 void monitor_init(void);
 
+/* accessors */
+void monitor_foreach(void (*func)(struct monitor *monitor, void *data), void *data);
+struct monitor *monitor_find_by_coord(const int16_t x, const int16_t y);
+void monitor_borders(int16_t *x, int16_t *y, uint16_t *width, uint16_t *height);
+
+/* wallpaper */
 void monitor_set_wallpaper(void);
 
-struct monitor *monitor_find_by_coord(const int16_t x, const int16_t y);
-
+/* events handler */
 void monitor_event(uint8_t response_type);
-
-void monitor_borders(int16_t *x, int16_t *y, uint16_t *width, uint16_t *height);
 
 #endif

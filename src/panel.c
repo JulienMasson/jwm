@@ -27,7 +27,7 @@
 
 #define PANEL_REFRESH 60
 #define PANEL_HEIGHT 20
-#define PANEL_TEXT_SIZE 14
+#define PANEL_TEXT_SIZE 11
 
 struct panel *panel = NULL;
 

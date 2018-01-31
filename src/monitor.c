@@ -131,7 +131,7 @@ static struct monitor *monitor_get_first_from_head(void)
 	return monitor;
 }
 
-static void monitor_check_client(struct client *cl)
+static void monitor_check_client(struct client *cl, void *data)
 {
 	struct monitor *mon;
 	struct list *index_monitor;
@@ -151,7 +151,7 @@ static void monitor_check_client(struct client *cl)
 	   assign it to the first monitor  */
 	if (test == false) {
 		cl->monitor = first_monitor;
-		client_fit_on_screen(cl);
+		client_fit_on_screen(cl, NULL);
 	}
 	test = false;
 }
@@ -300,7 +300,7 @@ static void monitor_update(void)
 
 	/* TODO: do we need to do this everytime ???? */
 	panel_update_geom();
-	client_foreach(monitor_check_client);
+	client_foreach(monitor_check_client, NULL);
 
 	/* free resources */
 	free(res);

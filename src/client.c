@@ -90,7 +90,7 @@ static void client_remove(struct client *client)
 	panel_draw();
 }
 
-void client_foreach(void (*func)(struct client *client))
+void client_foreach(void (*func)(struct client *client, void *data), void *data)
 {
 	struct client *client;
 	struct list *index;
@@ -100,7 +100,7 @@ void client_foreach(void (*func)(struct client *client))
 
 	for (index = clients_head; index != NULL; index = index->next) {
 		client = index->data;
-		func(client);
+		func(client, data);
 	}
 }
 
@@ -176,7 +176,7 @@ void client_check_monitor(struct client *client)
 		client->monitor = current_mon;
 }
 
-void client_fit_on_screen(struct client *client)
+void client_fit_on_screen(struct client *client, void *data)
 {
 	int16_t mon_x, mon_y;
 	uint16_t mon_width, mon_height;
@@ -264,7 +264,7 @@ void client_monitor_updated(struct monitor *mon)
 		client = index->data;
 
 		if (client->monitor == mon)
-			client_fit_on_screen(client);
+			client_fit_on_screen(client, NULL);
 	}
 }
 
@@ -278,7 +278,7 @@ void client_monitor_reassign(struct monitor *old, struct monitor *new)
 
 		if (client->monitor == old) {
 			client->monitor = new;
-			client_fit_on_screen(client);
+			client_fit_on_screen(client, NULL);
 		}
 	}
 }
@@ -336,7 +336,7 @@ void client_map_request(xcb_map_request_event_t *ev)
 	client->monitor = monitor_find_by_coord(client->x, client->y);
 
 	/* show client on screen */
-	client_fit_on_screen(client);
+	client_fit_on_screen(client, NULL);
 	window_show(client->id);
 	window_center_pointer(client->id, client->width, client->height);
 }
@@ -365,7 +365,7 @@ void client_configure_request(xcb_configure_request_event_t *ev)
 
 		/* check if client fit on screen */
 		if (!client->maxed)
-			client_fit_on_screen(client);
+			client_fit_on_screen(client, NULL);
 	} else {
 		/* unmapped window */
 		wc.x = ev->x;

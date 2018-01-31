@@ -112,7 +112,7 @@ static void draw_clock(void)
 	cairo_show_text(panel->cr, date);
 }
 
-static void draw_client(struct client *client)
+static void draw_client(struct client *client, void *data)
 {
 	static double pos = 5;
 	cairo_text_extents_t extents;
@@ -149,7 +149,7 @@ void panel_draw(void)
 		cairo_fill(panel->cr);
 
 		/* draw clients */
-		client_foreach(draw_client);
+		client_foreach(draw_client, NULL);
 
 		/* draw clock */
 		draw_clock();

@@ -151,7 +151,7 @@ void hide(const Arg *arg)
 	focus->iconic = true;
 }
 
-static void raise_client(struct client *client)
+static void raise_client(struct client *client, void *data)
 {
 	if (client->iconic == true) {
 		client->iconic = false;
@@ -161,7 +161,7 @@ static void raise_client(struct client *client)
 
 void raise_all(const Arg *arg)
 {
-	client_foreach(raise_client);
+	client_foreach(raise_client, NULL);
 }
 
 void start(const Arg *arg)
@@ -331,6 +331,6 @@ void panel_toggle(const Arg *arg)
 		window_show(panel->id);
 
 		/* fit all client if needed */
-		client_foreach(client_fit_on_screen);
+		client_foreach(client_fit_on_screen, NULL);
 	}
 }

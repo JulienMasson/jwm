@@ -47,14 +47,14 @@ struct client {
 };
 
 /* accessors */
-void client_foreach(void (*func)(struct client *client));
+void client_foreach(void (*func)(struct client *client, void *data), void *data);
 struct client *client_get_focus(void);
 struct client *client_get_first_from_head(void);
 struct client *client_get_circular(struct client *start, enum client_search_t direction);
 
 /* check client parameters */
 void client_check_monitor(struct client *client);
-void client_fit_on_screen(struct client *client);
+void client_fit_on_screen(struct client *client, void *data);
 
 /* monitor attached to client */
 void client_monitor_updated(struct monitor *mon);

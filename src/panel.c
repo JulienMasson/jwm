@@ -137,7 +137,7 @@ static void draw_client(struct client *client, void *data)
 	if (xcb_icccm_get_text_property_reply(conn, cookie, &prop, NULL)) {
 
 		/* show client name */
-		if (client == focus)
+		if ((client == focus) && (client->iconic == false))
 			cairo_set_source_rgb(panel->cr, 0.98, 0.52, 0.07);
 		else
 			cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
@@ -162,7 +162,7 @@ static void draw_client(struct client *client, void *data)
 		cairo_arc(panel->cr, x + radius, y + radius, radius, 180 * degrees, 270 * degrees);
 		cairo_close_path(panel->cr);
 
-		if (client == focus)
+		if ((client == focus) && (client->iconic == false))
 			cairo_set_source_rgb(panel->cr, 0.98, 0.52, 0.07);
 		else
 			cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);

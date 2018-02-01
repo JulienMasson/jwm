@@ -112,6 +112,7 @@ static void max(struct client *client)
 void maximize(const Arg *arg)
 {
 	struct client *focus = client_get_focus();
+	struct panel *panel = panel_get();
 
 	if (focus == NULL)
 		return;
@@ -127,6 +128,10 @@ void maximize(const Arg *arg)
 			focus->y = focus->monitor->y;
 			focus->width = focus->monitor->width;
 			focus->height = focus->monitor->height;
+
+			if (panel->enable == true)
+				focus->y += panel->height;
+
 		} else if (arg->i == FULLSCREEN_ALL_MONITOR)
 			monitor_borders(&focus->x,
 					&focus->y,

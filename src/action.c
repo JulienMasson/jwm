@@ -149,6 +149,7 @@ void hide(const Arg *arg)
 
 	window_unmap(focus->id);
 	focus->iconic = true;
+	panel_draw();
 }
 
 static void raise_client(struct client *client, void *data)

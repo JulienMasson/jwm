@@ -2,8 +2,12 @@
 OBJ_DIR := obj
 SRC_DIR := src
 
+# wallpaper
+WALLPAPER_PATH := $(shell pwd)/res/wallpaper.png
+WALLPAPER_FLAGS := -D DEFAULT_WALLPAPER='"${WALLPAPER_PATH}"'
+
 # flags
-CFLAGS := -Wunused -O0 -g
+CFLAGS := -Wunused -O0 -g ${WALLPAPER_FLAGS}
 LDFLAGS :=
 
 # libs and include

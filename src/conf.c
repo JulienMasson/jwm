@@ -94,7 +94,7 @@ void conf_init(char *path)
 	/* default value of global conf */
 	global_conf.log_level = LOG_WARN;
 	global_conf.log_file = NULL;
-	global_conf.wallpaper = NULL;
+	global_conf.wallpaper = DEFAULT_WALLPAPER;
 
 	/* read config */
 	conf_read();

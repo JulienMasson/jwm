@@ -115,7 +115,7 @@ static void draw_clock(double *max_width)
 	cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
 	cairo_text_extents(panel->cr, date, &extents);
 	*max_width = panel->width - extents.width - 5;
-	cairo_move_to(panel->cr, *max_width, PANEL_TEXT_SIZE);
+	cairo_move_to(panel->cr, *max_width, PANEL_HEIGHT - ((PANEL_HEIGHT - extents.height) / 2));
 	cairo_show_text(panel->cr, date);
 }
 

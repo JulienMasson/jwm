@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <math.h>
 
 #include "global.h"
 #include "panel.h"
@@ -141,12 +142,36 @@ static void draw_client(struct client *client, void *data)
 		else
 			cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
 		cairo_text_extents(panel->cr, prop.name, &extents);
-		cairo_move_to(panel->cr, *client_data->pos, PANEL_TEXT_SIZE);
+		cairo_move_to(panel->cr, *client_data->pos + 4, PANEL_HEIGHT - ((PANEL_HEIGHT - extents.height) / 2));
 		cairo_show_text(panel->cr, prop.name);
+
+		/* rounded rectangle around name */
+		double	x	      = *client_data->pos;
+		double	y	      = 0;
+		double	width         = extents.width + 8;
+		double	height        = PANEL_HEIGHT;
+		double	aspect        = 1.0;
+		double	corner_radius = height / 10.0;
+		double	radius	      = corner_radius / aspect;
+		double	degrees	      = M_PI / 180.0;
+
+		cairo_new_sub_path(panel->cr);
+		cairo_arc(panel->cr, x + width - radius, y + radius, radius, -90 * degrees, 0 * degrees);
+		cairo_arc(panel->cr, x + width - radius, y + height - radius, radius, 0 * degrees, 90 * degrees);
+		cairo_arc(panel->cr, x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees);
+		cairo_arc(panel->cr, x + radius, y + radius, radius, 180 * degrees, 270 * degrees);
+		cairo_close_path(panel->cr);
+
+		if (client == focus)
+			cairo_set_source_rgb(panel->cr, 0.98, 0.52, 0.07);
+		else
+			cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
+		cairo_set_line_width(panel->cr, 1);
+		cairo_stroke(panel->cr);
 
 		/* update position if next client */
 		if (client->index->next != NULL)
-			*client_data->pos += extents.width + 10;
+			*client_data->pos += extents.width + 8 + 4;
 	}
 }
 
@@ -154,7 +179,7 @@ static void draw_by_monitor(struct monitor *mon, void *data)
 {
 	struct panel_client_data *client_data = (struct panel_client_data *)data;
 	client_data->mon = mon;
-	*client_data->pos = mon->x;
+	*client_data->pos = mon->x + 1;
 
 	client_foreach(draw_client, (void *)client_data);
 }

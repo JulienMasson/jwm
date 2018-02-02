@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 
 #include "global.h"
@@ -25,9 +26,10 @@
 #include "window.h"
 #include "monitor.h"
 #include "client.h"
+#include "utils.h"
 
 #define PANEL_REFRESH 60
-#define PANEL_HEIGHT 20
+#define PANEL_HEIGHT 30
 #define PANEL_TEXT_SIZE 11
 
 struct panel *panel = NULL;
@@ -120,35 +122,58 @@ static void draw_clock(double *max_width)
 	cairo_show_text(panel->cr, date);
 }
 
+static void get_icon_path(char *process_name, char *icon_path)
+{
+	if (strncmp(process_name, "urxvt", 256) == 0)
+		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/apps/terminal.png");
+	else if (strncmp(process_name, "firefox", 256) == 0)
+		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/apps/firefox.png");
+	else if (strncmp(process_name, "emacs", 256) == 0)
+		snprintf(icon_path, 256, "/home/lab/bin/emacs-repo/etc/images/icons/hicolor/24x24/apps/emacs.png");
+	else if (strncmp(process_name, "gnome-system-monitor", 256) == 0)
+		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/apps/gnome-monitor.png");
+	else if (strncmp(process_name, "Thunar", 256) == 0)
+		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/apps/file-manager.png");
+	else
+		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/status/error.png");
+}
+
 static void draw_client(struct client *client, void *data)
 {
 	cairo_text_extents_t extents;
 	xcb_get_property_cookie_t cookie;
-	xcb_icccm_get_text_property_reply_t prop;
 	struct client *focus = client_get_focus();
 	struct panel_client_data *client_data = (struct panel_client_data *)data;
+	char process_name[256];
+	char icon_path[256];
+	uint32_t pid;
 
 	/* check monitor */
 	if (client->monitor != client_data->mon)
 		return;
 
-	/* get window name of the client */
-	cookie = xcb_icccm_get_text_property(conn, client->id, XCB_ATOM_WM_NAME);
-	if (xcb_icccm_get_text_property_reply(conn, cookie, &prop, NULL)) {
+	/* get icon from process name of the window */
+	memset(process_name, '\0', 256);
+	cookie = xcb_ewmh_get_wm_pid(ewmh, client->id);
+	if (xcb_ewmh_get_wm_pid_reply(ewmh, cookie, &pid, NULL))
+		get_process_name(pid, process_name, 256);
+	get_icon_path(process_name, icon_path);
 
-		/* show client name */
-		if ((client == focus) && (client->iconic == false))
-			cairo_set_source_rgb(panel->cr, 0.98, 0.52, 0.07);
-		else
-			cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
-		cairo_text_extents(panel->cr, prop.name, &extents);
-		cairo_move_to(panel->cr, *client_data->pos + 4, PANEL_HEIGHT - ((PANEL_HEIGHT - extents.height) / 2));
-		cairo_show_text(panel->cr, prop.name);
+	/* draw rectangle, icon and name of the process */
+	if (strlen(process_name) > 0) {
+
+		/* set extents */
+		cairo_text_extents(panel->cr, process_name, &extents);
+
+		/* check if we can draw this client */
+		if ((*client_data->pos + (extents.width + 15 + 24) > *client_data->max_width) ||
+		    (*client_data->pos + (extents.width + 15 + 24) > client->monitor->width + client->monitor->x))
+			return;
 
 		/* rounded rectangle around name */
 		double	x	      = *client_data->pos;
 		double	y	      = 0;
-		double	width         = extents.width + 8;
+		double	width         = extents.width + 15 + 24;
 		double	height        = PANEL_HEIGHT;
 		double	aspect        = 1.0;
 		double	corner_radius = height / 10.0;
@@ -169,9 +194,29 @@ static void draw_client(struct client *client, void *data)
 		cairo_set_line_width(panel->cr, 1);
 		cairo_stroke(panel->cr);
 
+		/* shift to display icon */
+		*client_data->pos += 5;
+
+		/* draw icon */
+		cairo_surface_t *image = cairo_image_surface_create_from_png(icon_path);
+		cairo_set_source_surface(panel->cr, image, *client_data->pos, 3);
+		cairo_paint(panel->cr);
+		cairo_surface_destroy(image);
+
+		/* shift to show name */
+		*client_data->pos += 24 + 5;
+
+		/* show client name */
+		if ((client == focus) && (client->iconic == false))
+			cairo_set_source_rgb(panel->cr, 0.98, 0.52, 0.07);
+		else
+			cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
+		cairo_move_to(panel->cr, *client_data->pos, PANEL_HEIGHT - ((PANEL_HEIGHT - extents.height) / 2));
+		cairo_show_text(panel->cr, process_name);
+
 		/* update position if next client */
 		if (client->index->next != NULL)
-			*client_data->pos += extents.width + 8 + 4;
+			*client_data->pos += extents.width + 5 + 4;
 	}
 }
 

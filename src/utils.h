@@ -21,10 +21,12 @@
 #define UTILS_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #define LENGTH(x)       (sizeof(x) / sizeof(*x))
 #define MIN(X, Y)       ((X) < (Y) ? (X) : (Y))
 
 bool file_access(const char *pathname);
+void get_process_name(uint32_t pid, char *name, size_t len);
 
 #endif

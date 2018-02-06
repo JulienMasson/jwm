@@ -28,6 +28,7 @@
 #include "client.h"
 #include "utils.h"
 
+#define PANEL_FONT "sans 12"
 #define PANEL_REFRESH 60
 #define PANEL_HEIGHT 30
 #define PANEL_TEXT_SIZE 11
@@ -62,8 +63,11 @@ void panel_init(void)
 					      panel->width - panel->x,
 					      panel->height - panel->y);
 	panel->cr = cairo_create(panel->src);
-	cairo_select_font_face(panel->cr, "DejaVu Sans Mono Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_font_size(panel->cr, PANEL_TEXT_SIZE);
+
+	/* init pango */
+	panel->layout = pango_cairo_create_layout(panel->cr);
+	panel->font = pango_font_description_from_string(PANEL_FONT);
+	pango_layout_set_font_description(panel->layout, panel->font);
 
 	/* show panel */
 	window_show(panel->id);
@@ -96,6 +100,11 @@ void panel_update_geom(void)
 						      panel->height - panel->y);
 		panel->cr = cairo_create(panel->src);
 
+		/* set new pango values */
+		g_object_unref(panel->layout);
+		panel->layout = pango_cairo_create_layout(panel->cr);
+		pango_layout_set_font_description(panel->layout, panel->font);
+
 		/* move, resize and show panel */
 		window_move_resize(panel->id, border_x, border_y, border_width, PANEL_HEIGHT);
 		panel_draw();
@@ -104,22 +113,31 @@ void panel_update_geom(void)
 
 static void draw_clock(double *max_width)
 {
-	cairo_text_extents_t extents;
 	time_t t;
 	struct tm *lt;
-	char date[30];
+	char buf_time[256];
+	int width, height;
 
 	/* get current date */
 	t = time(NULL);
 	lt = localtime(&t);
-	date[strftime(date, sizeof(date), "%R  -  %d %b", lt)] = '\0';
+	buf_time[strftime(buf_time, sizeof(buf_time), "%R  -  %d %b", lt)] = '\0';
 
-	/* paint it in cairo */
+	/* set text and get size */
+	pango_layout_set_text(panel->layout, buf_time, strlen(buf_time));
+	pango_layout_get_pixel_size(panel->layout, &width , &height);
+
+	/* set geometry */
+	pango_layout_set_width(panel->layout, width * PANGO_SCALE);
+	pango_layout_set_height(panel->layout, panel->height * PANGO_SCALE);
+	pango_layout_set_alignment(panel->layout, PANGO_ALIGN_CENTER);
+
+	/* set color, move and show layout */
 	cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
-	cairo_text_extents(panel->cr, date, &extents);
-	*max_width = panel->width - extents.width - 5;
-	cairo_move_to(panel->cr, *max_width, PANEL_HEIGHT - ((PANEL_HEIGHT - extents.height) / 2));
-	cairo_show_text(panel->cr, date);
+	pango_cairo_update_layout(panel->cr, panel->layout);
+	*max_width = panel->width - width - 5;
+	cairo_move_to(panel->cr, *max_width, (PANEL_HEIGHT - height) / 2);
+	pango_cairo_show_layout(panel->cr, panel->layout);
 }
 
 static void get_icon_path(char *process_name, char *icon_path)

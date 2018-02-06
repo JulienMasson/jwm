@@ -17,7 +17,8 @@ pkg_configs := xcb \
                xcb-icccm \
                xcb-ewmh \
                xcb-aux \
-               cairo
+               cairo \
+               pangocairo
 
 LIBS := $(shell pkg-config --libs   ${pkg_configs})
 INCS := $(shell pkg-config --cflags ${pkg_configs})

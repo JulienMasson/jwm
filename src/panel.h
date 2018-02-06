@@ -22,15 +22,18 @@
 
 #include <stdbool.h>
 #include <cairo/cairo-xcb.h>
+#include <pango/pangocairo.h>
 
 struct panel {
-	xcb_window_t	 id;
-	int16_t		 x, y;
-	uint16_t	 width, height;
-	bool		 enable;
-	time_t		 refresh;
-	cairo_t		*cr;
-	cairo_surface_t *src;
+	xcb_window_t		 id;
+	int16_t			 x, y;
+	uint16_t		 width, height;
+	bool			 enable;
+	time_t			 refresh;
+	cairo_t			*cr;
+	cairo_surface_t		*src;
+	PangoLayout		*layout;
+	PangoFontDescription	*font;
 };
 
 void panel_init(void);

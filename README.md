@@ -29,10 +29,11 @@ jwm depends on these libraries:
 + xcb-icccm
 + xcb-ewmh
 + cairo
++ pangocairo
 
 Please install these libraries:
 
-    $ sudo apt-get install libx11-xcb-dev libxcb-randr0-dev libxcb-keysyms1-dev libxcb-icccm4-dev libxcb-ewmh-dev libcairo2-dev
+    $ sudo apt-get install libx11-xcb-dev libxcb-randr0-dev libxcb-keysyms1-dev libxcb-icccm4-dev libxcb-ewmh-dev libcairo2-dev libpangocairo-1.0-0
 
 Build jwm:
 

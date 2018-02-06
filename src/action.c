@@ -56,6 +56,7 @@ void max_half(const Arg *arg)
 	int16_t mon_x, mon_y;
 	uint16_t mon_width, mon_height;
 	struct client *focus = client_get_focus();
+	struct panel *panel = panel_get();
 
 	if (focus == NULL || focus->maxed)
 		return;
@@ -70,6 +71,12 @@ void max_half(const Arg *arg)
 	focus->y = mon_y;
 	focus->height = mon_height;
 	focus->width = ((float)(mon_width) / 2);
+
+	/* if panel enable, take account of his height */
+	if (panel->enable == true) {
+		focus->y += panel->height;
+		focus->height -= panel->height;
+	}
 
 	/* change position in X */
 	if (arg->i == MAXHALF_VERTICAL_LEFT)
@@ -129,8 +136,11 @@ void maximize(const Arg *arg)
 			focus->width = focus->monitor->width;
 			focus->height = focus->monitor->height;
 
-			if (panel->enable == true)
+			/* if panel enable, take account of his height */
+			if (panel->enable == true) {
 				focus->y += panel->height;
+				focus->height -= panel->height;
+			}
 
 		} else if (arg->i == FULLSCREEN_ALL_MONITOR)
 			monitor_borders(&focus->x,

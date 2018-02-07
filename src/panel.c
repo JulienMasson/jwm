@@ -41,6 +41,11 @@ struct panel_client_data {
 	double		*max_width;
 };
 
+enum color_t {
+	NORMAL,
+	ORANGE
+};
+
 void panel_init(void)
 {
 	int16_t border_x, border_y;
@@ -111,106 +116,157 @@ void panel_update_geom(void)
 	}
 }
 
+static int panel_get_text_width(char *text, size_t len)
+{
+	int width;
+	PangoLayout *tmp = pango_cairo_create_layout(panel->cr);
+
+	pango_layout_set_text(tmp, text, len);
+	pango_layout_get_pixel_size(tmp, &width , NULL);
+	g_object_unref(tmp);
+
+	return width;
+}
+
+static void panel_draw_text(double x, int width, char *text, size_t len, enum color_t color)
+{
+	int height;
+	PangoLayout *tmp = pango_cairo_create_layout(panel->cr);
+	pango_layout_set_font_description(tmp, panel->font);
+
+	/* set text and get size */
+	pango_layout_set_text(tmp, text, len);
+	pango_layout_get_pixel_size(tmp, NULL, &height);
+
+	/* set color */
+	switch (color) {
+	case ORANGE:
+		cairo_set_source_rgb(panel->cr, 0.98, 0.52, 0.07);
+		break;
+	case NORMAL:
+		cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
+		break;
+	}
+	pango_cairo_update_layout(panel->cr, panel->layout);
+
+	/* set geometry */
+	pango_layout_set_width(tmp, width * PANGO_SCALE);
+	pango_layout_set_height(tmp, panel->height * PANGO_SCALE);
+	pango_layout_set_alignment(tmp, PANGO_ALIGN_CENTER);
+
+	/* move and show layout */
+	cairo_move_to(panel->cr, x, (PANEL_HEIGHT - height) / 2);
+	pango_cairo_show_layout(panel->cr, tmp);
+	g_object_unref(tmp);
+}
+
 static void draw_clock(double *max_width)
 {
 	time_t t;
 	struct tm *lt;
 	char buf_time[256];
-	int width, height;
+	int width;
 
 	/* get current date */
 	t = time(NULL);
 	lt = localtime(&t);
 	buf_time[strftime(buf_time, sizeof(buf_time), "%R  -  %d %b", lt)] = '\0';
 
-	/* set text and get size */
-	pango_layout_set_text(panel->layout, buf_time, strlen(buf_time));
-	pango_layout_get_pixel_size(panel->layout, &width , &height);
+	/* Get width and update max width */
+	width = panel_get_text_width(buf_time, strlen(buf_time));
+	width += 5;
+	*max_width = panel->width - width;
 
-	/* set geometry */
-	pango_layout_set_width(panel->layout, width * PANGO_SCALE);
-	pango_layout_set_height(panel->layout, panel->height * PANGO_SCALE);
-	pango_layout_set_alignment(panel->layout, PANGO_ALIGN_CENTER);
-
-	/* set color, move and show layout */
-	cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
-	pango_cairo_update_layout(panel->cr, panel->layout);
-	*max_width = panel->width - width - 5;
-	cairo_move_to(panel->cr, *max_width, (PANEL_HEIGHT - height) / 2);
-	pango_cairo_show_layout(panel->cr, panel->layout);
+	/* draw text */
+	panel_draw_text(*max_width, width, buf_time, strlen(buf_time), NORMAL);
 }
 
-static void get_icon_path(char *process_name, char *icon_path)
+static void get_icon_path(xcb_window_t win, char *icon_path)
 {
-	if (strncmp(process_name, "urxvt", 256) == 0)
+	xcb_get_property_cookie_t cookie;
+	char name[256];
+	uint32_t pid;
+
+	memset(name, '\0', 256);
+	cookie = xcb_ewmh_get_wm_pid(ewmh, win);
+	if (xcb_ewmh_get_wm_pid_reply(ewmh, cookie, &pid, NULL))
+		get_process_name(pid, name, 256);
+
+	if (strncmp(name, "urxvt", 256) == 0)
 		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/apps/terminal.png");
-	else if (strncmp(process_name, "firefox", 256) == 0)
+	else if (strncmp(name, "firefox", 256) == 0)
 		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/apps/firefox.png");
-	else if (strncmp(process_name, "emacs", 256) == 0)
+	else if (strncmp(name, "emacs", 256) == 0)
 		snprintf(icon_path, 256, "/home/lab/bin/emacs-repo/etc/images/icons/hicolor/24x24/apps/emacs.png");
-	else if (strncmp(process_name, "gnome-system-monitor", 256) == 0)
+	else if (strncmp(name, "gnome-system-monitor", 256) == 0)
 		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/apps/gnome-monitor.png");
-	else if (strncmp(process_name, "Thunar", 256) == 0)
+	else if (strncmp(name, "Thunar", 256) == 0)
 		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/apps/file-manager.png");
 	else
 		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/status/error.png");
 }
 
+static void get_window_name(xcb_window_t win, char *name, int len)
+{
+	xcb_get_property_cookie_t cookie;
+	xcb_ewmh_get_utf8_strings_reply_t data;
+
+	cookie = xcb_ewmh_get_wm_name(ewmh, win);
+	if (xcb_ewmh_get_wm_name_reply(ewmh, cookie, &data, NULL))
+		strncpy(name, data.strings, data.strings_len);
+}
+
+static void panel_draw_rectangle(double x, double y, double width, double height)
+{
+	double	aspect        = 1.0;
+	double	corner_radius = height / 10.0;
+	double	radius	      = corner_radius / aspect;
+	double	degrees	      = M_PI / 180.0;
+
+	cairo_new_sub_path(panel->cr);
+	cairo_arc(panel->cr, x + width - radius, y + radius, radius, -90 * degrees, 0 * degrees);
+	cairo_arc(panel->cr, x + width - radius, y + height - radius, radius, 0 * degrees, 90 * degrees);
+	cairo_arc(panel->cr, x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees);
+	cairo_arc(panel->cr, x + radius, y + radius, radius, 180 * degrees, 270 * degrees);
+	cairo_close_path(panel->cr);
+
+	cairo_set_line_width(panel->cr, 1);
+	cairo_stroke(panel->cr);
+}
+
 static void draw_client(struct client *client, void *data)
 {
-	cairo_text_extents_t extents;
-	xcb_get_property_cookie_t cookie;
 	struct client *focus = client_get_focus();
 	struct panel_client_data *client_data = (struct panel_client_data *)data;
-	char process_name[256];
+	char name[256];
 	char icon_path[256];
-	uint32_t pid;
+	int width_name;
 
 	/* check monitor */
 	if (client->monitor != client_data->mon)
 		return;
 
-	/* get icon from process name of the window */
-	memset(process_name, '\0', 256);
-	cookie = xcb_ewmh_get_wm_pid(ewmh, client->id);
-	if (xcb_ewmh_get_wm_pid_reply(ewmh, cookie, &pid, NULL))
-		get_process_name(pid, process_name, 256);
-	get_icon_path(process_name, icon_path);
+	/* get icon and name of the window */
+	memset(name, '\0', 256);
+	get_window_name(client->id, name, 256);
+	get_icon_path(client->id, icon_path);
 
 	/* draw rectangle, icon and name of the process */
-	if (strlen(process_name) > 0) {
+	if (strlen(name) > 0) {
 
-		/* set extents */
-		cairo_text_extents(panel->cr, process_name, &extents);
+		width_name = panel_get_text_width(name, strlen(name));
 
 		/* check if we can draw this client */
-		if ((*client_data->pos + (extents.width + 15 + 24) > *client_data->max_width) ||
-		    (*client_data->pos + (extents.width + 15 + 24) > client->monitor->width + client->monitor->x))
+		if ((*client_data->pos + (width_name + 15 + 24) > *client_data->max_width) ||
+		    (*client_data->pos + (width_name + 15 + 24) > client->monitor->width + client->monitor->x))
 			return;
 
 		/* rounded rectangle around name */
-		double	x	      = *client_data->pos;
-		double	y	      = 0;
-		double	width         = extents.width + 15 + 24;
-		double	height        = PANEL_HEIGHT;
-		double	aspect        = 1.0;
-		double	corner_radius = height / 10.0;
-		double	radius	      = corner_radius / aspect;
-		double	degrees	      = M_PI / 180.0;
-
-		cairo_new_sub_path(panel->cr);
-		cairo_arc(panel->cr, x + width - radius, y + radius, radius, -90 * degrees, 0 * degrees);
-		cairo_arc(panel->cr, x + width - radius, y + height - radius, radius, 0 * degrees, 90 * degrees);
-		cairo_arc(panel->cr, x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees);
-		cairo_arc(panel->cr, x + radius, y + radius, radius, 180 * degrees, 270 * degrees);
-		cairo_close_path(panel->cr);
-
 		if ((client == focus) && (client->iconic == false))
 			cairo_set_source_rgb(panel->cr, 0.98, 0.52, 0.07);
 		else
 			cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
-		cairo_set_line_width(panel->cr, 1);
-		cairo_stroke(panel->cr);
+		panel_draw_rectangle(*client_data->pos, 0, width_name + 15 + 24, PANEL_HEIGHT);
 
 		/* shift to display icon */
 		*client_data->pos += 5;
@@ -226,15 +282,13 @@ static void draw_client(struct client *client, void *data)
 
 		/* show client name */
 		if ((client == focus) && (client->iconic == false))
-			cairo_set_source_rgb(panel->cr, 0.98, 0.52, 0.07);
+			panel_draw_text(*client_data->pos, width_name, name, strlen(name), ORANGE);
 		else
-			cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
-		cairo_move_to(panel->cr, *client_data->pos, PANEL_HEIGHT - ((PANEL_HEIGHT - extents.height) / 2));
-		cairo_show_text(panel->cr, process_name);
+			panel_draw_text(*client_data->pos, width_name, name, strlen(name), NORMAL);
 
 		/* update position if next client */
 		if (client->index->next != NULL)
-			*client_data->pos += extents.width + 5 + 4;
+			*client_data->pos += width_name + 5 + 4;
 	}
 }
 

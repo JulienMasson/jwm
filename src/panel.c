@@ -187,23 +187,16 @@ static void get_icon_path(xcb_window_t win, char *icon_path)
 	char name[256];
 	uint32_t pid;
 
+	/* get pid from the window */
 	memset(name, '\0', 256);
 	cookie = xcb_ewmh_get_wm_pid(ewmh, win);
 	if (xcb_ewmh_get_wm_pid_reply(ewmh, cookie, &pid, NULL))
 		get_process_name(pid, name, 256);
 
-	if (strncmp(name, "urxvt", 256) == 0)
-		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/apps/terminal.png");
-	else if (strncmp(name, "firefox", 256) == 0)
-		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/apps/firefox.png");
-	else if (strncmp(name, "emacs", 256) == 0)
-		snprintf(icon_path, 256, "/home/lab/bin/emacs-repo/etc/images/icons/hicolor/24x24/apps/emacs.png");
-	else if (strncmp(name, "gnome-system-monitor", 256) == 0)
-		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/apps/gnome-monitor.png");
-	else if (strncmp(name, "Thunar", 256) == 0)
-		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/apps/file-manager.png");
-	else
-		snprintf(icon_path, 256, "/usr/share/icons/gnome/24x24/status/error.png");
+	/* check access to icon path, fallback on the default */
+	snprintf(icon_path, 256, "%s%s.png", ICONS_DIR, name);
+	if (file_access(icon_path) == false)
+		snprintf(icon_path, 256, "%sdefault.png", ICONS_DIR);
 }
 
 static void get_window_name(xcb_window_t win, char *name, int len)

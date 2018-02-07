@@ -6,8 +6,12 @@ SRC_DIR := src
 WALLPAPER_PATH := $(shell pwd)/res/wallpaper.png
 WALLPAPER_FLAGS := -D DEFAULT_WALLPAPER='"${WALLPAPER_PATH}"'
 
+# icons DIR
+ICONS_DIR := $(shell pwd)/res/icons/
+ICONS_FLAGS := -D ICONS_DIR='"${ICONS_DIR}"'
+
 # flags
-CFLAGS := -Wunused -O0 -g ${WALLPAPER_FLAGS}
+CFLAGS := -Wunused -O0 -g ${WALLPAPER_FLAGS} ${ICONS_FLAGS}
 LDFLAGS :=
 
 # libs and include

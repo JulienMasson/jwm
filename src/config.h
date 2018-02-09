@@ -55,9 +55,9 @@ static key keys[] = {
 	{ MOD,		 XK_d,	    start,	  { .com = rofi_run			 } },
 	{ MOD,		 XK_Return, start,	  { .com = urxvt			 } },
 	{ MOD | SHIFT,	 XK_e,	    start,	  { .com = emacs			 } },
-	{ MOD,		 XK_o,	    start,	  { .com = volume_up			 } },
-	{ MOD,		 XK_i,	    start,	  { .com = volume_down			 } },
-	{ MOD,		 XK_p,	    start,	  { .com = volume_toggle		 } },
+	{ MOD,		 XK_i,	    start,	  { .com = volume_up			 } },
+	{ MOD,		 XK_u,	    start,	  { .com = volume_down			 } },
+	{ MOD,		 XK_o,	    start,	  { .com = volume_toggle		 } },
 	{ MOD | CONTROL, XK_l,	    start,	  { .com = i3lock			 } },
 	/* Exit jwm */
 	{ MOD | SHIFT,	 XK_q,	    jwm_exit,     { .i	 = 0				 } },

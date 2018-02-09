@@ -91,9 +91,10 @@ Mod key is referred to "windows" key.
 | `Mod-d`           | Start rofi                                 |
 | `Mod-Return`      | Start urxvt                                |
 | `Mod-Shift, e`    | Start emacs                                |
-| `Mod, o`          | Volume up                                  |
-| `Mod, i`          | Volume down                                |
-| `Mod, p`          | Toggle volume                              |
+| `Mod, i`          | Volume up                                  |
+| `Mod, u`          | Volume down                                |
+| `Mod, o`          | Toggle volume                              |
+| `Mod, p`          | Toggle panel                               |
 | `Mod, l`          | Lock screen                                |
 | `Mod-Shift, q`    | Exit jwm                                   |
 

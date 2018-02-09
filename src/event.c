@@ -79,12 +79,14 @@ static void unmapnotify(xcb_generic_event_t *e)
 {
 	xcb_unmap_notify_event_t *ev = (xcb_unmap_notify_event_t *)e;
 	client_unmap(ev);
+	panel_remove_systray(ev);
 }
 
 static void clientmessage(xcb_generic_event_t *e)
 {
 	xcb_client_message_event_t *ev = (xcb_client_message_event_t *)e;
 	client_message(ev);
+	panel_add_systray(ev);
 }
 
 static void sigcatch(const int sig)

@@ -27,6 +27,7 @@
 #include "monitor.h"
 #include "client.h"
 #include "utils.h"
+#include "log.h"
 
 #define PANEL_FONT "sans 12"
 #define PANEL_REFRESH 60
@@ -34,6 +35,8 @@
 #define PANEL_TEXT_SIZE 11
 
 struct panel *panel = NULL;
+xcb_window_t *systray = NULL;
+int systray_count = 0;
 
 struct panel_client_data {
 	struct monitor	*mon;
@@ -73,6 +76,40 @@ void panel_init(void)
 	panel->layout = pango_cairo_create_layout(panel->cr);
 	panel->font = pango_font_description_from_string(PANEL_FONT);
 	pango_layout_set_font_description(panel->layout, panel->font);
+
+	/* init systray */
+	char atomname[strlen("_NET_SYSTEM_TRAY_S") + 11];
+	xcb_intern_atom_cookie_t stc;
+	xcb_intern_atom_reply_t	 *bar_rpy;
+	xcb_get_selection_owner_cookie_t gsoc;
+	xcb_get_selection_owner_reply_t	*gso_rpy;
+
+	snprintf(atomname, strlen("_NET_SYSTEM_TRAY_S") + 11, "_NET_SYSTEM_TRAY_S0");
+	stc = xcb_intern_atom(conn, 0, strlen(atomname), atomname);
+	if(!(bar_rpy = xcb_intern_atom_reply(conn, stc, NULL)))
+		LOGE("could not get atom %s\n", atomname);
+	xcb_set_selection_owner(conn, panel->id, bar_rpy->atom, XCB_CURRENT_TIME);
+
+	gsoc = xcb_get_selection_owner(conn, bar_rpy->atom);
+	if (!(gso_rpy = xcb_get_selection_owner_reply(conn, gsoc, NULL)))
+		LOGE("could not get selection owner for %s\n",  atomname);
+
+	if (gso_rpy->owner != panel->id) {
+		LOGE("Another system tray running?\n");
+		free(gso_rpy);
+	}
+
+	/* Let everybody know that there is a system tray running */
+	uint32_t buf[32];
+	xcb_client_message_event_t *ev = (xcb_client_message_event_t*)buf;
+	ev->response_type	= XCB_CLIENT_MESSAGE;
+	ev->window		= screen->root;
+	ev->type		= XCB_ATOM_NONE;
+	ev->format		= 32;
+	ev->data.data32[0]	= XCB_CURRENT_TIME;
+	ev->data.data32[1]	= bar_rpy->atom;
+	ev->data.data32[2]	= panel->id;
+	xcb_send_event(conn, 0, screen->root, 0xFFFFFF, (char *)buf);
 
 	/* show panel */
 	window_show(panel->id);
@@ -179,6 +216,16 @@ static void draw_clock(double *max_width)
 
 	/* draw text */
 	panel_draw_text(*max_width, width, buf_time, strlen(buf_time), NORMAL);
+}
+
+static void draw_systray(double *max_width)
+{
+	int i;
+
+	for (i = 0; i < systray_count; i++) {
+		*max_width -= 24;
+		window_move(systray[i], *max_width, 3);
+	}
 }
 
 static void get_icon_path(xcb_window_t win, char *icon_path)
@@ -309,6 +356,9 @@ void panel_draw(void)
 		/* draw clock and get max_width */
 		draw_clock(client_data.max_width);
 
+		/* draw systray */
+		draw_systray(client_data.max_width);
+
 		/* draw clients */
 		monitor_foreach(draw_by_monitor, (void *)&client_data);
 
@@ -323,4 +373,77 @@ void panel_event(xcb_expose_event_t *ev)
 	/* only redraw on last expose event */
 	if ((ev->count == 0) && (ev->window == panel->id))
 		panel_draw();
+}
+
+static bool systray_found(xcb_window_t win)
+{
+	int i;
+
+	for (i = 0; i < systray_count; i++)
+		if (win == systray[i])
+			return true;
+
+	return false;
+}
+
+static void systray_remove(xcb_window_t win)
+{
+	xcb_window_t *tmp = malloc((systray_count - 1) * sizeof(xcb_window_t));
+	int i, j = 0;
+
+	for (i = 0; i < systray_count; i++) {
+		if (win != systray[i]) {
+			tmp[j] = systray[i];
+			j++;
+		}
+	}
+
+	systray_count--;
+	free(systray);
+	systray = tmp;
+}
+
+static void systray_setup(xcb_window_t win, xcb_client_message_event_t *ev)
+{
+	uint32_t values[2] = {24, 24};
+	xcb_configure_window(conn, win,
+			     XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT,
+			     values);
+
+	xcb_send_event(conn, 0, win, XCB_EVENT_MASK_NO_EVENT, (char*)ev);
+	xcb_change_save_set(conn, XCB_SET_MODE_INSERT, win);
+
+	xcb_reparent_window(conn, win, panel->id, 0, 0);
+	xcb_map_window(conn, win);
+	xcb_flush(conn);
+
+	/* add this systray to the list */
+	systray_count++;
+	systray = (xcb_window_t *)realloc(systray, systray_count * sizeof(xcb_window_t));
+	systray[systray_count - 1] = win;
+}
+
+void panel_add_systray(xcb_client_message_event_t *ev)
+{
+	xcb_window_t win = ev->data.data32[2];
+
+	if (ev->window != panel->id)
+		return;
+
+	if (systray_found(win) == true)
+		return;
+
+	systray_setup(win, ev);
+
+	panel_draw();
+}
+
+void panel_remove_systray(xcb_unmap_notify_event_t *ev)
+{
+	xcb_window_t win = ev->window;
+
+	if (systray_found(win) == true)
+		systray_remove(win);
+
+	panel_draw();
 }

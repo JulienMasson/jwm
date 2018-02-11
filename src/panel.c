@@ -291,6 +291,14 @@ static void draw_client(struct client *client, void *data)
 	get_window_name(client->id, name, 256);
 	get_icon_path(client->id, icon_path);
 
+	/* if window name is too long, add "..." at the end */
+	if (strlen(name) > 20) {
+		name[17] = '.';
+		name[18] = '.';
+		name[19] = '.';
+		name[20] = '\0';
+	}
+
 	/* draw rectangle, icon and name of the process */
 	if (strlen(name) > 0) {
 

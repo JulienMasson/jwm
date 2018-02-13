@@ -283,7 +283,7 @@ void client_monitor_reassign(struct monitor *old, struct monitor *new)
 	}
 }
 
-static void client_set_focus(struct client *client)
+void client_set_focus(struct client *client)
 {
 	if (client != NULL) {
 		window_set_focus(client->id);

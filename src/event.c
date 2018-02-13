@@ -61,6 +61,7 @@ static void buttonpress(xcb_generic_event_t *e)
 {
 	xcb_button_press_event_t *ev = (xcb_button_press_event_t *)e;
 	input_button_handler(ev);
+	panel_click(ev);
 }
 
 static void destroynotify(xcb_generic_event_t *e)

@@ -34,20 +34,79 @@
 #define PANEL_HEIGHT 30
 #define PANEL_TEXT_SIZE 11
 
-struct panel *panel = NULL;
-xcb_window_t *systray = NULL;
-int systray_count = 0;
-
 struct panel_client_data {
 	struct monitor	*mon;
 	double		*pos;
 	double		*max_width;
 };
 
+struct panel_client {
+	struct client	*client;
+	double		 pos;
+	double		 width;
+	struct list	*index;
+};
+
 enum color_t {
 	NORMAL,
 	ORANGE
 };
+
+struct panel *panel = NULL;
+struct list *panel_clients_head;
+xcb_window_t *systray = NULL;
+int systray_count = 0;
+
+static struct panel_client *panel_client_add(struct client *client, double pos, double width)
+{
+	struct list *index;
+	struct panel_client *panel_client;
+
+	panel_client = malloc(sizeof(struct panel_client));
+	if (panel_client == NULL)
+		return NULL;
+
+	index = list_add(&panel_clients_head, panel_client);
+	if (index == NULL)
+		return NULL;
+
+	panel_client->client = client;
+	panel_client->pos = pos;
+	panel_client->width = width;
+	panel_client->index = index;
+
+	return panel_client;
+}
+
+static struct panel_client *panel_client_find_by_client(struct client *client)
+{
+	struct panel_client *panel_client;
+	struct list *index;
+
+	for (index = panel_clients_head; index != NULL; index = index->next) {
+		panel_client = index->data;
+
+		if (client == panel_client->client)
+			return panel_client;
+	}
+
+	return NULL;
+}
+
+static void panel_client_update(struct client *client, double pos, double width)
+{
+	struct panel_client *panel_client;
+	struct list *index;
+
+	for (index = panel_clients_head; index != NULL; index = index->next) {
+		panel_client = index->data;
+
+		if (client == panel_client->client) {
+			panel_client->pos = pos;
+			panel_client->width = width;
+		}
+	}
+}
 
 void panel_init(void)
 {
@@ -309,6 +368,12 @@ static void draw_client(struct client *client, void *data)
 		    (*client_data->pos + (width_name + 15 + 24) > client->monitor->width + client->monitor->x))
 			return;
 
+		/* add in panel clients list */
+		if (panel_client_find_by_client(client) == NULL)
+			panel_client_add(client, *client_data->pos, width_name + 15 + 24);
+		else
+			panel_client_update(client, *client_data->pos, width_name + 15 + 24);
+
 		/* rounded rectangle around name */
 		if ((client == focus) && (client->iconic == false))
 			cairo_set_source_rgb(panel->cr, 0.98, 0.52, 0.07);
@@ -454,4 +519,23 @@ void panel_remove_systray(xcb_unmap_notify_event_t *ev)
 		systray_remove(win);
 
 	panel_draw();
+}
+
+void panel_click(xcb_button_press_event_t *ev)
+{
+	int16_t x = ev->root_x;
+	struct panel_client *panel_client;
+	struct list *index;
+
+	if (panel->id == ev->child) {
+		for (index = panel_clients_head; index != NULL; index = index->next) {
+			panel_client = index->data;
+
+			if (x > panel_client->pos && x < (panel_client->pos + panel_client->width)) {
+				window_raise(panel_client->client->id);
+				client_set_focus(panel_client->client);
+				break;
+			}
+		}
+	}
 }

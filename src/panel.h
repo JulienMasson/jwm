@@ -43,5 +43,6 @@ void panel_draw(void);
 void panel_event(xcb_expose_event_t *ev);
 void panel_add_systray(xcb_client_message_event_t *ev);
 void panel_remove_systray(xcb_unmap_notify_event_t *ev);
+void panel_click(xcb_button_press_event_t *ev);
 
 #endif

@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <libgen.h>
 
 #include "global.h"
 #include "panel.h"
@@ -300,7 +301,7 @@ static void get_icon_path(xcb_window_t win, char *icon_path)
 		get_process_name(pid, name, 256);
 
 	/* check access to icon path, fallback on the default */
-	snprintf(icon_path, 256, "%s%s.png", ICONS_DIR, name);
+	snprintf(icon_path, 256, "%s%s.png", ICONS_DIR, basename(name));
 	if (file_access(icon_path) == false)
 		snprintf(icon_path, 256, "%sdefault.png", ICONS_DIR);
 }

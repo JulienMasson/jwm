@@ -109,14 +109,35 @@ struct client *client_get_focus(void)
 	return focus;
 }
 
-struct client *client_get_first_from_head(void)
+struct client *client_get_first(void)
 {
 	struct client *client = NULL;
 
 	if (clients_head != NULL && clients_head->data != NULL) {
 		client = clients_head->data;
 		while (client->iconic == true && client->index->next != NULL)
-				client = client->index->next->data;
+			client = client->index->next->data;
+	}
+
+	return client;
+}
+
+static struct client *client_get_last(void)
+{
+	struct client *client = NULL;
+	struct list *tail;
+
+	/* get the tail */
+	tail = clients_head;
+	while((tail != NULL) && (tail->next != NULL)) {
+		tail = tail->next;
+	}
+
+	/* loop through from the tail */
+	if (tail != NULL && tail->data != NULL) {
+		client = tail->data;
+		while (client->iconic == true && client->index->prev != NULL)
+			client = client->index->prev->data;
 	}
 
 	return client;
@@ -127,41 +148,23 @@ struct client *client_get_circular(struct client *start, enum client_search_t di
 	struct client *client = NULL;
 
 	/* check start client */
-	if (start == NULL || start->index == NULL)
+	if (start == NULL || start->index == NULL || clients_head == NULL)
 		return client;
 
-	/* search next client on the list */
-	if (direction == CLIENT_NEXT) {
-
-		/* tail of the list, get the first from the head */
-		if (start->index->next == NULL)
-			client = client_get_first_from_head();
-		else {
-			client = start->index->next->data;
-			while (client->iconic == true && client->index->next != NULL)
+	client = start;
+	do {
+		if (direction == CLIENT_NEXT) {
+			if (client->index->next != NULL)
 				client = client->index->next->data;
-		}
-	} else {
-
-		/* search client not iconic from the head to the start */
-		if (start->index->prev) {
-			client = start->index->prev->data;
-			while (client->iconic == true && client->index->prev != NULL)
+			else
+				client = client_get_first();
+		} else {
+			if (client->index->prev != NULL)
 				client = client->index->prev->data;
+			else
+				client = client_get_last();
 		}
-		
-		/* already on the head with no client found, go to the end 
-		   and walk backward until we find a client that isn't iconic */
-		if (client == NULL && start->index->prev == NULL) {
-			if (start->index->next) {
-				client = start->index->next->data;
-				while (client->index->next != NULL)
-					client = client->index->next->data;
-				while (client->iconic == true)
-					client = client->index->prev->data;
-			}
-		}
-	}
+	} while (client->iconic == true);
 
 	return client;
 }

@@ -39,7 +39,7 @@ void change_focus(const Arg *arg)
 
 	/* no focus, search first client */
 	if (focus == NULL)
-		client = client_get_first_from_head();
+		client = client_get_first();
 	else
 		client = client_get_circular(focus, arg->i);
 

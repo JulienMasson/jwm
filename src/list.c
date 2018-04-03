@@ -23,24 +23,29 @@
 struct list *list_add(struct list **list_head, void *data)
 {
 	struct list *element = (struct list *) malloc(sizeof(struct list));
+	struct list *tail;
 
 	/* allocation failed */
 	if (element == NULL)
 		return NULL;
 
+	/* get the tail */
+	tail = *list_head;
+	while((tail != NULL) && (tail->next != NULL)) {
+		tail = tail->next;
+	}
+
 	/* first element of the list */
-	if (*list_head == NULL)
+	if (*list_head == NULL) {
+		*list_head = element;
 		element->prev = element->next = NULL;
-	else {
-		/* put element at the head of the list */
-		element->next = *list_head;
-		element->next->prev = element;
-		element->prev = NULL;
+	} else {
+		/* put element at the tail of the list */
+		element->prev = tail;
+		element->prev->next = element;
+		element->next = NULL;
 	}
 	element->data = data;
-
-	/* head point to this element */
-	*list_head = element;
 
 	return element;
 }

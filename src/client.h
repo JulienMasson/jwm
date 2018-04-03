@@ -49,7 +49,7 @@ struct client {
 /* accessors */
 void client_foreach(void (*func)(struct client *client, void *data), void *data);
 struct client *client_get_focus(void);
-struct client *client_get_first_from_head(void);
+struct client *client_get_first(void);
 struct client *client_get_circular(struct client *start, enum client_search_t direction);
 
 /* set focus */

@@ -412,6 +412,11 @@ static void draw_by_monitor(struct monitor *mon, void *data)
 	client_data->mon = mon;
 	*client_data->pos = mon->x + 1;
 
+	/* reset panel_clients_head */
+	struct list *index;
+	for (index = panel_clients_head; index != NULL; index = index->next)
+		list_remove(&panel_clients_head, index);
+
 	client_foreach(draw_client, (void *)client_data);
 }
 

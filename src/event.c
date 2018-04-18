@@ -161,6 +161,7 @@ bool event_init(void)
 
 void event_loop(void)
 {
+	int fd;
 	xcb_generic_event_t *ev;
 
 	/* panel refresh */
@@ -201,7 +202,7 @@ void event_loop(void)
 		}
 
 		/* check which fd is available to read */
-		for (int fd = 0; fd <= max_fd; fd++) {
+		for (fd = 0; fd <= max_fd; fd++) {
 
 			if (FD_ISSET(fd, &fds)) {
 

@@ -34,6 +34,7 @@ static int current_cursor;
 
 void cursor_init(void)
 {
+	int i;
 	/* cursor font */
 	xcb_font_t cursor_font;
 
@@ -41,7 +42,7 @@ void cursor_init(void)
 	xcb_open_font(conn, cursor_font, strlen("cursor"), "cursor");
 
 	/* create all cursors */
-	for (int i = 0; i < LAST; i++) {
+	for (i = 0; i < LAST; i++) {
 		xcb_cursor_t cursor = xcb_generate_id(conn);
 
 		xcb_create_glyph_cursor(conn,

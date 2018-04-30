@@ -21,12 +21,61 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "utils.h"
 #include "log.h"
 
 bool file_access(const char *pathname)
 {
 	return access(pathname, F_OK | R_OK) ? false : true;
+}
+
+bool file_read(const char *pathname, void *buf, size_t count)
+{
+	int fd = -1;
+
+	fd = open(pathname, O_RDONLY);
+	if (fd == -1) {
+		LOGE("%s", strerror(errno));
+		return false;
+	}
+
+	if (read(fd, buf, count) == -1) {
+		LOGE("%s", strerror(errno));
+		return false;
+	}
+
+	if (close(fd) == -1) {
+		LOGE("%s", strerror(errno));
+		return false;
+	}
+
+	return true;
+}
+
+bool file_write(const char *pathname, const void *buf, size_t count)
+{
+	int fd = -1;
+
+	fd = open(pathname, O_WRONLY);
+	if (fd == -1) {
+		LOGE("%s", strerror(errno));
+		return false;
+	}
+
+	if (write(fd, buf, count) == -1) {
+		LOGE("%s", strerror(errno));
+		return false;
+	}
+
+	if (close(fd) == -1) {
+		LOGE("%s", strerror(errno));
+		return false;
+	}
+
+	return true;
 }
 
 void get_process_name(uint32_t pid, char *name, size_t len)

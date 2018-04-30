@@ -25,7 +25,11 @@
 
 #define LENGTH(x)       (sizeof(x) / sizeof(*x))
 
+/* file utils */
 bool file_access(const char *pathname);
+bool file_write(const char *pathname, const void *buf, size_t count);
+bool file_read(const char *pathname, void *buf, size_t count);
+
 void get_process_name(uint32_t pid, char *name, size_t len);
 
 #endif

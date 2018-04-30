@@ -288,6 +288,59 @@ static void draw_systray(double *max_width)
 	}
 }
 
+static void draw_widgets(double *max_width)
+{
+	char buf[256], icon[256], text[256];
+	int capacity, online;
+	int width;
+
+	/* get battery capacity */
+	memset(buf, 0, 256);
+	if (file_read("/sys/class/power_supply/BAT0/capacity", buf, 256) == false) {
+		LOGE("Cannot get battery capacity");
+		return;
+	}
+	capacity = atoi(buf);
+
+	/* check if charger connected */
+	memset(buf, 0, 256);
+	if (file_read("/sys/class/power_supply/AC/online", buf, 256) == false) {
+		LOGE("Cannot check if charger connected");
+		return;
+	}
+	online = atoi(buf);
+
+	/* select right icon */
+	memset(buf, '\0', 256);
+	if (online == 1)
+		snprintf(icon, 256, "%s%s.png", ICONS_DIR, "battery-charged");
+	else if (capacity < 25)
+		snprintf(icon, 256, "%s%s.png", ICONS_DIR, "battery-low");
+	else if (capacity > 75)
+		snprintf(icon, 256, "%s%s.png", ICONS_DIR, "battery-full");
+	else
+		snprintf(icon, 256, "%s%s.png", ICONS_DIR, "battery-mid");
+
+	/* display text */
+	memset(text, '\0', 256);
+	snprintf(text, 256, "  %d%%  | ", capacity);
+	width = panel_get_text_width(text, strlen(text));
+	*max_width -= width;
+	panel_draw_text(*max_width, width, text, strlen(text), NORMAL);
+
+	/* shift to display icon */
+	*max_width -= 24;
+
+	/* draw icon */
+	cairo_surface_t *image = cairo_image_surface_create_from_png(icon);
+	cairo_set_source_surface(panel->cr, image, *max_width, 3);
+	cairo_paint(panel->cr);
+	cairo_surface_destroy(image);
+
+	/* shift for next widgets  */
+	*max_width -= 5;
+}
+
 static void get_icon_path(xcb_window_t win, char *icon_path)
 {
 	xcb_get_property_cookie_t cookie;
@@ -432,11 +485,14 @@ void panel_draw(void)
 		cairo_rectangle(panel->cr, panel->x, panel->y, panel->width, panel->height);
 		cairo_fill(panel->cr);
 
-		/* draw clock and get max_width */
+		/* draw on right of the panel:
+		 *
+		 * .... | widgets | systray | clock |
+		 *
+		 */
 		draw_clock(client_data.max_width);
-
-		/* draw systray */
 		draw_systray(client_data.max_width);
+		draw_widgets(client_data.max_width);
 
 		/* draw clients */
 		monitor_foreach(draw_by_monitor, (void *)&client_data);

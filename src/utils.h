@@ -25,6 +25,9 @@
 
 #define LENGTH(x)       (sizeof(x) / sizeof(*x))
 
+#define DO_PRAGMA(x) _Pragma (#x)
+#define TODO(x) DO_PRAGMA(message ("TODO: " #x))
+
 /* file utils */
 bool file_access(const char *pathname);
 bool file_write(const char *pathname, const void *buf, size_t count);

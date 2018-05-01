@@ -24,6 +24,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <regex.h>
+
 #include "utils.h"
 #include "log.h"
 
@@ -76,6 +78,77 @@ bool file_write(const char *pathname, const void *buf, size_t count)
 	}
 
 	return true;
+}
+
+bool regex_match(const char *string,  const char *regex)
+{
+	regex_t preg;
+	int ret;
+	char error_msg[256];
+	memset(error_msg, '\0', 256);
+
+	/* compile regular expression */
+	ret = regcomp(&preg, regex, REG_NOSUB | REG_EXTENDED);
+	if (ret != 0) {
+		regerror(ret, &preg, error_msg, 256);
+		LOGE("%s\n", error_msg);
+		return false;
+	}
+
+	/* execute regular expression */
+	ret = regexec(&preg, string, 0, NULL, 0);
+	regfree(&preg);
+
+	/* check the return value */
+	if (ret == 0)
+		return true;
+	else if (ret == REG_NOMATCH)
+		return false;
+	else {
+		regerror(ret, &preg, error_msg, 256);
+		LOGE("%s\n", error_msg);
+		return false;
+	}
+}
+
+bool regex_extract(const char* string,  const char *regex,
+		   size_t nmatch, char pmatch[][256])
+{
+	regex_t preg;
+	int ret, i;
+	char error_msg[256];
+	regmatch_t matches[nmatch + 1];
+	regoff_t so, eo;
+	memset(error_msg, '\0', 256);
+
+	/* compile regular expression */
+	ret = regcomp(&preg, regex, REG_EXTENDED);
+	if (ret != 0) {
+		regerror(ret, &preg, error_msg, 256);
+		LOGE("%s\n", error_msg);
+		return false;
+	}
+
+	/* execute regular expression */
+	ret = regexec(&preg, string, nmatch + 1, matches, 0);
+	regfree(&preg);
+
+	/* check the return value */
+	if (ret == 0) {
+		for (i = 0; i < nmatch; i++) {
+			so = matches[i + 1].rm_so;
+			eo = matches[i + 1].rm_eo;
+			if (so != -1 && eo != -1)
+				memcpy(pmatch[i], string + so, eo - so);
+		}
+		return true;
+	} else if (ret == REG_NOMATCH)
+		return false;
+	else {
+		regerror(ret, &preg, error_msg, 256);
+		LOGE("%s\n", error_msg);
+		return false;
+	}
 }
 
 void get_process_name(uint32_t pid, char *name, size_t len)

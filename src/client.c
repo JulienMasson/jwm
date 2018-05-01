@@ -28,6 +28,7 @@
 #include "atom.h"
 #include "input.h"
 #include "panel.h"
+#include "utils.h"
 
 /* list of all client windows */
 struct list *clients_head;
@@ -364,6 +365,11 @@ void client_configure_request(xcb_configure_request_event_t *ev)
 			if (ev->value_mask & XCB_CONFIG_WINDOW_Y)
 				client->y = ev->y;
 		}
+
+		/* FIXME: why do I need to do this ? */
+		TODO("why do I need to do this ?");
+		window_toggle_borders(client->id, true);
+		window_toggle_borders(client->id, false);
 
 		/* check if client fit on screen */
 		if (!client->maxed)

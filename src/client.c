@@ -347,7 +347,6 @@ void client_map_request(xcb_map_request_event_t *ev)
 void client_configure_request(xcb_configure_request_event_t *ev)
 {
 	struct client *client;
-	struct winconf wc;
 
 	/* find the client. */
 	client = client_find_by_win(&ev->window);
@@ -369,16 +368,8 @@ void client_configure_request(xcb_configure_request_event_t *ev)
 		/* check if client fit on screen */
 		if (!client->maxed)
 			client_fit_on_screen(client, NULL);
-	} else {
-		/* unmapped window */
-		wc.x = ev->x;
-		wc.y = ev->y;
-		wc.width = ev->width;
-		wc.height = ev->height;
-		wc.stackmode = ev->stack_mode;
-
-		window_config(ev->window, ev->value_mask, &wc);
-	}
+	} else
+		window_config(ev);
 }
 
 void client_destroy(xcb_destroy_notify_event_t *ev)

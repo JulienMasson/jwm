@@ -231,45 +231,31 @@ bool window_get_pointer(const xcb_window_t *win, int16_t *x, int16_t *y)
 	return true;
 }
 
-void window_config(xcb_window_t win, uint16_t mask, const struct winconf *wc)
+void window_config(xcb_configure_request_event_t *ev)
 {
-	uint32_t values[7];
+	uint16_t mask = ev->value_mask;
+	uint32_t values[6];
 	int8_t i = -1;
 
-	if (mask & XCB_CONFIG_WINDOW_X) {
-		mask |= XCB_CONFIG_WINDOW_X;
-		i++;
-		values[i] = wc->x;
-	}
+#pragma push_macro("CHECK_CONFIG")
+#define CHECK_CONFIG(test, arg)				\
+	if (mask & test) {				\
+		i++;					\
+		values[i] = ev->arg;			\
+	}						\
 
-	if (mask & XCB_CONFIG_WINDOW_Y) {
-		mask |= XCB_CONFIG_WINDOW_Y;
-		i++;
-		values[i] = wc->y;
-	}
-
-	if (mask & XCB_CONFIG_WINDOW_WIDTH) {
-		mask |= XCB_CONFIG_WINDOW_WIDTH;
-		i++;
-		values[i] = wc->width;
-	}
-
-	if (mask & XCB_CONFIG_WINDOW_HEIGHT) {
-		mask |= XCB_CONFIG_WINDOW_HEIGHT;
-		i++;
-		values[i] = wc->height;
-	}
-
-	if (mask & XCB_CONFIG_WINDOW_STACK_MODE) {
-		mask |= XCB_CONFIG_WINDOW_STACK_MODE;
-		i++;
-		values[i] = wc->stackmode;
-	}
+	CHECK_CONFIG(XCB_CONFIG_WINDOW_X, x);
+	CHECK_CONFIG(XCB_CONFIG_WINDOW_Y, y);
+	CHECK_CONFIG(XCB_CONFIG_WINDOW_WIDTH, width);
+	CHECK_CONFIG(XCB_CONFIG_WINDOW_HEIGHT, height);
+	CHECK_CONFIG(XCB_CONFIG_WINDOW_STACK_MODE, stack_mode);
+	CHECK_CONFIG(XCB_CONFIG_WINDOW_BORDER_WIDTH, border_width);
+#pragma pop_macro("CHECK_CONFIG")
 
 	if (i == -1)
 		return;
 
-	xcb_configure_window(conn, win, mask, values);
+	xcb_configure_window(conn, ev->window, mask, values);
 	xcb_flush(conn);
 }
 

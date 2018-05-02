@@ -153,4 +153,6 @@ int main(int argc, char **argv)
 	/* exit from the main loop */
 	LOGW("Exit main loop");
 	event_exit();
+
+	return 0;
 }

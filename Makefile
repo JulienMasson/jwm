@@ -51,3 +51,6 @@ $(TARGET): $(OBJ)
 clean:
 	rm -rf $(OBJ_DIR)
 	rm -f $(TARGET) $(OBJ)
+
+# test suite
+include test/config.mk

@@ -133,3 +133,14 @@ Coding Style
 Use the script in tools folder:
 
     $ ./tools/check_coding_style.sh
+
+Test Suite with Check tools
+===========================
+
+Please install Check before running the Test Suite:
+
+    $ sudo apt-get install check
+
+Execute the Test Suite like this:
+
+    $ make test

@@ -1,3 +1,4 @@
 jwm
 *.o
 cscope.*
+run_test

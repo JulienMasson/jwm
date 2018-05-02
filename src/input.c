@@ -79,7 +79,7 @@ static xcb_keysym_t xcb_get_keysym(xcb_keycode_t keycode)
 bool input_init(void)
 {
 	xcb_keycode_t *keycode;
-	int i, k;
+	uint8_t i, k;
 
 	/* release any key combination on root windows */
 	xcb_ungrab_key(conn, XCB_GRAB_ANY, screen->root, XCB_MOD_MASK_ANY);

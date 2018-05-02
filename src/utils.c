@@ -115,7 +115,7 @@ bool regex_extract(const char* string,  const char *regex,
 		   size_t nmatch, char pmatch[][256])
 {
 	regex_t preg;
-	int ret, i;
+	uint8_t ret, i;
 	char error_msg[256];
 	regmatch_t matches[nmatch + 1];
 	regoff_t so, eo;

@@ -145,7 +145,7 @@ static struct monitor *monitor_get_first_from_head(void)
 	return monitor;
 }
 
-static void monitor_check_client(struct client *cl, void *data)
+static void monitor_check_client(struct client *cl, void __attribute__((__unused__)) *data)
 {
 	struct monitor *mon;
 	struct list *index_monitor;

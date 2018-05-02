@@ -180,7 +180,7 @@ void client_check_monitor(struct client *client)
 		client->monitor = current_mon;
 }
 
-void client_fit_on_screen(struct client *client, void *data)
+void client_fit_on_screen(struct client *client, void __attribute__((__unused__)) *data)
 {
 	int16_t mon_x, mon_y;
 	uint16_t mon_width, mon_height;

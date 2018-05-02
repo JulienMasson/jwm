@@ -90,7 +90,7 @@ void max_half(const Arg *arg)
 	window_center_pointer(focus->id, focus->width, focus->height);
 }
 
-void delete_window(const Arg *arg)
+void delete_window(const Arg __attribute__((__unused__)) *arg)
 {
 	struct client *focus = client_get_focus();
 
@@ -155,7 +155,7 @@ void maximize(const Arg *arg)
 	window_center_pointer(focus->id, focus->width, focus->height);
 }
 
-void hide(const Arg *arg)
+void hide(const Arg __attribute__((__unused__)) *arg)
 {
 	struct client *focus = client_get_focus();
 
@@ -167,7 +167,7 @@ void hide(const Arg *arg)
 	panel_draw();
 }
 
-static void raise_client(struct client *client, void *data)
+static void raise_client(struct client *client, void __attribute__((__unused__)) *data)
 {
 	if (client->iconic == true) {
 		client->iconic = false;
@@ -175,7 +175,7 @@ static void raise_client(struct client *client, void *data)
 	}
 }
 
-void raise_all(const Arg *arg)
+void raise_all(const Arg __attribute__((__unused__)) *arg)
 {
 	client_foreach(raise_client, NULL);
 }
@@ -192,7 +192,7 @@ void start(const Arg *arg)
 	execvp((char *)arg->com[0], (char **)arg->com);
 }
 
-void jwm_exit(const Arg *arg)
+void jwm_exit(const Arg __attribute__((__unused__)) *arg)
 {
 	exit(EXIT_SUCCESS);
 }
@@ -327,7 +327,7 @@ void mouse_motion(const Arg *arg)
 	panel_draw();
 }
 
-void reload_conf(const Arg *arg)
+void reload_conf(const Arg __attribute__((__unused__)) *arg)
 {
 	if (conf_read() == -1)
 		LOGE("Fail to read conf");
@@ -337,7 +337,7 @@ void reload_conf(const Arg *arg)
 	}
 }
 
-void panel_toggle(const Arg *arg)
+void panel_toggle(const Arg __attribute__((__unused__)) *arg)
 {
 	struct panel *panel = panel_get();
 

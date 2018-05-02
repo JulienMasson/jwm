@@ -40,7 +40,7 @@ static void parse_line(char *line, ssize_t nread)
 	memset(value, '\0', nread);
 
 	/* key and value successfully matched and assigned */
-	if (sscanf(line, "%[^=]=%s", &key, &value) == 2)
+	if (sscanf(line, "%[^=]=%s", key, value) == 2) {
 		if (strncmp(key, "log_level", nread) == 0)
 			global_conf.log_level = atoi(value);
 		else if (strncmp(key, "log_file", nread) == 0) {
@@ -52,6 +52,7 @@ static void parse_line(char *line, ssize_t nread)
 			snprintf(wallpaper, 256, "%s", value);
 			global_conf.wallpaper = wallpaper;
 		}
+	}
 }
 
 int conf_read(void)

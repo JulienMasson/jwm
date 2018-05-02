@@ -359,13 +359,14 @@ static void get_icon_path(xcb_window_t win, char *icon_path)
 		snprintf(icon_path, 256, "%sdefault.png", ICONS_DIR);
 }
 
-static void get_window_name(xcb_window_t win, char *name, int len)
+static void get_window_name(xcb_window_t win, char *name, uint32_t len)
 {
 	xcb_get_property_cookie_t cookie;
 	xcb_ewmh_get_utf8_strings_reply_t data;
 
 	cookie = xcb_ewmh_get_wm_name(ewmh, win);
-	if (xcb_ewmh_get_wm_name_reply(ewmh, cookie, &data, NULL))
+	if (xcb_ewmh_get_wm_name_reply(ewmh, cookie, &data, NULL) &&
+	    data.strings_len < len)
 		strncpy(name, data.strings, data.strings_len);
 }
 

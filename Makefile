@@ -11,7 +11,7 @@ ICONS_DIR := $(shell pwd)/res/icons/
 ICONS_FLAGS := -D ICONS_DIR='"${ICONS_DIR}"'
 
 # flags
-CFLAGS := -Wunused -O0 -g ${WALLPAPER_FLAGS} ${ICONS_FLAGS}
+CFLAGS := -Werror -Wall -Wextra -O0 -g ${WALLPAPER_FLAGS} ${ICONS_FLAGS}
 LDFLAGS :=
 
 # libs and include

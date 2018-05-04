@@ -21,26 +21,26 @@
 #include "conf.h"
 
 
-CORE_TEST_START(conf_read_fail)
+START(conf_read_fail)
 {
     fail_unless(conf_read() == -1, "No config set, should failed");
 }
-CORE_TEST_END(conf_read_fail);
+END(conf_read_fail);
 
 
-CORE_TEST_START(conf_read_fail2)
+START(conf_read_fail2)
 {
     char conf_path[] = "asdasdasd";
     conf_init(conf_path);
     fail_unless(conf_read() == -1, "No config set, should failed");
 }
-CORE_TEST_END(conf_read_fail2);
+END(conf_read_fail2);
 
 
-CORE_TEST_START(conf_read_pass)
+START(conf_read_pass)
 {
     char conf_path[] = ROOT_DIR"/res/.jwmrc";
     conf_init(conf_path);
     fail_unless(conf_read() == 0, "Cannot read the config");
 }
-CORE_TEST_END(conf_read_pass);
+END(conf_read_pass);

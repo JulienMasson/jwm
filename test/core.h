@@ -22,10 +22,10 @@
 
 #include <check.h>
 
-#define CORE_TEST_START(test) \
+#define START(test) \
 	START_TEST(test) \
 
-#define CORE_TEST_END(test) \
+#define END(test) \
 	END_TEST \
 	static void __attribute__((constructor(210))) init_test_##test(void) \
 	{ \

@@ -17,19 +17,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "core.h"
-#include "utils.h"
+#ifndef CORE_H
+#define CORE_H
 
+#include <check.h>
 
-CORE_TEST_START(file_access_pass)
-{
-    fail_unless(file_access("/etc/passwd") == true, "Failed to access /etc/passwd");
-}
-CORE_TEST_END(file_access_pass);
+#define CORE_TEST_START(name) \
+	START_TEST(name) \
 
+#define CORE_TEST_END(name) \
+	END_TEST \
+	static void __attribute__((constructor(210))) init_test_##name(void) \
+	{ \
+		register_test(__FILE__, name);	\
+	} \
 
-CORE_TEST_START(file_access_fail)
-{
-    fail_unless(file_access("/etc/tatatat") == false, "Shouldn't access to /etc/tatatat");
-}
-CORE_TEST_END(file_access_fail)
+void register_test(char *tcase, TFun fn);
+
+#endif

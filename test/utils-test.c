@@ -32,4 +32,4 @@ CORE_TEST_START(file_access_fail)
 {
     fail_unless(file_access("/etc/tatatat") == false, "Shouldn't access to /etc/tatatat");
 }
-CORE_TEST_END(file_access_fail)
+CORE_TEST_END(file_access_fail);

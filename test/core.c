@@ -21,11 +21,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <libgen.h>
+#include <unistd.h>
 
 #include "core.h"
 
+#define FAIL(msg) "\x1b[31m"#msg"\x1b[0m"
+#define PASS(msg) "\x1b[32m"#msg"\x1b[0m"
+
 struct test_unit {
 	TFun test;
+	char *name;
 	struct test_unit *next;
 };
 
@@ -95,14 +100,21 @@ static void add_test_case(struct test_case *tcase)
 	}
 }
 
-static struct test_unit* create_test_unit(TFun test)
+static struct test_unit* create_test_unit(TFun test, char *test_name)
 {
 	struct test_unit *tunit;
+	char *name;
+
 	tunit = malloc(sizeof(struct test_case));
 	if (tunit == NULL)
 		return NULL;
 
+	name = malloc(sizeof(char) * 256);
+	memset(name, '\0', 256);
+	memcpy(name, test_name, 256);
+
 	tunit->test = test;
+	tunit->name = name;
 	tunit->next = NULL;
 
 	return tunit;
@@ -118,7 +130,35 @@ static void add_test_unit(struct test_case *tcase, struct test_unit *tunit)
 	}
 }
 
-void register_test(char *tcase_name, TFun test)
+static char** get_all_test_name(void)
+{
+	struct test_case *tcase;
+	struct test_unit *tunit;
+	static char** test_names = NULL;
+	int count = 0;
+	char *name;
+
+	if (test_names)
+		return test_names;
+
+	for (tcase = tcases; tcase != NULL; tcase = tcase->next) {
+
+		for (tunit = tcase->tests; tunit != NULL; tunit = tunit->next) {
+
+			name = malloc(sizeof(char) * 256);
+			memset(name, '\0', 256);
+			memcpy(name, tunit->name, 256);
+
+			test_names = realloc(test_names, sizeof(char) * 256);
+			test_names[count] = name;
+			count++;
+		}
+	}
+
+	return test_names;
+}
+
+void register_test(char *tcase_name, TFun test, char *test_name)
 {
 	struct test_case *tcase;
 	struct test_unit *tunit;
@@ -135,7 +175,7 @@ void register_test(char *tcase_name, TFun test)
 		}
 
 		/* create/add test unit to the test case */
-		tunit = create_test_unit(test);
+		tunit = create_test_unit(test, test_name);
 		if (tunit == NULL)
 			return;
 		add_test_unit(tcase, tunit);
@@ -156,17 +196,103 @@ static void init_test(Suite *suite)
 	}
 }
 
+static bool parse_results(SRunner *sr)
+{
+	TestResult** results;
+	char **test_names;
+	enum test_result result;
+	int i, ntests;
+	int pass = 0, failure = 0, error = 0;
+
+	/* get all tests results
+	 * we make the assumption that all the results are
+	 * classified in the same order that test_names
+	 */
+	results = srunner_results(sr);
+	ntests = srunner_ntests_run(sr);
+	test_names = get_all_test_name();
+
+	/* print each test result */
+	for (i = 0; i < ntests; i++) {
+
+		fprintf(stdout, "%-10s:\t", tr_tcname(results[i]));
+		fprintf(stdout, "%-40s\t", test_names[i]);
+
+		result = tr_rtype(results[i]);
+		switch (result) {
+		case CK_TEST_RESULT_INVALID:
+			fprintf(stdout, FAIL(TEST RESULT INVALID));
+			break;
+		case CK_PASS:
+			pass++;
+			fprintf(stdout, PASS(PASS));
+			break;
+		case CK_FAILURE:
+			failure++;
+			fprintf(stdout, FAIL(FAILURE));
+			break;
+		case CK_ERROR:
+			error++;
+			fprintf(stdout, FAIL(ERROR));
+			break;
+		}
+
+		if (result != CK_PASS)
+			fprintf(stdout, "\n%s:%d: %s\n", tr_lfile(results[i]), tr_lno(results[i]), tr_msg(results[i]));
+
+		fprintf(stdout, "\n");
+	}
+
+	/* print summary */
+	fprintf(stdout, "\n%d%%:  Pass:%d  Failures:%d  Errors:%d", (pass * 100) / (pass + failure + error),
+		pass, failure, error);
+
+	return (failure | error) == 0 ? true : false;
+}
+
+static void run_test(SRunner *sr)
+{
+	int stdout_saved = dup(STDOUT_FILENO);
+	int stderr_saved = dup(STDERR_FILENO);
+
+	/* silent stdio */
+	freopen("/dev/null", "a", stdout);
+	setbuf(stdout, NULL);
+	freopen("/dev/null", "a", stderr);
+	setbuf(stderr, NULL);
+
+	/* run all test */
+	srunner_run_all(sr, CK_SILENT);
+
+	/* restore stdio */
+	fclose(stdout);
+	stdout = fdopen(stdout_saved, "w");
+	setbuf(stdout, NULL);
+	fflush(stderr);
+	fclose(stderr);
+	stderr = fdopen(stderr_saved, "w");
+}
+
 int main(void)
 {
-	Suite *suite = suite_create("Test");
-	SRunner *sr = srunner_create(suite);
-	int nf;
+	Suite *suite;
+	SRunner *sr;
+	bool pass;
 
+	/* create and init test suite */
+	suite = suite_create("Test");
+	sr = srunner_create(suite);
 	init_test(suite);
 
-	srunner_run_all(sr, CK_ENV);
-	nf = srunner_ntests_failed(sr);
+	/* run test suite and parse result */
+	fprintf(stdout, "\n=======================================================================\n");
+	fprintf(stdout, "======================== Start the Test Suite =========================\n\n");
+	run_test(sr);
+	pass = parse_results(sr);
+	fprintf(stdout, "\n=======================================================================\n\n");
+
+	/* free ressources */
 	srunner_free(sr);
 
-	return nf == 0 ? 0 : 1;
+	return pass == true ? 0 : 1;
 }

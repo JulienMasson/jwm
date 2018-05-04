@@ -26,8 +26,5 @@ $(TEST_DIR)/%.o: $(TEST_DIR)/%.c
 test: $(TEST_OBJ) $(DEPS_OBJ)
 	@$(CC) $(CFLAGS_TEST) -o $(TEST) $^ $(LDFLAGS_TEST)
 	@rm -f $^
-	@echo "\n=============================================="
-	@echo "============ Start the Test Suite ============\n"
-	@CK_VERBOSITY=normal ./$(TEST)
-	@echo "\n=============================================="
+	@./$(TEST)
 	@rm -f $(TEST)

@@ -22,16 +22,16 @@
 
 #include <check.h>
 
-#define CORE_TEST_START(name) \
-	START_TEST(name) \
+#define CORE_TEST_START(test) \
+	START_TEST(test) \
 
-#define CORE_TEST_END(name) \
+#define CORE_TEST_END(test) \
 	END_TEST \
-	static void __attribute__((constructor(210))) init_test_##name(void) \
+	static void __attribute__((constructor(210))) init_test_##test(void) \
 	{ \
-		register_test(__FILE__, name);	\
+		register_test(__FILE__, test, #test); \
 	} \
 
-void register_test(char *tcase, TFun fn);
+void register_test(char *tcase, TFun fn, char *test_name);
 
 #endif

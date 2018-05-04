@@ -207,6 +207,7 @@ static bool parse_results(SRunner *sr)
 	enum test_result result;
 	int i, ntests;
 	int pass = 0, failure = 0, error = 0;
+	char tcase_name[256];
 
 	/* get all tests results
 	 * we make the assumption that all the results are
@@ -217,11 +218,16 @@ static bool parse_results(SRunner *sr)
 	test_names = get_all_test_name();
 
 	/* print each test result */
+	fprintf(stdout, "%-15s%-50s%s\n\n", "TEST CASE", "TEST UNIT", "RESULT");
 	for (i = 0; i < ntests; i++) {
 
-		fprintf(stdout, "%-10s:\t", tr_tcname(results[i]));
-		fprintf(stdout, "%-40s\t", test_names[i]);
+		/* print test case and test unit name */
+		memset(tcase_name, '\0', 256);
+		snprintf(tcase_name, 256, "%s:", tr_tcname(results[i]));
+		fprintf(stdout, "%-15s", tcase_name);
+		fprintf(stdout, "%-50s", test_names[i]);
 
+		/* print result of the test */
 		result = tr_rtype(results[i]);
 		switch (result) {
 		case CK_TEST_RESULT_INVALID:
@@ -241,6 +247,7 @@ static bool parse_results(SRunner *sr)
 			break;
 		}
 
+		/* if test failed print files, lines and error message */
 		if (result != CK_PASS)
 			fprintf(stdout, "\n%s:%d: %s\n", tr_lfile(results[i]), tr_lno(results[i]), tr_msg(results[i]));
 
@@ -289,11 +296,11 @@ int main(void)
 	init_test(suite);
 
 	/* run test suite and parse result */
-	fprintf(stdout, "\n=======================================================================\n");
-	fprintf(stdout, "======================== Start the Test Suite =========================\n\n");
+	fprintf(stdout, "\n========================================================================\n");
+	fprintf(stdout, "========================= Start the Test Suite =========================\n\n");
 	run_test(sr);
 	pass = parse_results(sr);
-	fprintf(stdout, "\n=======================================================================\n\n");
+	fprintf(stdout, "\n========================================================================\n\n");
 
 	/* free ressources */
 	srunner_free(sr);

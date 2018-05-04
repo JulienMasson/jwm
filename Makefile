@@ -1,13 +1,14 @@
 # paths
 OBJ_DIR := obj
 SRC_DIR := src
+ROOT_DIR := $(shell pwd)
 
 # wallpaper
-WALLPAPER_PATH := $(shell pwd)/res/wallpaper.png
+WALLPAPER_PATH := $(ROOT_DIR)/res/wallpaper.png
 WALLPAPER_FLAGS := -D DEFAULT_WALLPAPER='"${WALLPAPER_PATH}"'
 
 # icons DIR
-ICONS_DIR := $(shell pwd)/res/icons/
+ICONS_DIR := $(ROOT_DIR)/res/icons/
 ICONS_FLAGS := -D ICONS_DIR='"${ICONS_DIR}"'
 
 # flags

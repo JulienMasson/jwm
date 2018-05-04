@@ -39,7 +39,7 @@ CORE_TEST_END(conf_read_fail2);
 
 CORE_TEST_START(conf_read_pass)
 {
-    char conf_path[] = "/home/julienm/bin/jwm-repo/res/.jwmrc";
+    char conf_path[] = ROOT_DIR"/res/.jwmrc";
     conf_init(conf_path);
     fail_unless(conf_read() == 0, "Cannot read the config");
 }

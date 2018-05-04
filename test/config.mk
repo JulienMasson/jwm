@@ -1,9 +1,15 @@
 # paths
 TEST_DIR := test
 
-# flags
-CFLAGS_TEST := $(CFLAGS) -I${SRC_DIR} $(shell pkg-config --cflags check)
-LDFLAGS_TEST := $(LDFLAGS) $(shell pkg-config --libs check)
+# cflags
+CFLAGS_TEST := $(CFLAGS)
+CFLAGS_TEST +=  $(shell pkg-config --cflags check)
+CFLAGS_TEST += -I${SRC_DIR}
+CFLAGS_TEST += -D ROOT_DIR='"${ROOT_DIR}"'
+
+# ldflags
+LDFLAGS_TEST := $(LDFLAGS)
+LDFLAGS_TEST +=  $(shell pkg-config --libs check)
 
 # source and objects needed to generate test suite
 TEST_SRC := $(wildcard $(TEST_DIR)/*.c)

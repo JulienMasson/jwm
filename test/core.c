@@ -92,11 +92,13 @@ static struct test_case* create_test_case(char *tcase_name)
 
 static void add_test_case(struct test_case *tcase)
 {
+	struct test_case *last;
+
 	if (tcases == NULL)
 		tcases = tcase;
 	else {
-		tcase->next = tcases;
-		tcases = tcase;
+		for (last = tcases; last->next != NULL; last = last->next);
+		last->next = tcase;
 	}
 }
 
@@ -122,11 +124,13 @@ static struct test_unit* create_test_unit(TFun test, char *test_name)
 
 static void add_test_unit(struct test_case *tcase, struct test_unit *tunit)
 {
+	struct test_unit *last;
+
 	if (tcase->tests == NULL)
 		tcase->tests = tunit;
 	else {
-		tunit->next = tcase->tests;
-		tcase->tests = tunit;
+		for (last = tcase->tests; last->next != NULL; last = last->next);
+		last->next = tunit;
 	}
 }
 

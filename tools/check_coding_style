@@ -2,6 +2,13 @@
 
 STATUS=0
 
+# check clang-format version
+CLANG_VERSION=$(clang-format --version)
+if ! [[ "$CLANG_VERSION" =~ "clang-format version 5.0.0" ]]; then
+    echo "Please use clang-format version 5.0.0"
+    exit 1
+fi
+
 # go to root directory
 pushd "$(dirname "$0")" > /dev/null
 ROOT=$(git rev-parse --show-toplevel)
@@ -9,7 +16,6 @@ popd > /dev/null
 pushd "${ROOT}" > /dev/null
 
 # check result of clang-format
-clang-format --version
 for file in $(find . -name "*.[ch]"); do
     RESULT=$(clang-format -style=file -output-replacements-xml "$file" | grep -E "^<replacement ")
     if [[ -n "$RESULT" ]]; then

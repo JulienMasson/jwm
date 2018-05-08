@@ -23,10 +23,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define LENGTH(x)       (sizeof(x) / sizeof(*x))
+#define LENGTH(x) (sizeof(x) / sizeof(*x))
 
-#define DO_PRAGMA(x) _Pragma (#x)
-#define TODO(x) DO_PRAGMA(message ("TODO: " #x))
+#define DO_PRAGMA(x) _Pragma(#x)
+#define TODO(x) DO_PRAGMA(message("TODO: " #x))
 
 /* file utils */
 bool file_access(const char *pathname);
@@ -34,9 +34,9 @@ bool file_write(const char *pathname, const void *buf, size_t count);
 bool file_read(const char *pathname, void *buf, size_t count);
 
 /* pattern matching */
-bool regex_match(const char *string,  const char *regex);
-bool regex_extract(const char* string,  const char *regex,
-		   size_t nmatch, char pmatch[][256]);
+bool regex_match(const char *string, const char *regex);
+bool regex_extract(const char *string, const char *regex, size_t nmatch,
+		   char pmatch[][256]);
 
 /* system utils */
 void get_process_name(uint32_t pid, char *name, size_t len);

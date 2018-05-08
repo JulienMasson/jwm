@@ -67,7 +67,8 @@ static void monitor_remove(struct monitor *mon)
 	list_remove(&monitors_head, mon->index);
 }
 
-void monitor_foreach(void (*func)(struct monitor *monitor, void *data), void *data)
+void monitor_foreach(void (*func)(struct monitor *monitor, void *data),
+		     void *data)
 {
 	struct monitor *monitor;
 	struct list *index;
@@ -82,8 +83,7 @@ void monitor_foreach(void (*func)(struct monitor *monitor, void *data), void *da
 }
 
 static struct monitor *monitor_find_clones(xcb_randr_output_t id,
-					   const int16_t x,
-					   const int16_t y)
+					   const int16_t x, const int16_t y)
 {
 	struct monitor *clonemon;
 	struct list *index;
@@ -122,8 +122,8 @@ struct monitor *monitor_find_by_coord(const int16_t x, const int16_t y)
 	for (index = monitors_head; index != NULL; index = index->next) {
 		mon = index->data;
 
-		if (x >= mon->x && x <= mon->x + mon->width && y >= mon->y && y
-		    <= mon->y + mon->height)
+		if (x >= mon->x && x <= mon->x + mon->width && y >= mon->y
+		    && y <= mon->y + mon->height)
 			return mon;
 	}
 
@@ -145,7 +145,8 @@ static struct monitor *monitor_get_first_from_head(void)
 	return monitor;
 }
 
-static void monitor_check_client(struct client *cl, void __attribute__((__unused__)) *data)
+static void monitor_check_client(struct client *cl,
+				 void __attribute__((__unused__)) * data)
 {
 	struct monitor *mon;
 	struct list *index_monitor;
@@ -154,7 +155,8 @@ static void monitor_check_client(struct client *cl, void __attribute__((__unused
 	bool test = false;
 
 	/* loop through monitors */
-	for (index_monitor = monitors_head; index_monitor != NULL; index_monitor = index_monitor->next) {
+	for (index_monitor = monitors_head; index_monitor != NULL;
+	     index_monitor = index_monitor->next) {
 		mon = index_monitor->data;
 
 		if (cl->monitor == mon)
@@ -170,7 +172,9 @@ static void monitor_check_client(struct client *cl, void __attribute__((__unused
 	test = false;
 }
 
-static void monitor_handle_output(xcb_randr_output_t id, xcb_randr_get_output_info_reply_t *output, xcb_timestamp_t timestamp)
+static void monitor_handle_output(xcb_randr_output_t id,
+				  xcb_randr_get_output_info_reply_t *output,
+				  xcb_timestamp_t timestamp)
 {
 	xcb_randr_get_crtc_info_cookie_t cookie;
 	xcb_randr_get_crtc_info_reply_t *crtc = NULL;
@@ -179,7 +183,8 @@ static void monitor_handle_output(xcb_randr_output_t id, xcb_randr_get_output_in
 	char *name;
 
 	/* check crtc and physical output connected */
-	if ((output->crtc != XCB_NONE) && (output->connection == XCB_RANDR_CONNECTION_CONNECTED)) {
+	if ((output->crtc != XCB_NONE)
+	    && (output->connection == XCB_RANDR_CONNECTION_CONNECTED)) {
 
 		/* get crtc info */
 		cookie = xcb_randr_get_crtc_info(conn, output->crtc, timestamp);
@@ -196,28 +201,33 @@ static void monitor_handle_output(xcb_randr_output_t id, xcb_randr_get_output_in
 		mon = monitor_find_by_id(id);
 		if (mon == NULL) {
 			/* get name of monitor */
-			name_len = MIN(16, xcb_randr_get_output_info_name_length(output));
+			name_len = MIN(
+				16,
+				xcb_randr_get_output_info_name_length(output));
 			name = malloc(name_len + 1);
-			snprintf(name, name_len + 1, "%.*s", name_len, xcb_randr_get_output_info_name(output));
+			snprintf(name, name_len + 1, "%.*s", name_len,
+				 xcb_randr_get_output_info_name(output));
 
 			/* add to the list */
-			monitor_add(id, name, crtc->x, crtc->y, crtc->width, crtc->height);
+			monitor_add(id, name, crtc->x, crtc->y, crtc->width,
+				    crtc->height);
 		} else
 			/* We know this monitor. Update information.
 			 * If it's smaller than before, rearrange windows. */
-			if (crtc->x != mon->x || crtc->y != mon->y ||
-			    crtc->width != mon->width || crtc->height != mon->height) {
-				if (crtc->x != mon->x)
-					mon->x = crtc->x;
-				if (crtc->y != mon->y)
-					mon->y = crtc->y;
-				if (crtc->width != mon->width)
-					mon->width = crtc->width;
-				if (crtc->height != mon->height)
-					mon->height = crtc->height;
+			if (crtc->x != mon->x || crtc->y != mon->y
+			    || crtc->width != mon->width
+			    || crtc->height != mon->height) {
+			if (crtc->x != mon->x)
+				mon->x = crtc->x;
+			if (crtc->y != mon->y)
+				mon->y = crtc->y;
+			if (crtc->width != mon->width)
+				mon->width = crtc->width;
+			if (crtc->height != mon->height)
+				mon->height = crtc->height;
 
-				client_monitor_updated(mon);
-			}
+			client_monitor_updated(mon);
+		}
 		free(crtc);
 	} else {
 		/* move clients from this monitor and remove it */
@@ -239,38 +249,44 @@ void monitor_set_wallpaper(void)
 	float scale_width, scale_height;
 
 	/* check if we can access wallpaper path */
-	if ((global_conf.wallpaper == NULL) || (file_access(global_conf.wallpaper) == false))
+	if ((global_conf.wallpaper == NULL)
+	    || (file_access(global_conf.wallpaper) == false))
 		return;
 
 	/* create a pixmap  */
 	xcb_pixmap_t p = xcb_generate_id(conn);
 	uint16_t width = screen->width_in_pixels;
 	uint16_t height = screen->height_in_pixels;
-	xcb_create_pixmap(conn, screen->root_depth, p, screen->root, width, height);
+	xcb_create_pixmap(conn, screen->root_depth, p, screen->root, width,
+			  height);
 
 	/* create surface from png file */
-	cairo_surface_t *src = cairo_image_surface_create_from_png(global_conf.wallpaper);
+	cairo_surface_t *src =
+		cairo_image_surface_create_from_png(global_conf.wallpaper);
 	int image_height = cairo_image_surface_get_height(src);
 	int image_width = cairo_image_surface_get_width(src);
 
 	/* loop through monitors and paint the scaled image */
-	cairo_surface_t *dest = cairo_xcb_surface_create(conn, p, visual, width, height);
+	cairo_surface_t *dest =
+		cairo_xcb_surface_create(conn, p, visual, width, height);
 	cairo_t *cr = cairo_create(dest);
 	for (index = monitors_head; index != NULL; index = index->next) {
 		mon = index->data;
 
-		scale_width = ((float) mon->width) / ((float) image_width);
-		scale_height = ((float) mon->height) / ((float) image_height);
+		scale_width = ((float)mon->width) / ((float)image_width);
+		scale_height = ((float)mon->height) / ((float)image_height);
 
 		cairo_scale(cr, scale_width, scale_height);
-		cairo_set_source_surface(cr, src, mon->x / scale_width, mon->y / scale_height);
+		cairo_set_source_surface(cr, src, mon->x / scale_width,
+					 mon->y / scale_height);
 		cairo_paint(cr);
 		cairo_scale(cr, 1 / scale_width, 1 / scale_height);
 	}
 	cairo_surface_flush(dest);
 
 	/* change root window background pixmap */
-	xcb_change_window_attributes(conn, screen->root, XCB_CW_BACK_PIXMAP, &p);
+	xcb_change_window_attributes(conn, screen->root, XCB_CW_BACK_PIXMAP,
+				     &p);
 	xcb_clear_area(conn, 0, screen->root, 0, 0, 0, 0);
 	xcb_flush(conn);
 
@@ -304,7 +320,8 @@ static void monitor_update(void)
 
 	/* loop though all outputs */
 	for (i = 0; i < len; i++) {
-		ocookie = xcb_randr_get_output_info(conn, outputs[i], timestamp);
+		ocookie =
+			xcb_randr_get_output_info(conn, outputs[i], timestamp);
 		output = xcb_randr_get_output_info_reply(conn, ocookie, NULL);
 		if (output != NULL) {
 			monitor_handle_output(outputs[i], output, timestamp);
@@ -325,7 +342,8 @@ static void monitor_update(void)
 
 void monitor_init(void)
 {
-	const xcb_query_extension_reply_t *extension = xcb_get_extension_data(conn, &xcb_randr_id);
+	const xcb_query_extension_reply_t *extension =
+		xcb_get_extension_data(conn, &xcb_randr_id);
 
 	if (!extension->present)
 		randrbase = -1;
@@ -335,9 +353,9 @@ void monitor_init(void)
 	randrbase = extension->first_event;
 	xcb_randr_select_input(conn, screen->root,
 			       XCB_RANDR_NOTIFY_MASK_SCREEN_CHANGE
-			       | XCB_RANDR_NOTIFY_MASK_OUTPUT_CHANGE
-			       | XCB_RANDR_NOTIFY_MASK_CRTC_CHANGE
-			       | XCB_RANDR_NOTIFY_MASK_OUTPUT_PROPERTY);
+				       | XCB_RANDR_NOTIFY_MASK_OUTPUT_CHANGE
+				       | XCB_RANDR_NOTIFY_MASK_CRTC_CHANGE
+				       | XCB_RANDR_NOTIFY_MASK_OUTPUT_PROPERTY);
 }
 
 void monitor_event(uint8_t response_type)

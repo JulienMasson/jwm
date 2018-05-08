@@ -34,9 +34,9 @@
 #include <xcb/xcb_aux.h>
 
 /* global vars */
-xcb_connection_t *conn;                 /* Connection to X server. */
-xcb_screen_t *screen;                   /* Our current screen. */
-xcb_visualtype_t *visual;               /* Visual type */
+xcb_connection_t *conn;   /* Connection to X server. */
+xcb_screen_t *screen;     /* Our current screen. */
+xcb_visualtype_t *visual; /* Visual type */
 
 void cleanup(void)
 {
@@ -87,7 +87,8 @@ void usage(void)
 	       "\n"
 	       "OPTIONS\n"
 	       "       -c, --conf\n"
-	       "              Specifies which configuration file to use instead of the default.\n"
+	       "              Specifies which configuration file to use "
+	       "instead of the default.\n"
 	       "\n"
 	       "       -h, --help\n"
 	       "              Display this help and exits.\n"
@@ -98,14 +99,13 @@ int main(int argc, char **argv)
 {
 	int scrno, ch;
 	char *conf_file = NULL;
-	struct option long_options[] = {
-		{"conf", required_argument, NULL, 'c'},
-		{"help", no_argument, NULL, 'h'},
-		{NULL, 0, NULL, 0}
-	};
+	struct option long_options[] = {{"conf", required_argument, NULL, 'c'},
+					{"help", no_argument, NULL, 'h'},
+					{NULL, 0, NULL, 0}};
 
 	/* parse args */
-	while ((ch = getopt_long(argc, argv, "c:h:", long_options, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "c:h:", long_options, NULL))
+	       != -1) {
 		switch (ch) {
 		case 'c':
 			conf_file = optarg;
@@ -146,8 +146,8 @@ int main(int argc, char **argv)
 
 	/* init components and start main loop */
 	if (init(scrno)) {
-	    LOGI("Start main loop");
-	    event_loop();
+		LOGI("Start main loop");
+		event_loop();
 	}
 
 	/* exit from the main loop */

@@ -25,8 +25,8 @@
 
 #include "core.h"
 
-#define FAIL(msg) "\x1b[31m"#msg"\x1b[0m"
-#define PASS(msg) "\x1b[32m"#msg"\x1b[0m"
+#define FAIL(msg) "\x1b[31m" #msg "\x1b[0m"
+#define PASS(msg) "\x1b[32m" #msg "\x1b[0m"
 
 struct test_unit {
 	TFun test;
@@ -55,7 +55,7 @@ static bool found_test(TFun test)
 	return false;
 }
 
-static struct test_case* get_test_case(char *name)
+static struct test_case *get_test_case(char *name)
 {
 	struct test_case *tcase;
 
@@ -65,7 +65,7 @@ static struct test_case* get_test_case(char *name)
 	return NULL;
 }
 
-static struct test_case* create_test_case(char *tcase_name)
+static struct test_case *create_test_case(char *tcase_name)
 {
 	struct test_case *tcase;
 	char *name, *extension;
@@ -97,12 +97,13 @@ static void add_test_case(struct test_case *tcase)
 	if (tcases == NULL)
 		tcases = tcase;
 	else {
-		for (last = tcases; last->next != NULL; last = last->next);
+		for (last = tcases; last->next != NULL; last = last->next)
+			;
 		last->next = tcase;
 	}
 }
 
-static struct test_unit* create_test_unit(TFun test, char *test_name)
+static struct test_unit *create_test_unit(TFun test, char *test_name)
 {
 	struct test_unit *tunit;
 	char *name;
@@ -129,16 +130,17 @@ static void add_test_unit(struct test_case *tcase, struct test_unit *tunit)
 	if (tcase->tests == NULL)
 		tcase->tests = tunit;
 	else {
-		for (last = tcase->tests; last->next != NULL; last = last->next);
+		for (last = tcase->tests; last->next != NULL; last = last->next)
+			;
 		last->next = tunit;
 	}
 }
 
-static char** get_all_test_name(void)
+static char **get_all_test_name(void)
 {
 	struct test_case *tcase;
 	struct test_unit *tunit;
-	static char** test_names = NULL;
+	static char **test_names = NULL;
 	int count = 0;
 	char *name;
 
@@ -202,7 +204,7 @@ static void init_test(Suite *suite)
 
 static bool parse_results(SRunner *sr)
 {
-	TestResult** results;
+	TestResult **results;
 	char **test_names;
 	enum test_result result;
 	int i, ntests;
@@ -249,14 +251,15 @@ static bool parse_results(SRunner *sr)
 
 		/* if test failed print files, lines and error message */
 		if (result != CK_PASS)
-			fprintf(stdout, "\n%s:%d: %s\n", tr_lfile(results[i]), tr_lno(results[i]), tr_msg(results[i]));
+			fprintf(stdout, "\n%s:%d: %s\n", tr_lfile(results[i]),
+				tr_lno(results[i]), tr_msg(results[i]));
 
 		fprintf(stdout, "\n");
 	}
 
 	/* print summary */
-	fprintf(stdout, "\n%d%%:  Pass:%d  Failures:%d  Errors:%d", (pass * 100) / (pass + failure + error),
-		pass, failure, error);
+	fprintf(stdout, "\n%d%%:  Pass:%d  Failures:%d  Errors:%d",
+		(pass * 100) / (pass + failure + error), pass, failure, error);
 
 	return (failure | error) == 0 ? true : false;
 }
@@ -296,11 +299,17 @@ int main(void)
 	init_test(suite);
 
 	/* run test suite and parse result */
-	fprintf(stdout, "\n========================================================================\n");
-	fprintf(stdout, "========================= Start the Test Suite =========================\n\n");
+	fprintf(stdout,
+		"\n============================================================"
+		"============\n");
+	fprintf(stdout,
+		"========================= Start the Test Suite "
+		"=========================\n\n");
 	run_test(sr);
 	pass = parse_results(sr);
-	fprintf(stdout, "\n========================================================================\n\n");
+	fprintf(stdout,
+		"\n============================================================"
+		"============\n\n");
 
 	/* free ressources */
 	srunner_free(sr);

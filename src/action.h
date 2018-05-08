@@ -25,8 +25,8 @@ enum { MAXHALF_VERTICAL_RIGHT, MAXHALF_VERTICAL_LEFT };
 enum { FULLSCREEN_ONE_MONITOR, FULLSCREEN_ALL_MONITOR };
 
 typedef union {
-	const char **	com;
-	const int8_t	i;
+	const char **com;
+	const int8_t i;
 } Arg;
 
 void change_focus(const Arg *arg);

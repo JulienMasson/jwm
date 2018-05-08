@@ -22,15 +22,14 @@
 
 #include <check.h>
 
-#define START(test) \
-	START_TEST(test) \
+#define START(test) START_TEST(test)
 
-#define END(test) \
-	END_TEST \
-	static void __attribute__((constructor(210))) init_test_##test(void) \
-	{ \
-		register_test(__FILE__, test, #test); \
-	} \
+#define END(test)                                                              \
+	END_TEST                                                               \
+	static void __attribute__((constructor(210))) init_test_##test(void)   \
+	{                                                                      \
+		register_test(__FILE__, test, #test);                          \
+	}
 
 void register_test(char *tcase, TFun fn, char *test_name);
 

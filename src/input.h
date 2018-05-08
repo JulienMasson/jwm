@@ -26,10 +26,10 @@
 #include "action.h"
 
 typedef struct {
-	unsigned int	mod;
-	xcb_keysym_t	keysym;
+	unsigned int mod;
+	xcb_keysym_t keysym;
 	void (*func)(const Arg *);
-	const Arg	arg;
+	const Arg arg;
 } key;
 
 bool input_init(void);

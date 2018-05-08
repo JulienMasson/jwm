@@ -23,24 +23,24 @@
 
 START(conf_read_fail)
 {
-    fail_unless(conf_read() == -1, "No config set, should failed");
+	fail_unless(conf_read() == -1, "No config set, should failed");
 }
 END(conf_read_fail);
 
 
 START(conf_read_fail2)
 {
-    char conf_path[] = "asdasdasd";
-    conf_init(conf_path);
-    fail_unless(conf_read() == -1, "No config set, should failed");
+	char conf_path[] = "asdasdasd";
+	conf_init(conf_path);
+	fail_unless(conf_read() == -1, "No config set, should failed");
 }
 END(conf_read_fail2);
 
 
 START(conf_read_pass)
 {
-    char conf_path[] = ROOT_DIR"/res/.jwmrc";
-    conf_init(conf_path);
-    fail_unless(conf_read() == 0, "Cannot read the config");
+	char conf_path[] = ROOT_DIR "/res/.jwmrc";
+	conf_init(conf_path);
+	fail_unless(conf_read() == 0, "Cannot read the config");
 }
 END(conf_read_pass);

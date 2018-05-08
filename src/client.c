@@ -65,11 +65,11 @@ static struct client *client_create(xcb_window_t win)
 		return NULL;
 
 	client->id = win;
-	client->x = client->y = client->width = client->height
-		= client->min_width = client->min_height = 0;
+	client->x = client->y = client->width = client->height =
+		client->min_width = client->min_height = 0;
 
-	client->origsize.x = client->origsize.y =
-		client->origsize.width = client->origsize.height = 0;
+	client->origsize.x = client->origsize.y = client->origsize.width =
+		client->origsize.height = 0;
 
 	client->max_width = screen->width_in_pixels;
 	client->max_height = screen->height_in_pixels;
@@ -130,7 +130,7 @@ static struct client *client_get_last(void)
 
 	/* get the tail */
 	tail = clients_head;
-	while((tail != NULL) && (tail->next != NULL)) {
+	while ((tail != NULL) && (tail->next != NULL)) {
 		tail = tail->next;
 	}
 
@@ -144,7 +144,8 @@ static struct client *client_get_last(void)
 	return client;
 }
 
-struct client *client_get_circular(struct client *start, enum client_search_t direction)
+struct client *client_get_circular(struct client *start,
+				   enum client_search_t direction)
 {
 	struct client *client = NULL;
 
@@ -180,7 +181,8 @@ void client_check_monitor(struct client *client)
 		client->monitor = current_mon;
 }
 
-void client_fit_on_screen(struct client *client, void __attribute__((__unused__)) *data)
+void client_fit_on_screen(struct client *client,
+			  void __attribute__((__unused__)) * data)
 {
 	int16_t mon_x, mon_y;
 	uint16_t mon_width, mon_height;
@@ -237,7 +239,7 @@ void client_fit_on_screen(struct client *client, void __attribute__((__unused__)
 		client->x = mon_x;
 		client->width = mon_width;
 		willmove = willresize = true;
-	} else 	if (client->x + client->width > mon_x + mon_width) {
+	} else if (client->x + client->width > mon_x + mon_width) {
 		client->x = mon_x + mon_width - client->width;
 		willmove = true;
 	}
@@ -246,7 +248,7 @@ void client_fit_on_screen(struct client *client, void __attribute__((__unused__)
 		client->y = mon_y;
 		client->height = mon_height;
 		willmove = willresize = true;
-	} else 	if (client->y + client->height > mon_y + mon_height) {
+	} else if (client->y + client->height > mon_y + mon_height) {
 		client->y = mon_y + mon_height - client->height;
 		willmove = true;
 	}
@@ -320,15 +322,17 @@ void client_map_request(xcb_map_request_event_t *ev)
 
 	/* get window geometry */
 	window_get_geom(client->id, &client->x, &client->y, &client->width,
-		&client->height);
+			&client->height);
 
 	/* get limits of window size */
-	window_get_limits_size(client->id, &client->max_width, &client->max_height,
-			       &client->min_width, &client->min_height);
+	window_get_limits_size(client->id, &client->max_width,
+			       &client->max_height, &client->min_width,
+			       &client->min_height);
 
 	/* if coord map not specified, use pointer coordinate */
 	if (window_hint_us_position(client->id) == false) {
-		if (window_get_pointer(&screen->root, &client->x, &client->y) == false)
+		if (window_get_pointer(&screen->root, &client->x, &client->y)
+		    == false)
 			client->x = client->y = 0;
 
 		client->x -= client->width / 2;

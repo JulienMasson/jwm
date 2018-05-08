@@ -28,12 +28,9 @@
 #include "utils.h"
 
 /* global vars */
-static const char * const level_names[] = {
-	"ERROR", "WARN", "INFO", "DEBUG"
-};
-static const char * const level_colors[] = {
-	"\x1b[31m", "\x1b[33m", "\x1b[34m", "\x1b[32m"
-};
+static const char *const level_names[] = {"ERROR", "WARN", "INFO", "DEBUG"};
+static const char *const level_colors[] = {"\x1b[31m", "\x1b[33m", "\x1b[34m",
+					   "\x1b[32m"};
 
 void log_init(void)
 {
@@ -63,7 +60,7 @@ void log_log(int level, const char *file, int line, const char *fmt, ...)
 	char date[16];
 
 	if (level <= global_conf.log_level) {
-		 /* shift level to select right colors/name */
+		/* shift level to select right colors/name */
 		level = level - 1;
 
 		/* Get current date */
@@ -72,10 +69,8 @@ void log_log(int level, const char *file, int line, const char *fmt, ...)
 		date[strftime(date, sizeof(date), "%H:%M:%S", lt)] = '\0';
 
 		/* print header: date level file line */
-		printf("%s %s%-5s\x1b[0m \x1b[33m%s:%-4d\x1b[0m",
-		       date,
-		       level_colors[level], level_names[level],
-		       file, line);
+		printf("%s %s%-5s\x1b[0m \x1b[33m%s:%-4d\x1b[0m", date,
+		       level_colors[level], level_names[level], file, line);
 
 		/* print args */
 		va_start(args, fmt);

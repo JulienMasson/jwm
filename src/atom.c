@@ -23,20 +23,18 @@
 #include "global.h"
 #include "atom.h"
 
-static const char *atomnames[NB_ATOMS][1] = {
-	{ "WM_DELETE_WINDOW" },
-	{ "WM_CHANGE_STATE"  }
-};
+static const char *atomnames[NB_ATOMS][1] = {{"WM_DELETE_WINDOW"},
+					     {"WM_CHANGE_STATE"}};
 xcb_atom_t ATOM[NB_ATOMS];
 
 /* Get a defined atom from the X server. */
 static xcb_atom_t getatom(const char *atom_name)
 {
-	xcb_intern_atom_cookie_t atom_cookie = xcb_intern_atom(conn, 0,
-							       strlen(atom_name), atom_name);
+	xcb_intern_atom_cookie_t atom_cookie =
+		xcb_intern_atom(conn, 0, strlen(atom_name), atom_name);
 
-	xcb_intern_atom_reply_t *rep = xcb_intern_atom_reply(conn, atom_cookie,
-							     NULL);
+	xcb_intern_atom_reply_t *rep =
+		xcb_intern_atom_reply(conn, atom_cookie, NULL);
 
 	/* XXX Note that we return 0 as an atom if anything goes wrong.
 	 * Might become interesting.*/

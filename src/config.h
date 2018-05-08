@@ -21,46 +21,47 @@
 #define CONFIG_H
 
 /* Programs */
-static const char *rofi_run[] =
-{ "rofi", "-show", "run", "-theme", "flat-orange", NULL };
-static const char *urxvt[] = { "urxvt", NULL };
-static const char *emacs[] = { "emacs", NULL };
-static const char *volume_up[] = { "amixer", "set", "Master", "4%+", NULL };
-static const char *volume_down[] = { "amixer", "set", "Master", "4%-", NULL };
-static const char *volume_toggle[] = { "pactl", "set-sink-mute", "0", "toggle", NULL };
-static const char *i3lock[] = { "i3lock-fancy", NULL };
+static const char *rofi_run[] = {"rofi",   "-show",       "run",
+				 "-theme", "flat-orange", NULL};
+static const char *urxvt[] = {"urxvt", NULL};
+static const char *emacs[] = {"emacs", NULL};
+static const char *volume_up[] = {"amixer", "set", "Master", "4%+", NULL};
+static const char *volume_down[] = {"amixer", "set", "Master", "4%-", NULL};
+static const char *volume_toggle[] = {"pactl", "set-sink-mute", "0", "toggle",
+				      NULL};
+static const char *i3lock[] = {"i3lock-fancy", NULL};
 
 /* Keyboard shorcut */
 static key keys[] = {
 	/* modifier      key        function           argument */
 	/* Focus to next/previous window */
-	{ MOD,		 XK_Right,  change_focus, { .i	 = CLIENT_NEXT		  } },
-	{ MOD,		 XK_Left,   change_focus, { .i	 = CLIENT_PREVIOUS	  } },
+	{MOD, XK_Right, change_focus, {.i = CLIENT_NEXT}},
+	{MOD, XK_Left, change_focus, {.i = CLIENT_PREVIOUS}},
 	/* Vertically left/right */
-	{ MOD | CONTROL, XK_Right,  max_half,	  { .i	 = MAXHALF_VERTICAL_RIGHT } },
-	{ MOD | CONTROL, XK_Left,   max_half,	  { .i	 = MAXHALF_VERTICAL_LEFT  } },
+	{MOD | CONTROL, XK_Right, max_half, {.i = MAXHALF_VERTICAL_RIGHT}},
+	{MOD | CONTROL, XK_Left, max_half, {.i = MAXHALF_VERTICAL_LEFT}},
 	/* Kill a window */
-	{ MOD | SHIFT,	 XK_c,	    delete_window,{} },
+	{MOD | SHIFT, XK_c, delete_window, {}},
 	/* Full screen window without borders */
-	{ MOD,		 XK_f,	    maximize,	  { .i	 = FULLSCREEN_ONE_MONITOR } },
-	{ MOD | CONTROL, XK_t,	    maximize,	  { .i	 = FULLSCREEN_ALL_MONITOR } },
+	{MOD, XK_f, maximize, {.i = FULLSCREEN_ONE_MONITOR}},
+	{MOD | CONTROL, XK_t, maximize, {.i = FULLSCREEN_ALL_MONITOR}},
 	/* Hide / Raise windows */
-	{ MOD,		 XK_h,	    hide,	  {} },
-	{ MOD,		 XK_a,	    raise_all,	  {} },
+	{MOD, XK_h, hide, {}},
+	{MOD, XK_a, raise_all, {}},
 	/* Reload conf */
-	{ MOD,		 XK_r,	    reload_conf,  {} },
+	{MOD, XK_r, reload_conf, {}},
 	/* Toggle panel */
-	{ MOD,		 XK_p,	    panel_toggle, {} },
+	{MOD, XK_p, panel_toggle, {}},
 	/* Programs */
-	{ MOD,		 XK_d,	    start,	  { .com = rofi_run			 } },
-	{ MOD,		 XK_Return, start,	  { .com = urxvt			 } },
-	{ MOD | SHIFT,	 XK_e,	    start,	  { .com = emacs			 } },
-	{ MOD,		 XK_i,	    start,	  { .com = volume_up			 } },
-	{ MOD,		 XK_u,	    start,	  { .com = volume_down			 } },
-	{ MOD,		 XK_o,	    start,	  { .com = volume_toggle		 } },
-	{ MOD | CONTROL, XK_l,	    start,	  { .com = i3lock			 } },
+	{MOD, XK_d, start, {.com = rofi_run}},
+	{MOD, XK_Return, start, {.com = urxvt}},
+	{MOD | SHIFT, XK_e, start, {.com = emacs}},
+	{MOD, XK_i, start, {.com = volume_up}},
+	{MOD, XK_u, start, {.com = volume_down}},
+	{MOD, XK_o, start, {.com = volume_toggle}},
+	{MOD | CONTROL, XK_l, start, {.com = i3lock}},
 	/* Exit jwm */
-	{ MOD | SHIFT,	 XK_q,	    jwm_exit,     { .i	 = 0				 } },
+	{MOD | SHIFT, XK_q, jwm_exit, {.i = 0}},
 };
 
 #endif

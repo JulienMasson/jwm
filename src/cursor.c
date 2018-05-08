@@ -22,14 +22,13 @@
 #include "global.h"
 #include "cursor.h"
 
-#define BUTTON_MASK (XCB_EVENT_MASK_BUTTON_PRESS |	\
-		     XCB_EVENT_MASK_BUTTON_RELEASE |	\
-		     XCB_EVENT_MASK_BUTTON_MOTION |	\
-		     XCB_EVENT_MASK_POINTER_MOTION)
+#define BUTTON_MASK                                                            \
+	(XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE           \
+	 | XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_POINTER_MOTION)
 
 /* NORMAL, MOVE, SIZING */
-static uint16_t glyphs[LAST]	     = {68, 52, 120};
-static xcb_cursor_t cursors_id[LAST] = { 0, 0, 0};
+static uint16_t glyphs[LAST] = {68, 52, 120};
+static xcb_cursor_t cursors_id[LAST] = {0, 0, 0};
 static int current_cursor;
 
 void cursor_init(void)
@@ -45,18 +44,9 @@ void cursor_init(void)
 	for (i = 0; i < LAST; i++) {
 		xcb_cursor_t cursor = xcb_generate_id(conn);
 
-		xcb_create_glyph_cursor(conn,
-					cursor,
-					cursor_font,
-					cursor_font,
-					glyphs[i],
-					glyphs[i] + 1,
-					0x3232,
-					0x3232,
-					0x3232,
-					0xeeee,
-					0xeeee,
-					0xeeec);
+		xcb_create_glyph_cursor(conn, cursor, cursor_font, cursor_font,
+					glyphs[i], glyphs[i] + 1, 0x3232,
+					0x3232, 0x3232, 0xeeee, 0xeeee, 0xeeec);
 		cursors_id[i] = cursor;
 	}
 	xcb_close_font(conn, cursor_font);
@@ -92,14 +82,9 @@ void cursor_grab(void)
 	xcb_grab_pointer_reply_t *grab_reply;
 	xcb_grab_pointer_cookie_t cookie_grab;
 
-	cookie_grab = xcb_grab_pointer(conn,
-				       0,
-				       screen->root,
-				       BUTTON_MASK,
-				       XCB_GRAB_MODE_ASYNC,
-				       XCB_GRAB_MODE_ASYNC,
-				       XCB_NONE,
-				       cursors_id[current_cursor],
+	cookie_grab = xcb_grab_pointer(conn, 0, screen->root, BUTTON_MASK,
+				       XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC,
+				       XCB_NONE, cursors_id[current_cursor],
 				       XCB_CURRENT_TIME);
 	grab_reply = xcb_grab_pointer_reply(conn, cookie_grab, NULL);
 	if (grab_reply->status != XCB_GRAB_STATUS_SUCCESS) {

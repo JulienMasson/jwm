@@ -22,12 +22,7 @@
 
 #include <stdint.h>
 
-enum cursor_t {
-	NORMAL,
-	MOVE,
-	SIZING,
-	LAST
-};
+enum cursor_t { NORMAL, MOVE, SIZING, LAST };
 
 void cursor_init(void);
 

@@ -28,23 +28,23 @@
 #include "client.h"
 
 /* Super/Windows key */
-#define MOD             XCB_MOD_MASK_4
-#define CONTROL         XCB_MOD_MASK_CONTROL
-#define SHIFT           XCB_MOD_MASK_SHIFT
+#define MOD XCB_MOD_MASK_4
+#define CONTROL XCB_MOD_MASK_CONTROL
+#define SHIFT XCB_MOD_MASK_SHIFT
 
 #include "config.h"
 
 /* Mouse buttons */
 typedef struct {
-	unsigned int	mask;
-	unsigned int	button;
+	unsigned int mask;
+	unsigned int button;
 	void (*func)(const Arg *);
-	const Arg	arg;
+	const Arg arg;
 } Button;
 
 static Button buttons[] = {
-	{ MOD, XCB_BUTTON_INDEX_1, mouse_motion, { .i = WIN_MOVE   } },
-	{ MOD, XCB_BUTTON_INDEX_3, mouse_motion, { .i = WIN_RESIZE } },
+	{MOD, XCB_BUTTON_INDEX_1, mouse_motion, {.i = WIN_MOVE}},
+	{MOD, XCB_BUTTON_INDEX_3, mouse_motion, {.i = WIN_RESIZE}},
 };
 
 /* wrapper to get xcb keycodes from keysymbol */
@@ -89,12 +89,8 @@ bool input_init(void)
 		keycode = xcb_get_keycodes(keys[i].keysym);
 
 		for (k = 0; keycode[k] != XCB_NO_SYMBOL; k++)
-			xcb_grab_key(conn,
-				     1,
-				     screen->root,
-				     keys[i].mod,
-				     keycode[k],
-				     XCB_GRAB_MODE_ASYNC,
+			xcb_grab_key(conn, 1, screen->root, keys[i].mod,
+				     keycode[k], XCB_GRAB_MODE_ASYNC,
 				     XCB_GRAB_MODE_ASYNC);
 		free(keycode);
 	}
@@ -108,16 +104,10 @@ void input_grab_buttons(xcb_window_t grab_window)
 	unsigned int b;
 
 	for (b = 0; b < LENGTH(buttons); b++)
-		xcb_grab_button(conn,
-				1,
-				grab_window,
-				XCB_EVENT_MASK_BUTTON_PRESS,
-				XCB_GRAB_MODE_ASYNC,
-				XCB_GRAB_MODE_ASYNC,
-				screen->root,
-				XCB_NONE,
-				buttons[b].button,
-				buttons[b].mask);
+		xcb_grab_button(
+			conn, 1, grab_window, XCB_EVENT_MASK_BUTTON_PRESS,
+			XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, screen->root,
+			XCB_NONE, buttons[b].button, buttons[b].mask);
 }
 
 void input_key_handler(xcb_key_press_event_t *ev)
@@ -126,9 +116,8 @@ void input_key_handler(xcb_key_press_event_t *ev)
 	xcb_keysym_t keysym = xcb_get_keysym(ev->detail);
 
 	for (i = 0; i < LENGTH(keys); i++) {
-		if (keys[i].func &&
-		    keys[i].keysym == keysym &&
-		    keys[i].mod == ev->state) {
+		if (keys[i].func && keys[i].keysym == keysym
+		    && keys[i].mod == ev->state) {
 			keys[i].func(&keys[i].arg);
 			break;
 		}
@@ -140,8 +129,7 @@ void input_button_handler(xcb_button_press_event_t *ev)
 	unsigned int i;
 
 	for (i = 0; i < LENGTH(buttons); i++)
-		if (buttons[i].func &&
-		    buttons[i].button == ev->detail &&
-		    buttons[i].mask == ev->state)
+		if (buttons[i].func && buttons[i].button == ev->detail
+		    && buttons[i].mask == ev->state)
 			buttons[i].func(&(buttons[i].arg));
 }

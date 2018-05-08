@@ -25,32 +25,31 @@
 #include "monitor.h"
 #include "list.h"
 
-enum client_search_t {
-	CLIENT_NEXT,
-	CLIENT_PREVIOUS
-};
+enum client_search_t { CLIENT_NEXT, CLIENT_PREVIOUS };
 
 struct sizepos {
-	int16_t		x, y;
-	uint16_t	width, height;
+	int16_t x, y;
+	uint16_t width, height;
 };
 
 struct client {
-	xcb_window_t	id;             // ID of this window.
-	int16_t		x, y;           // X/Y coordinate.
-	uint16_t	width, height;  // Width,Height in pixels.
-	struct sizepos	origsize;       // Original size if we're currently maxed.
-	uint16_t	max_width, max_height, min_width, min_height;
-	bool		maxed, iconic;
-	struct monitor *monitor;        // The physical output this window is on.
-	struct list    *index;          // Pointer to our place in global windows list.
+	xcb_window_t id;	 // ID of this window.
+	int16_t x, y;		 // X/Y coordinate.
+	uint16_t width, height;  // Width,Height in pixels.
+	struct sizepos origsize; // Original size if we're currently maxed.
+	uint16_t max_width, max_height, min_width, min_height;
+	bool maxed, iconic;
+	struct monitor *monitor; // The physical output this window is on.
+	struct list *index;      // Pointer to our place in global windows list.
 };
 
 /* accessors */
-void client_foreach(void (*func)(struct client *client, void *data), void *data);
+void client_foreach(void (*func)(struct client *client, void *data),
+		    void *data);
 struct client *client_get_focus(void);
 struct client *client_get_first(void);
-struct client *client_get_circular(struct client *start, enum client_search_t direction);
+struct client *client_get_circular(struct client *start,
+				   enum client_search_t direction);
 
 /* set focus */
 void client_set_focus(struct client *client);

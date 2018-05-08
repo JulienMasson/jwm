@@ -36,29 +36,27 @@
 #define PANEL_TEXT_SIZE 11
 
 struct panel_client_data {
-	struct monitor	*mon;
-	double		*pos;
-	double		*max_width;
+	struct monitor *mon;
+	double *pos;
+	double *max_width;
 };
 
 struct panel_client {
-	struct client	*client;
-	double		 pos;
-	double		 width;
-	struct list	*index;
+	struct client *client;
+	double pos;
+	double width;
+	struct list *index;
 };
 
-enum color_t {
-	NORMAL,
-	ORANGE
-};
+enum color_t { NORMAL, ORANGE };
 
 struct panel *panel = NULL;
 struct list *panel_clients_head;
 xcb_window_t *systray = NULL;
 int systray_count = 0;
 
-static struct panel_client *panel_client_add(struct client *client, double pos, double width)
+static struct panel_client *panel_client_add(struct client *client, double pos,
+					     double width)
 {
 	struct list *index;
 	struct panel_client *panel_client;
@@ -118,7 +116,8 @@ void panel_init(void)
 	panel = malloc(sizeof(struct panel));
 
 	/* init panel values */
-	panel->id = window_create(border_x, border_y, border_width, PANEL_HEIGHT);
+	panel->id =
+		window_create(border_x, border_y, border_width, PANEL_HEIGHT);
 	panel->x = border_x;
 	panel->y = border_y;
 	panel->width = border_width;
@@ -140,19 +139,21 @@ void panel_init(void)
 	/* init systray */
 	char atomname[strlen("_NET_SYSTEM_TRAY_S") + 11];
 	xcb_intern_atom_cookie_t stc;
-	xcb_intern_atom_reply_t	 *bar_rpy;
+	xcb_intern_atom_reply_t *bar_rpy;
 	xcb_get_selection_owner_cookie_t gsoc;
-	xcb_get_selection_owner_reply_t	*gso_rpy;
+	xcb_get_selection_owner_reply_t *gso_rpy;
 
-	snprintf(atomname, strlen("_NET_SYSTEM_TRAY_S") + 11, "_NET_SYSTEM_TRAY_S0");
+	snprintf(atomname, strlen("_NET_SYSTEM_TRAY_S") + 11,
+		 "_NET_SYSTEM_TRAY_S0");
 	stc = xcb_intern_atom(conn, 0, strlen(atomname), atomname);
-	if(!(bar_rpy = xcb_intern_atom_reply(conn, stc, NULL)))
+	if (!(bar_rpy = xcb_intern_atom_reply(conn, stc, NULL)))
 		LOGE("could not get atom %s\n", atomname);
-	xcb_set_selection_owner(conn, panel->id, bar_rpy->atom, XCB_CURRENT_TIME);
+	xcb_set_selection_owner(conn, panel->id, bar_rpy->atom,
+				XCB_CURRENT_TIME);
 
 	gsoc = xcb_get_selection_owner(conn, bar_rpy->atom);
 	if (!(gso_rpy = xcb_get_selection_owner_reply(conn, gsoc, NULL)))
-		LOGE("could not get selection owner for %s\n",  atomname);
+		LOGE("could not get selection owner for %s\n", atomname);
 
 	if (gso_rpy->owner != panel->id) {
 		LOGE("Another system tray running?\n");
@@ -161,14 +162,14 @@ void panel_init(void)
 
 	/* Let everybody know that there is a system tray running */
 	uint32_t buf[32];
-	xcb_client_message_event_t *ev = (xcb_client_message_event_t*)buf;
-	ev->response_type	= XCB_CLIENT_MESSAGE;
-	ev->window		= screen->root;
-	ev->type		= XCB_ATOM_NONE;
-	ev->format		= 32;
-	ev->data.data32[0]	= XCB_CURRENT_TIME;
-	ev->data.data32[1]	= bar_rpy->atom;
-	ev->data.data32[2]	= panel->id;
+	xcb_client_message_event_t *ev = (xcb_client_message_event_t *)buf;
+	ev->response_type = XCB_CLIENT_MESSAGE;
+	ev->window = screen->root;
+	ev->type = XCB_ATOM_NONE;
+	ev->format = 32;
+	ev->data.data32[0] = XCB_CURRENT_TIME;
+	ev->data.data32[1] = bar_rpy->atom;
+	ev->data.data32[2] = panel->id;
 	xcb_send_event(conn, 0, screen->root, 0xFFFFFF, (char *)buf);
 
 	/* show panel */
@@ -186,9 +187,8 @@ void panel_update_geom(void)
 	uint16_t border_width, border_height;
 	monitor_borders(&border_x, &border_y, &border_width, &border_height);
 
-	if (panel && ((border_x != panel->x) ||
-		      (border_y != panel->y) ||
-		      (border_width != panel->width))) {
+	if (panel && ((border_x != panel->x) || (border_y != panel->y)
+		      || (border_width != panel->width))) {
 		/* set new values */
 		panel->x = border_x;
 		panel->y = border_y;
@@ -208,7 +208,8 @@ void panel_update_geom(void)
 		pango_layout_set_font_description(panel->layout, panel->font);
 
 		/* move, resize and show panel */
-		window_move_resize(panel->id, border_x, border_y, border_width, PANEL_HEIGHT);
+		window_move_resize(panel->id, border_x, border_y, border_width,
+				   PANEL_HEIGHT);
 		panel_draw();
 	}
 }
@@ -219,13 +220,14 @@ static int panel_get_text_width(char *text, size_t len)
 	PangoLayout *tmp = pango_cairo_create_layout(panel->cr);
 
 	pango_layout_set_text(tmp, text, len);
-	pango_layout_get_pixel_size(tmp, &width , NULL);
+	pango_layout_get_pixel_size(tmp, &width, NULL);
 	g_object_unref(tmp);
 
 	return width;
 }
 
-static void panel_draw_text(double x, int width, char *text, size_t len, enum color_t color)
+static void panel_draw_text(double x, int width, char *text, size_t len,
+			    enum color_t color)
 {
 	int height;
 	PangoLayout *tmp = pango_cairo_create_layout(panel->cr);
@@ -267,7 +269,8 @@ static void draw_clock(double *max_width)
 	/* get current date */
 	t = time(NULL);
 	lt = localtime(&t);
-	buf_time[strftime(buf_time, sizeof(buf_time), "%R  -  %d %b", lt)] = '\0';
+	buf_time[strftime(buf_time, sizeof(buf_time), "%R  -  %d %b", lt)] =
+		'\0';
 
 	/* Get width and update max width */
 	width = panel_get_text_width(buf_time, strlen(buf_time));
@@ -296,7 +299,8 @@ static void draw_widgets(double *max_width)
 
 	/* get battery capacity */
 	memset(buf, 0, 256);
-	if (file_read("/sys/class/power_supply/BAT0/capacity", buf, 256) == false) {
+	if (file_read("/sys/class/power_supply/BAT0/capacity", buf, 256)
+	    == false) {
 		LOGE("Cannot get battery capacity");
 		return;
 	}
@@ -365,23 +369,28 @@ static void get_window_name(xcb_window_t win, char *name, uint32_t len)
 	xcb_ewmh_get_utf8_strings_reply_t data;
 
 	cookie = xcb_ewmh_get_wm_name(ewmh, win);
-	if (xcb_ewmh_get_wm_name_reply(ewmh, cookie, &data, NULL) &&
-	    data.strings_len < len)
+	if (xcb_ewmh_get_wm_name_reply(ewmh, cookie, &data, NULL)
+	    && data.strings_len < len)
 		strncpy(name, data.strings, data.strings_len);
 }
 
-static void panel_draw_rectangle(double x, double y, double width, double height)
+static void panel_draw_rectangle(double x, double y, double width,
+				 double height)
 {
-	double	aspect        = 1.0;
-	double	corner_radius = height / 10.0;
-	double	radius	      = corner_radius / aspect;
-	double	degrees	      = M_PI / 180.0;
+	double aspect = 1.0;
+	double corner_radius = height / 10.0;
+	double radius = corner_radius / aspect;
+	double degrees = M_PI / 180.0;
 
 	cairo_new_sub_path(panel->cr);
-	cairo_arc(panel->cr, x + width - radius, y + radius, radius, -90 * degrees, 0 * degrees);
-	cairo_arc(panel->cr, x + width - radius, y + height - radius, radius, 0 * degrees, 90 * degrees);
-	cairo_arc(panel->cr, x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees);
-	cairo_arc(panel->cr, x + radius, y + radius, radius, 180 * degrees, 270 * degrees);
+	cairo_arc(panel->cr, x + width - radius, y + radius, radius,
+		  -90 * degrees, 0 * degrees);
+	cairo_arc(panel->cr, x + width - radius, y + height - radius, radius,
+		  0 * degrees, 90 * degrees);
+	cairo_arc(panel->cr, x + radius, y + height - radius, radius,
+		  90 * degrees, 180 * degrees);
+	cairo_arc(panel->cr, x + radius, y + radius, radius, 180 * degrees,
+		  270 * degrees);
 	cairo_close_path(panel->cr);
 
 	cairo_set_line_width(panel->cr, 1);
@@ -391,7 +400,8 @@ static void panel_draw_rectangle(double x, double y, double width, double height
 static void draw_client(struct client *client, void *data)
 {
 	struct client *focus = client_get_focus();
-	struct panel_client_data *client_data = (struct panel_client_data *)data;
+	struct panel_client_data *client_data =
+		(struct panel_client_data *)data;
 	char name[256];
 	char icon_path[256];
 	int width_name;
@@ -419,29 +429,36 @@ static void draw_client(struct client *client, void *data)
 		width_name = panel_get_text_width(name, strlen(name));
 
 		/* check if we can draw this client */
-		if ((*client_data->pos + (width_name + 15 + 24) > *client_data->max_width) ||
-		    (*client_data->pos + (width_name + 15 + 24) > client->monitor->width + client->monitor->x))
+		if ((*client_data->pos + (width_name + 15 + 24)
+		     > *client_data->max_width)
+		    || (*client_data->pos + (width_name + 15 + 24)
+			> client->monitor->width + client->monitor->x))
 			return;
 
 		/* add in panel clients list */
 		if (panel_client_find_by_client(client) == NULL)
-			panel_client_add(client, *client_data->pos, width_name + 15 + 24);
+			panel_client_add(client, *client_data->pos,
+					 width_name + 15 + 24);
 		else
-			panel_client_update(client, *client_data->pos, width_name + 15 + 24);
+			panel_client_update(client, *client_data->pos,
+					    width_name + 15 + 24);
 
 		/* rounded rectangle around name */
 		if ((client == focus) && (client->iconic == false))
 			cairo_set_source_rgb(panel->cr, 0.98, 0.52, 0.07);
 		else
 			cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
-		panel_draw_rectangle(*client_data->pos, 0, width_name + 15 + 24, PANEL_HEIGHT);
+		panel_draw_rectangle(*client_data->pos, 0, width_name + 15 + 24,
+				     PANEL_HEIGHT);
 
 		/* shift to display icon */
 		*client_data->pos += 5;
 
 		/* draw icon */
-		cairo_surface_t *image = cairo_image_surface_create_from_png(icon_path);
-		cairo_set_source_surface(panel->cr, image, *client_data->pos, 3);
+		cairo_surface_t *image =
+			cairo_image_surface_create_from_png(icon_path);
+		cairo_set_source_surface(panel->cr, image, *client_data->pos,
+					 3);
 		cairo_paint(panel->cr);
 		cairo_surface_destroy(image);
 
@@ -450,9 +467,11 @@ static void draw_client(struct client *client, void *data)
 
 		/* show client name */
 		if ((client == focus) && (client->iconic == false))
-			panel_draw_text(*client_data->pos, width_name, name, strlen(name), ORANGE);
+			panel_draw_text(*client_data->pos, width_name, name,
+					strlen(name), ORANGE);
 		else
-			panel_draw_text(*client_data->pos, width_name, name, strlen(name), NORMAL);
+			panel_draw_text(*client_data->pos, width_name, name,
+					strlen(name), NORMAL);
 
 		/* update position if next client */
 		if (client->index->next != NULL)
@@ -462,7 +481,8 @@ static void draw_client(struct client *client, void *data)
 
 static void draw_by_monitor(struct monitor *mon, void *data)
 {
-	struct panel_client_data *client_data = (struct panel_client_data *)data;
+	struct panel_client_data *client_data =
+		(struct panel_client_data *)data;
 	client_data->mon = mon;
 	*client_data->pos = mon->x + 1;
 
@@ -478,12 +498,13 @@ void panel_draw(void)
 {
 	double pos = 0;
 	double max_width = 0;
-	struct panel_client_data client_data = { NULL, &pos, &max_width};
+	struct panel_client_data client_data = {NULL, &pos, &max_width};
 
 	if (panel->enable == true) {
 		/* fill panel black */
 		cairo_set_source_rgb(panel->cr, 0, 0, 0);
-		cairo_rectangle(panel->cr, panel->x, panel->y, panel->width, panel->height);
+		cairo_rectangle(panel->cr, panel->x, panel->y, panel->width,
+				panel->height);
 		cairo_fill(panel->cr);
 
 		/* draw on right of the panel:
@@ -546,7 +567,7 @@ static void systray_setup(xcb_window_t win, xcb_client_message_event_t *ev)
 			     XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT,
 			     values);
 
-	xcb_send_event(conn, 0, win, XCB_EVENT_MASK_NO_EVENT, (char*)ev);
+	xcb_send_event(conn, 0, win, XCB_EVENT_MASK_NO_EVENT, (char *)ev);
 	xcb_change_save_set(conn, XCB_SET_MODE_INSERT, win);
 
 	xcb_reparent_window(conn, win, panel->id, 0, 0);
@@ -555,7 +576,8 @@ static void systray_setup(xcb_window_t win, xcb_client_message_event_t *ev)
 
 	/* add this systray to the list */
 	systray_count++;
-	systray = (xcb_window_t *)realloc(systray, systray_count * sizeof(xcb_window_t));
+	systray = (xcb_window_t *)realloc(systray,
+					  systray_count * sizeof(xcb_window_t));
 	systray[systray_count - 1] = win;
 }
 
@@ -591,10 +613,12 @@ void panel_click(xcb_button_press_event_t *ev)
 	struct list *index;
 
 	if (panel->id == ev->child) {
-		for (index = panel_clients_head; index != NULL; index = index->next) {
+		for (index = panel_clients_head; index != NULL;
+		     index = index->next) {
 			panel_client = index->data;
 
-			if (x > panel_client->pos && x < (panel_client->pos + panel_client->width)) {
+			if (x > panel_client->pos
+			    && x < (panel_client->pos + panel_client->width)) {
 				window_raise(panel_client->client->id);
 				client_set_focus(panel_client->client);
 				break;

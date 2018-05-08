@@ -38,19 +38,27 @@ void ewmh_init(int scrno)
 	xcb_ewmh_set_wm_pid(ewmh, screen->root, getpid());
 	xcb_ewmh_set_wm_name(ewmh, screen->root, 4, "jwm");
 
-	xcb_atom_t net_atoms[] = {
-		ewmh->_NET_SUPPORTED,		   ewmh->_NET_WM_DESKTOP,
-		ewmh->_NET_NUMBER_OF_DESKTOPS,	   ewmh->_NET_CURRENT_DESKTOP,
-		ewmh->_NET_ACTIVE_WINDOW,	   ewmh->_NET_WM_ICON,
-		ewmh->_NET_WM_STATE,		   ewmh->_NET_WM_NAME,
-		ewmh->_NET_SUPPORTING_WM_CHECK,	   ewmh->_NET_WM_STATE_HIDDEN,
-		ewmh->_NET_WM_ICON_NAME,	   ewmh->_NET_WM_WINDOW_TYPE,
-		ewmh->_NET_WM_WINDOW_TYPE_DOCK,	   ewmh->_NET_WM_WINDOW_TYPE_DESKTOP,
-		ewmh->_NET_WM_WINDOW_TYPE_TOOLBAR, ewmh->_NET_WM_PID,
-		ewmh->_NET_CLIENT_LIST,		   ewmh->_NET_CLIENT_LIST_STACKING,
-		ewmh->WM_PROTOCOLS,		   ewmh->_NET_WM_STATE,
-		ewmh->_NET_WM_STATE_DEMANDS_ATTENTION
-	};
+	xcb_atom_t net_atoms[] = {ewmh->_NET_SUPPORTED,
+				  ewmh->_NET_WM_DESKTOP,
+				  ewmh->_NET_NUMBER_OF_DESKTOPS,
+				  ewmh->_NET_CURRENT_DESKTOP,
+				  ewmh->_NET_ACTIVE_WINDOW,
+				  ewmh->_NET_WM_ICON,
+				  ewmh->_NET_WM_STATE,
+				  ewmh->_NET_WM_NAME,
+				  ewmh->_NET_SUPPORTING_WM_CHECK,
+				  ewmh->_NET_WM_STATE_HIDDEN,
+				  ewmh->_NET_WM_ICON_NAME,
+				  ewmh->_NET_WM_WINDOW_TYPE,
+				  ewmh->_NET_WM_WINDOW_TYPE_DOCK,
+				  ewmh->_NET_WM_WINDOW_TYPE_DESKTOP,
+				  ewmh->_NET_WM_WINDOW_TYPE_TOOLBAR,
+				  ewmh->_NET_WM_PID,
+				  ewmh->_NET_CLIENT_LIST,
+				  ewmh->_NET_CLIENT_LIST_STACKING,
+				  ewmh->WM_PROTOCOLS,
+				  ewmh->_NET_WM_STATE,
+				  ewmh->_NET_WM_STATE_DEMANDS_ATTENTION};
 
 	xcb_ewmh_set_supported(ewmh, scrno, LENGTH(net_atoms), net_atoms);
 }

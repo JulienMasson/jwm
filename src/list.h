@@ -21,9 +21,9 @@
 #define LIST_H
 
 struct list {
-	void		*data;
-	struct list	*prev;
-	struct list	*next;
+	void *data;
+	struct list *prev;
+	struct list *next;
 };
 
 struct list *list_add(struct list **list_head, void *data);

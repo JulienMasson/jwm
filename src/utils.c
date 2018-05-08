@@ -80,7 +80,7 @@ bool file_write(const char *pathname, const void *buf, size_t count)
 	return true;
 }
 
-bool regex_match(const char *string,  const char *regex)
+bool regex_match(const char *string, const char *regex)
 {
 	regex_t preg;
 	int ret;
@@ -111,8 +111,8 @@ bool regex_match(const char *string,  const char *regex)
 	}
 }
 
-bool regex_extract(const char* string,  const char *regex,
-		   size_t nmatch, char pmatch[][256])
+bool regex_extract(const char *string, const char *regex, size_t nmatch,
+		   char pmatch[][256])
 {
 	regex_t preg;
 	uint8_t ret, i;

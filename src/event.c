@@ -116,21 +116,17 @@ static void install_sig_handlers(void)
 
 bool event_init(void)
 {
-	unsigned int values[1] = {
-		XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
-		| XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
-		| XCB_EVENT_MASK_BUTTON_PRESS
-		| XCB_EVENT_MASK_EXPOSURE
-	};
+	unsigned int values[1] = {XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
+				  | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
+				  | XCB_EVENT_MASK_BUTTON_PRESS
+				  | XCB_EVENT_MASK_EXPOSURE};
 	xcb_void_cookie_t cookie;
 	xcb_generic_error_t *error;
 	int i;
 
 	/* Root screen listen to "values" events */
-	cookie = xcb_change_window_attributes_checked(conn,
-						      screen->root,
-						      XCB_CW_EVENT_MASK,
-						      values);
+	cookie = xcb_change_window_attributes_checked(
+		conn, screen->root, XCB_CW_EVENT_MASK, values);
 	error = xcb_request_check(conn, cookie);
 	if (error) {
 		LOGE("Change window attributes failed: %d", error->error_code);
@@ -211,17 +207,25 @@ void event_loop(void)
 					if (xcb_connection_has_error(conn))
 						abort();
 
-					while ((ev = xcb_poll_for_event(conn))) {
+					while ((ev = xcb_poll_for_event(
+							conn))) {
 
-						/* expose event only for panel */
-						if ((ev->response_type & ~0x80) == XCB_EXPOSE)
-							panel_event((xcb_expose_event_t *)ev);
+						/* expose event only for panel
+						 */
+						if ((ev->response_type & ~0x80)
+						    == XCB_EXPOSE)
+							panel_event((
+								xcb_expose_event_t
+									*)ev);
 
 						/* monitor event */
-						monitor_event(ev->response_type);
+						monitor_event(
+							ev->response_type);
 
-						if (events[ev->response_type & ~0x80])
-							events[ev->response_type & ~0x80](ev);
+						if (events[ev->response_type
+							   & ~0x80])
+							events[ev->response_type
+							       & ~0x80](ev);
 
 						free(ev);
 					}
@@ -231,7 +235,8 @@ void event_loop(void)
 				} else if (fd == timer_fd) {
 					/* panel refresh */
 					panel_draw();
-					timerfd_settime(timer_fd, 0, &itimer, NULL);
+					timerfd_settime(timer_fd, 0, &itimer,
+							NULL);
 				}
 			}
 		}

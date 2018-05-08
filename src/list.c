@@ -22,7 +22,7 @@
 
 struct list *list_add(struct list **list_head, void *data)
 {
-	struct list *element = (struct list *) malloc(sizeof(struct list));
+	struct list *element = (struct list *)malloc(sizeof(struct list));
 	struct list *tail;
 
 	/* allocation failed */
@@ -31,7 +31,7 @@ struct list *list_add(struct list **list_head, void *data)
 
 	/* get the tail */
 	tail = *list_head;
-	while((tail != NULL) && (tail->next != NULL)) {
+	while ((tail != NULL) && (tail->next != NULL)) {
 		tail = tail->next;
 	}
 

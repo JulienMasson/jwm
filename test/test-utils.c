@@ -23,13 +23,15 @@
 
 START(file_access_pass)
 {
-    fail_unless(file_access("/etc/passwd") == true, "Failed to access /etc/passwd");
+	fail_unless(file_access("/etc/passwd") == true,
+		    "Failed to access /etc/passwd");
 }
 END(file_access_pass);
 
 
 START(file_access_fail)
 {
-    fail_unless(file_access("/etc/tatatat") == false, "Shouldn't access to /etc/tatatat");
+	fail_unless(file_access("/etc/tatatat") == false,
+		    "Shouldn't access to /etc/tatatat");
 }
 END(file_access_fail);

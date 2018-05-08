@@ -46,7 +46,8 @@ void change_focus(const Arg *arg)
 	/* found a client. show it */
 	if (client != NULL && client != focus) {
 		window_raise(client->id);
-		window_center_pointer(client->id, client->width, client->height);
+		window_center_pointer(client->id, client->width,
+				      client->height);
 		window_set_focus(client->id);
 	}
 }
@@ -85,12 +86,13 @@ void max_half(const Arg *arg)
 		focus->x = mon_x + mon_width - focus->width;
 
 	/* resize and show it */
-	window_move_resize(focus->id, focus->x, focus->y, focus->width, focus->height);
+	window_move_resize(focus->id, focus->x, focus->y, focus->width,
+			   focus->height);
 	window_raise(focus->id);
 	window_center_pointer(focus->id, focus->width, focus->height);
 }
 
-void delete_window(const Arg __attribute__((__unused__)) *arg)
+void delete_window(const Arg __attribute__((__unused__)) * arg)
 {
 	struct client *focus = client_get_focus();
 
@@ -143,19 +145,18 @@ void maximize(const Arg *arg)
 			}
 
 		} else if (arg->i == FULLSCREEN_ALL_MONITOR)
-			monitor_borders(&focus->x,
-					&focus->y,
-					&focus->width,
+			monitor_borders(&focus->x, &focus->y, &focus->width,
 					&focus->height);
 	}
 
 	/* resize and show it */
-	window_move_resize(focus->id, focus->x, focus->y, focus->width, focus->height);
+	window_move_resize(focus->id, focus->x, focus->y, focus->width,
+			   focus->height);
 	window_raise(focus->id);
 	window_center_pointer(focus->id, focus->width, focus->height);
 }
 
-void hide(const Arg __attribute__((__unused__)) *arg)
+void hide(const Arg __attribute__((__unused__)) * arg)
 {
 	struct client *focus = client_get_focus();
 
@@ -167,7 +168,8 @@ void hide(const Arg __attribute__((__unused__)) *arg)
 	panel_draw();
 }
 
-static void raise_client(struct client *client, void __attribute__((__unused__)) *data)
+static void raise_client(struct client *client,
+			 void __attribute__((__unused__)) * data)
 {
 	if (client->iconic == true) {
 		client->iconic = false;
@@ -175,7 +177,7 @@ static void raise_client(struct client *client, void __attribute__((__unused__))
 	}
 }
 
-void raise_all(const Arg __attribute__((__unused__)) *arg)
+void raise_all(const Arg __attribute__((__unused__)) * arg)
 {
 	client_foreach(raise_client, NULL);
 }
@@ -192,12 +194,13 @@ void start(const Arg *arg)
 	execvp((char *)arg->com[0], (char **)arg->com);
 }
 
-void jwm_exit(const Arg __attribute__((__unused__)) *arg)
+void jwm_exit(const Arg __attribute__((__unused__)) * arg)
 {
 	exit(EXIT_SUCCESS);
 }
 
-static void mouse_move(struct client *focus, const int16_t rel_x, const int16_t rel_y)
+static void mouse_move(struct client *focus, const int16_t rel_x,
+		       const int16_t rel_y)
 {
 	int16_t border_x, border_y;
 	uint16_t border_width, border_height;
@@ -228,7 +231,8 @@ static void mouse_move(struct client *focus, const int16_t rel_x, const int16_t 
 	window_move(focus->id, focus->x, focus->y);
 }
 
-static void mouse_resize(struct client *focus, const int16_t rel_x, const int16_t rel_y)
+static void mouse_resize(struct client *focus, const int16_t rel_x,
+			 const int16_t rel_y)
 {
 	int16_t border_x, border_y;
 	uint16_t border_width, border_height;
@@ -300,13 +304,15 @@ void mouse_motion(const Arg *arg)
 			case XCB_MOTION_NOTIFY:
 				ev_motion = (xcb_motion_notify_event_t *)ev;
 				if (arg->i == WIN_MOVE)
-					mouse_move(focus,
-						   winx + ev_motion->root_x - mx,
-						   winy + ev_motion->root_y - my);
+					mouse_move(
+						focus,
+						winx + ev_motion->root_x - mx,
+						winy + ev_motion->root_y - my);
 				else
-					mouse_resize(focus,
-						     winw + ev_motion->root_x - mx,
-						     winh + ev_motion->root_y - my);
+					mouse_resize(
+						focus,
+						winw + ev_motion->root_x - mx,
+						winh + ev_motion->root_y - my);
 				break;
 			case XCB_BUTTON_RELEASE:
 				button_released = true;
@@ -327,7 +333,7 @@ void mouse_motion(const Arg *arg)
 	panel_draw();
 }
 
-void reload_conf(const Arg __attribute__((__unused__)) *arg)
+void reload_conf(const Arg __attribute__((__unused__)) * arg)
 {
 	if (conf_read() == -1)
 		LOGE("Fail to read conf");
@@ -337,7 +343,7 @@ void reload_conf(const Arg __attribute__((__unused__)) *arg)
 	}
 }
 
-void panel_toggle(const Arg __attribute__((__unused__)) *arg)
+void panel_toggle(const Arg __attribute__((__unused__)) * arg)
 {
 	struct panel *panel = panel_get();
 

@@ -1,7 +1,6 @@
 #!/bin/bash
 
 STATUS=0
-CLANG_FORMAT="clang-format-5.0"
 
 # go to root directory
 pushd "$(dirname "$0")" > /dev/null
@@ -11,7 +10,7 @@ pushd "${ROOT}" > /dev/null
 
 # check result of clang-format
 for file in $(find . -name "*.[ch]"); do
-    RESULT=$("$CLANG_FORMAT" -style=file -output-replacements-xml "$file" | grep -E "^<replacement ")
+    RESULT=$(clang-format -style=file -output-replacements-xml "$file" | grep -E "^<replacement ")
     if [[ -n "$RESULT" ]]; then
 	STATUS=1
 	canonical_file=$(readlink -f "$file")

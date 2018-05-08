@@ -4,7 +4,7 @@ STATUS=0
 CLANG_FORMAT="clang-format-5.0"
 
 # go to root directory
-pushd "$(dirname $0)" > /dev/null
+pushd "$(dirname "$0")" > /dev/null
 ROOT=$(git rev-parse --show-toplevel)
 popd > /dev/null
 pushd "${ROOT}" > /dev/null
@@ -14,7 +14,7 @@ for file in $(find . -name "*.[ch]"); do
     RESULT=$("$CLANG_FORMAT" -style=file -output-replacements-xml "$file" | grep -E "^<replacement ")
     if [[ -n "$RESULT" ]]; then
 	STATUS=1
-	canonical_file=$(readlink -f $file)
+	canonical_file=$(readlink -f "$file")
 	echo "Please apply clang-format on: $canonical_file"
     fi
 done

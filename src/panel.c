@@ -187,8 +187,9 @@ void panel_update_geom(void)
 	uint16_t border_width, border_height;
 	monitor_borders(&border_x, &border_y, &border_width, &border_height);
 
-	if (panel && ((border_x != panel->x) || (border_y != panel->y)
-		      || (border_width != panel->width))) {
+	if (panel
+	    && ((border_x != panel->x) || (border_y != panel->y)
+		|| (border_width != panel->width))) {
 		/* set new values */
 		panel->x = border_x;
 		panel->y = border_y;

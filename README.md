@@ -130,9 +130,11 @@ You can configure some settings in your [.jwmrc](https://github.com/JulienMasson
 Coding Style
 ============
 
-Use the script in tools folder:
+All the source code is formatted with clang-format with kernel style.
 
-    $ ./tools/check_coding_style.sh
+Please use this script to check the coding style of the source code:
+
+    $ ./tools/check_coding_style
 
 Test Suite with Check tools
 ===========================

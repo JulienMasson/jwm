@@ -4,7 +4,6 @@ TEST_DIR := test
 # cflags
 CFLAGS_TEST := $(CFLAGS)
 CFLAGS_TEST +=  $(shell pkg-config --cflags check)
-CFLAGS_TEST += -I${SRC_DIR}
 CFLAGS_TEST += -D ROOT_DIR='"${ROOT_DIR}"'
 
 # ldflags

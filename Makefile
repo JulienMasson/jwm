@@ -28,8 +28,8 @@ pkg_configs := xcb \
 LIBS := $(shell pkg-config --libs   ${pkg_configs})
 INCS := $(shell pkg-config --cflags ${pkg_configs})
 
-CFLAGS += -I. ${INCS}
-LDFLAGS += -L. ${LIBS}
+CFLAGS += -I${SRC_DIR} ${INCS}
+LDFLAGS += ${LIBS}
 
 # source and objects
 SRC := $(wildcard $(SRC_DIR)/*.c)

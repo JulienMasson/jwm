@@ -12,7 +12,7 @@ ICONS_DIR := $(ROOT_DIR)/res/icons/
 ICONS_FLAGS := -D ICONS_DIR='"${ICONS_DIR}"'
 
 # flags
-CFLAGS := -Werror -Wall -Wextra -O0 -g ${WALLPAPER_FLAGS} ${ICONS_FLAGS}
+CFLAGS := -Werror -Wall -Wextra -O0 -g ${WALLPAPER_FLAGS} ${ICONS_FLAGS} -pthread
 LDFLAGS :=
 
 # libs and include

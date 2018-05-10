@@ -29,6 +29,7 @@
 #include "client.h"
 #include "utils.h"
 #include "log.h"
+#include "widgets.h"
 
 #define PANEL_FONT "sans 12"
 #define PANEL_REFRESH 60
@@ -111,6 +112,7 @@ void panel_init(void)
 {
 	int16_t border_x, border_y;
 	uint16_t border_width, border_height;
+	xcb_window_t widgets;
 
 	monitor_borders(&border_x, &border_y, &border_width, &border_height);
 	panel = malloc(sizeof(struct panel));
@@ -174,6 +176,12 @@ void panel_init(void)
 
 	/* show panel */
 	window_show(panel->id);
+
+	/* init widgets window */
+	widgets_init();
+	widgets = widgets_get_win();
+	xcb_reparent_window(conn, widgets, panel->id, 0, 0);
+	window_show(widgets);
 }
 
 struct panel *panel_get(void)
@@ -294,56 +302,11 @@ static void draw_systray(double *max_width)
 
 static void draw_widgets(double *max_width)
 {
-	char buf[256], icon[256], text[256];
-	int capacity, online;
-	int width;
+	xcb_window_t win = widgets_get_win();
 
-	/* get battery capacity */
-	memset(buf, 0, 256);
-	if (file_read("/sys/class/power_supply/BAT0/capacity", buf, 256)
-	    == false) {
-		LOGE("Cannot get battery capacity");
-		return;
-	}
-	capacity = atoi(buf);
+	*max_width = widgets_get_width();
 
-	/* check if charger connected */
-	memset(buf, 0, 256);
-	if (file_read("/sys/class/power_supply/AC/online", buf, 256) == false) {
-		LOGE("Cannot check if charger connected");
-		return;
-	}
-	online = atoi(buf);
-
-	/* select right icon */
-	memset(buf, '\0', 256);
-	if (online == 1)
-		snprintf(icon, 256, "%s%s.png", ICONS_DIR, "battery-charged");
-	else if (capacity < 25)
-		snprintf(icon, 256, "%s%s.png", ICONS_DIR, "battery-low");
-	else if (capacity > 75)
-		snprintf(icon, 256, "%s%s.png", ICONS_DIR, "battery-full");
-	else
-		snprintf(icon, 256, "%s%s.png", ICONS_DIR, "battery-mid");
-
-	/* display text */
-	memset(text, '\0', 256);
-	snprintf(text, 256, "  %d%%  | ", capacity);
-	width = panel_get_text_width(text, strlen(text));
-	*max_width -= width;
-	panel_draw_text(*max_width, width, text, strlen(text), NORMAL);
-
-	/* shift to display icon */
-	*max_width -= 24;
-
-	/* draw icon */
-	cairo_surface_t *image = cairo_image_surface_create_from_png(icon);
-	cairo_set_source_surface(panel->cr, image, *max_width, 3);
-	cairo_paint(panel->cr);
-	cairo_surface_destroy(image);
-
-	/* shift for next widgets  */
-	*max_width -= 5;
+	window_move(win, *max_width, 0);
 }
 
 static void get_icon_path(xcb_window_t win, char *icon_path)

@@ -31,6 +31,7 @@
 #include "conf.h"
 #include "cursor.h"
 #include "panel.h"
+#include "widgets.h"
 
 void change_focus(const Arg *arg)
 {
@@ -340,6 +341,7 @@ void reload_conf(const Arg __attribute__((__unused__)) * arg)
 	else {
 		log_init();
 		monitor_set_wallpaper();
+		widgets_reload();
 	}
 }
 
@@ -350,9 +352,11 @@ void panel_toggle(const Arg __attribute__((__unused__)) * arg)
 	if (panel->enable == true) {
 		panel->enable = false;
 		window_unmap(panel->id);
+		widgets_toggle(false);
 	} else {
 		panel->enable = true;
 		window_show(panel->id);
+		widgets_toggle(true);
 
 		/* fit all client if needed */
 		client_foreach(client_fit_on_screen, NULL);

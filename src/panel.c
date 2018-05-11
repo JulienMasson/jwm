@@ -304,7 +304,7 @@ static void draw_widgets(double *max_width)
 {
 	xcb_window_t win = widgets_get_win();
 
-	*max_width = widgets_get_width();
+	*max_width += widgets_get_width();
 
 	window_move(win, *max_width, 0);
 }

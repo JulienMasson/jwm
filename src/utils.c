@@ -25,6 +25,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <regex.h>
+#include <dirent.h>
+#include <stdlib.h>
+#include <limits.h>
 
 #include "utils.h"
 #include "log.h"
@@ -78,6 +81,52 @@ bool file_write(const char *pathname, const void *buf, size_t count)
 	}
 
 	return true;
+}
+
+char **file_in_dir(const char *path, int *count)
+{
+	DIR *dir;
+	struct dirent *entry;
+	char **files = NULL;
+	char *name = NULL;
+	char *resolved_path = NULL;
+	struct stat path_stat;
+
+	/* opens a directory stream */
+	dir = opendir(path);
+	if (dir == NULL) {
+		LOGE("%s", strerror(errno));
+		return NULL;
+	}
+
+	*count = 0;
+	while ((entry = readdir(dir))) {
+
+		/* get entry name */
+		name = malloc(PATH_MAX);
+		memset(name, '\0', PATH_MAX);
+		if (path[strlen(path) - 1] == '/')
+			snprintf(name, PATH_MAX, "%s%s", path, entry->d_name);
+		else
+			snprintf(name, PATH_MAX, "%s/%s", path, entry->d_name);
+
+		/* get canonicalized absolute pathname */
+		resolved_path = realpath(name, NULL);
+		free(name);
+
+		/* add to list if it's a file */
+		stat(resolved_path, &path_stat);
+		if (S_ISREG(path_stat.st_mode)) {
+			files = realloc(files, PATH_MAX);
+			files[*count] = resolved_path;
+			(*count)++;
+		} else
+			free(resolved_path);
+	};
+
+	closedir(dir);
+
+	return files;
 }
 
 bool regex_match(const char *string, const char *regex)

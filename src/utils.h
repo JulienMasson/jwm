@@ -32,6 +32,7 @@
 bool file_access(const char *pathname);
 bool file_write(const char *pathname, const void *buf, size_t count);
 bool file_read(const char *pathname, void *buf, size_t count);
+char **file_in_dir(const char *path, int *count);
 
 /* pattern matching */
 bool regex_match(const char *string, const char *regex);

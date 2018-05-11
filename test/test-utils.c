@@ -35,3 +35,22 @@ START(file_access_fail)
 		    "Shouldn't access to /etc/tatatat");
 }
 END(file_access_fail);
+
+
+START(file_in_dir_pass)
+{
+	char **files = NULL;
+	int count;
+	files = file_in_dir("/etc/", &count);
+	fail_unless(files != NULL, "Failed to read files in dir");
+}
+END(file_in_dir_pass);
+
+
+START(file_in_dir_fail)
+{
+	char **files = NULL;
+	files = file_in_dir("/tatatat", NULL);
+	fail_unless(files == NULL, "Shouldn't access to files in /tatatat");
+}
+END(file_in_dir_fail);

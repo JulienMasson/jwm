@@ -155,7 +155,8 @@ static char **get_all_test_name(void)
 			memset(name, '\0', 256);
 			memcpy(name, tunit->name, 256);
 
-			test_names = realloc(test_names, sizeof(char) * 256);
+			test_names = realloc(test_names,
+					     sizeof(char *) * (count + 1));
 			test_names[count] = name;
 			count++;
 		}

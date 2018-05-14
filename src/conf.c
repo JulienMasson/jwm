@@ -36,6 +36,7 @@ static void parse_line(char *line, ssize_t nread)
 	char key[nread], value[nread];
 	static char log_file[PATH_MAX];
 	static char wallpaper[PATH_MAX];
+	static char widgets[PATH_MAX];
 
 	memset(key, '\0', nread);
 	memset(value, '\0', nread);
@@ -52,6 +53,10 @@ static void parse_line(char *line, ssize_t nread)
 			memset(wallpaper, '\0', PATH_MAX);
 			snprintf(wallpaper, PATH_MAX, "%s", value);
 			global_conf.wallpaper = wallpaper;
+		} else if (strncmp(key, "widgets", nread) == 0) {
+			memset(widgets, '\0', PATH_MAX);
+			snprintf(widgets, PATH_MAX, "%s", value);
+			global_conf.widgets = widgets;
 		}
 	}
 }
@@ -97,6 +102,7 @@ void conf_init(char *path)
 	global_conf.log_level = LOG_WARN;
 	global_conf.log_file = NULL;
 	global_conf.wallpaper = DEFAULT_WALLPAPER;
+	global_conf.widgets = NULL;
 
 	/* read config */
 	conf_read();

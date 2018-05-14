@@ -24,6 +24,7 @@ struct conf {
 	int log_level;
 	char *log_file;
 	char *wallpaper;
+	char *widgets;
 };
 
 extern struct conf global_conf;

@@ -126,6 +126,7 @@ You can configure some settings in your [.jwmrc](https://github.com/JulienMasson
 | `log_level` | Log level: 0 (NO LOG), 1 (ERROR), 2 (WARN), 3 (INFO), 4 (DEBUG) |
 | `log_file`  | Path to the log file                                            |
 | `wallpaper` | Path to the wallpaper                                           |
+| `widgets`   | Path to the widgets module (shared libraries                    |
 
 Coding Style
 ============

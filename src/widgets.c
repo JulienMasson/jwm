@@ -27,6 +27,7 @@
 #include "widgets.h"
 #include "log.h"
 #include "utils.h"
+#include "conf.h"
 
 struct widget_t {
 	xcb_window_t win;
@@ -67,7 +68,10 @@ static void widgets_load_modules(void)
 	struct widget_module_t *module = NULL;
 
 	/* read shared libraries */
-	files = file_in_dir("/home/julienm/bin/jwm-repo/widgets/", &count);
+	if (global_conf.widgets == NULL)
+		return;
+
+	files = file_in_dir(global_conf.widgets, &count);
 	if (files == NULL)
 		return;
 

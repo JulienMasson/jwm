@@ -23,6 +23,7 @@
 #include <stdbool.h>
 
 #include <xcb/xcb.h>
+#include <cairo/cairo-xcb.h>
 
 #define WIDGET_SYMBOL widget
 #define WIDGET_SYMBOL_STR "widget"
@@ -31,11 +32,11 @@ struct widget_module_t {
 	const char *name;
 	int width;
 	void (*init)(void);
-	void (*draw)(xcb_window_t win, int *pos);
+	void (*draw)(cairo_t *cr, int *pos);
 	void (*exit)(void);
 };
 
-void widgets_init(int height);
+void widgets_init(xcb_window_t panel, int height);
 
 int widgets_get_width(void);
 

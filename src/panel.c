@@ -112,7 +112,6 @@ void panel_init(void)
 {
 	int16_t border_x, border_y;
 	uint16_t border_width, border_height;
-	xcb_window_t widgets;
 
 	monitor_borders(&border_x, &border_y, &border_width, &border_height);
 	panel = malloc(sizeof(struct panel));
@@ -178,10 +177,7 @@ void panel_init(void)
 	window_show(panel->id);
 
 	/* init widgets window */
-	widgets_init(PANEL_HEIGHT);
-	widgets = widgets_get_win();
-	xcb_reparent_window(conn, widgets, panel->id, 0, 0);
-	window_show(widgets);
+	widgets_init(panel->id, PANEL_HEIGHT);
 }
 
 struct panel *panel_get(void)
@@ -304,9 +300,10 @@ static void draw_widgets(double *max_width)
 {
 	xcb_window_t win = widgets_get_win();
 
-	*max_width += widgets_get_width();
-
-	window_move(win, *max_width, 0);
+	if (win != XCB_NONE) {
+		*max_width -= widgets_get_width();
+		window_move(win, *max_width, 0);
+	}
 }
 
 static void get_icon_path(xcb_window_t win, char *icon_path)

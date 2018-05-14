@@ -30,7 +30,12 @@
 #include "conf.h"
 
 struct widget_t {
+	xcb_window_t panel;
 	xcb_window_t win;
+	int width;
+	int height;
+	cairo_surface_t *src;
+	cairo_t *cr;
 	pthread_t thread;
 	struct widget_module_t **modules;
 	void **handles;
@@ -38,7 +43,6 @@ struct widget_t {
 };
 
 static struct widget_t *widgets = NULL;
-static int height_saved;
 
 static void *widgets_loop(void __attribute__((__unused__)) * arg)
 {
@@ -49,12 +53,23 @@ static void *widgets_loop(void __attribute__((__unused__)) * arg)
 		LOGI("Refresh widgets");
 		sleep(2);
 
+		/* fill background black */
+		cairo_set_source_rgb(widgets->cr, 0, 0, 0);
+		cairo_rectangle(widgets->cr, 0, 0, widgets->width / 2,
+				widgets->height);
+		cairo_fill(widgets->cr);
+
+		/* draw widgets */
 		pos = 0;
 		for (i = 0; i < widgets->count; i++) {
 			module = widgets->modules[i];
 			if (module && module->draw)
-				module->draw(widgets->win, &pos);
+				module->draw(widgets->cr, &pos);
 		}
+
+		/* flush */
+		cairo_surface_flush(widgets->src);
+		xcb_flush(conn);
 	}
 
 	return 0;
@@ -142,10 +157,8 @@ static void widgets_exit_modules(void)
 	}
 }
 
-void widgets_init(int height)
+void widgets_init(xcb_window_t panel, int height)
 {
-	int width;
-
 	if (widgets)
 		return;
 	widgets = malloc(sizeof(struct widget_t));
@@ -154,15 +167,28 @@ void widgets_init(int height)
 	widgets->modules = NULL;
 	widgets->handles = NULL;
 	widgets->count = 0;
-	height_saved = height;
 
-	/* load/init widgets modules */
+	/* load/init widgets modules if found */
 	widgets_load_modules();
+	if (widgets->count == 0) {
+		LOGI("No widgets modules found");
+		free(widgets);
+		widgets = NULL;
+		return;
+	}
 	widgets_init_modules();
 
 	/* create window */
-	width = widgets_get_width();
-	widgets->win = window_create(0, 0, width, height);
+	widgets->width = widgets_get_width();
+	widgets->height = height;
+	widgets->win = window_create(0, 0, widgets->width, widgets->height);
+	xcb_reparent_window(conn, widgets->win, panel, 0, 0);
+	window_show(widgets->win);
+
+	/* init cairo */
+	widgets->src = cairo_xcb_surface_create(
+		conn, widgets->win, visual, widgets->width, widgets->height);
+	widgets->cr = cairo_create(widgets->src);
 
 	/* start widgets loop */
 	pthread_create(&widgets->thread, NULL, widgets_loop, NULL);
@@ -170,13 +196,24 @@ void widgets_init(int height)
 
 void widgets_exit(void)
 {
+	/* stop loop thread */
 	pthread_cancel(widgets->thread);
 
+	/* exit/unload/free widgets modules */
 	widgets_exit_modules();
 	widgets_unload_modules();
-
 	free(widgets->modules);
 	free(widgets->handles);
+
+	/* free widgets window ressources */
+	cairo_surface_destroy(widgets->src);
+	cairo_destroy(widgets->cr);
+
+	TODO("Delete the window make segfault the proram")
+	window_unmap(widgets->win);
+	/* window_delete(widgets->win); */
+
+	/* free widgets */
 	free(widgets);
 	widgets = NULL;
 }
@@ -185,6 +222,9 @@ int widgets_get_width(void)
 {
 	struct widget_module_t *module = NULL;
 	int i, width = 0;
+
+	if (widgets == NULL)
+		return 0;
 
 	for (i = 0; i < widgets->count; i++) {
 		module = widgets->modules[i];
@@ -197,11 +237,14 @@ int widgets_get_width(void)
 
 xcb_window_t widgets_get_win(void)
 {
-	return widgets->win;
+	return widgets ? widgets->win : XCB_NONE;
 }
 
 void widgets_toggle(bool enable)
 {
+	if (widgets == NULL)
+		return;
+
 	if (enable == true) {
 		window_show(widgets->win);
 		pthread_create(&widgets->thread, NULL, widgets_loop, NULL);
@@ -213,7 +256,15 @@ void widgets_toggle(bool enable)
 
 void widgets_reload(void)
 {
+	xcb_window_t panel;
+	int height;
+
+	if (widgets == NULL)
+		return;
+
 	LOGI("Reload widgets");
+	height = widgets->height;
+	panel = widgets->panel;
 	widgets_exit();
-	widgets_init(height_saved);
+	widgets_init(panel, height);
 }

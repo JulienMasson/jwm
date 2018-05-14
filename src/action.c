@@ -342,6 +342,7 @@ void reload_conf(const Arg __attribute__((__unused__)) * arg)
 		log_init();
 		monitor_set_wallpaper();
 		widgets_reload();
+		panel_draw();
 	}
 }
 

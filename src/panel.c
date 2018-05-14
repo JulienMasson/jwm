@@ -178,7 +178,7 @@ void panel_init(void)
 	window_show(panel->id);
 
 	/* init widgets window */
-	widgets_init();
+	widgets_init(PANEL_HEIGHT);
 	widgets = widgets_get_win();
 	xcb_reparent_window(conn, widgets, panel->id, 0, 0);
 	window_show(widgets);

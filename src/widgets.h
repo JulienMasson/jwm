@@ -22,7 +22,20 @@
 
 #include <stdbool.h>
 
-void widgets_init(void);
+#include <xcb/xcb.h>
+
+#define WIDGET_SYMBOL widget
+#define WIDGET_SYMBOL_STR "widget"
+
+struct widget_module_t {
+	const char *name;
+	int width;
+	void (*init)(void);
+	void (*draw)(xcb_window_t win, int *pos);
+	void (*exit)(void);
+};
+
+void widgets_init(int height);
 
 int widgets_get_width(void);
 

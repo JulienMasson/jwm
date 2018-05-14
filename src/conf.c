@@ -22,6 +22,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <limits.h>
 #include "log.h"
 #include "conf.h"
 #include "utils.h"
@@ -33,8 +34,8 @@ static char *conf_path;
 static void parse_line(char *line, ssize_t nread)
 {
 	char key[nread], value[nread];
-	static char log_file[256];
-	static char wallpaper[256];
+	static char log_file[PATH_MAX];
+	static char wallpaper[PATH_MAX];
 
 	memset(key, '\0', nread);
 	memset(value, '\0', nread);
@@ -44,12 +45,12 @@ static void parse_line(char *line, ssize_t nread)
 		if (strncmp(key, "log_level", nread) == 0)
 			global_conf.log_level = atoi(value);
 		else if (strncmp(key, "log_file", nread) == 0) {
-			memset(log_file, '\0', 256);
-			snprintf(log_file, 256, "%s", value);
+			memset(log_file, '\0', PATH_MAX);
+			snprintf(log_file, PATH_MAX, "%s", value);
 			global_conf.log_file = log_file;
 		} else if (strncmp(key, "wallpaper", nread) == 0) {
-			memset(wallpaper, '\0', 256);
-			snprintf(wallpaper, 256, "%s", value);
+			memset(wallpaper, '\0', PATH_MAX);
+			snprintf(wallpaper, PATH_MAX, "%s", value);
 			global_conf.wallpaper = wallpaper;
 		}
 	}

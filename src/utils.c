@@ -117,7 +117,7 @@ char **file_in_dir(const char *path, int *count)
 		/* add to list if it's a file */
 		stat(resolved_path, &path_stat);
 		if (S_ISREG(path_stat.st_mode)) {
-			files = realloc(files, PATH_MAX);
+			files = realloc(files, sizeof(char *) * ((*count) + 1));
 			files[*count] = resolved_path;
 			(*count)++;
 		} else

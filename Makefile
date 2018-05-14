@@ -55,3 +55,6 @@ clean:
 
 # test suite
 include test/config.mk
+
+# widgets
+include widgets/config.mk

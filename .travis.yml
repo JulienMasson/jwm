@@ -8,4 +8,5 @@ install:
 script:
 - make
 - make test
+- make widgets
 - ./tools/check_coding_style

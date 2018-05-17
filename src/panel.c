@@ -33,7 +33,6 @@
 
 #define PANEL_FONT "sans 12"
 #define PANEL_REFRESH 60
-#define PANEL_HEIGHT 30
 #define PANEL_TEXT_SIZE 11
 
 struct panel_client_data {

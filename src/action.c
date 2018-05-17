@@ -336,12 +336,14 @@ void mouse_motion(const Arg *arg)
 
 void reload_conf(const Arg __attribute__((__unused__)) * arg)
 {
+	struct panel *panel = panel_get();
+
 	if (conf_read() == -1)
 		LOGE("Fail to read conf");
 	else {
 		log_init();
 		monitor_set_wallpaper();
-		widgets_reload();
+		widgets_reload(panel->id, PANEL_HEIGHT);
 		panel_draw();
 	}
 }

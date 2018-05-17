@@ -43,6 +43,6 @@ xcb_window_t widgets_get_win(void);
 
 void widgets_toggle(bool enable);
 
-void widgets_reload(void);
+void widgets_reload(xcb_window_t panel, int height);
 
 #endif

@@ -26,6 +26,8 @@
 
 #include "draw.h"
 
+#define PANEL_HEIGHT 30
+
 struct panel {
 	xcb_window_t id;
 	int16_t x, y;

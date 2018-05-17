@@ -254,17 +254,12 @@ void widgets_toggle(bool enable)
 	}
 }
 
-void widgets_reload(void)
+void widgets_reload(xcb_window_t panel, int height)
 {
-	xcb_window_t panel;
-	int height;
-
-	if (widgets == NULL)
-		return;
-
 	LOGI("Reload widgets");
-	height = widgets->height;
-	panel = widgets->panel;
-	widgets_exit();
+
+	if (widgets != NULL)
+		widgets_exit();
+
 	widgets_init(panel, height);
 }

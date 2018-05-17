@@ -20,10 +20,9 @@
 #ifndef WIDGETS_H
 #define WIDGETS_H
 
-#include <stdbool.h>
-
 #include <xcb/xcb.h>
-#include <cairo/cairo-xcb.h>
+
+#include "draw.h"
 
 #define WIDGET_SYMBOL widget
 #define WIDGET_SYMBOL_STR "widget"
@@ -32,7 +31,7 @@ struct widget_module_t {
 	const char *name;
 	int width;
 	void (*init)(void);
-	void (*draw)(cairo_t *cr, int *pos);
+	void (*draw)(struct draw_t *draw, int *pos);
 	void (*exit)(void);
 };
 

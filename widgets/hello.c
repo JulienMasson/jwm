@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <pango/pangocairo.h>
+#include <string.h>
 
 #include "widgets.h"
 #include "log.h"
@@ -30,35 +30,21 @@ void init_hello(void)
 	LOGI("Init hello");
 }
 
-void draw_hello(cairo_t *cr, int *pos)
+void draw_hello(struct draw_t *draw, int *pos)
 {
-	PangoLayout *layout;
-	PangoFontDescription *font;
-	int height, width = HELLO_WIDTH;
+	char *msg = "hello";
+	struct area_t area = {*pos, 0, 0, 0};
+	int height, width;
 
-	/* init pango */
-	layout = pango_cairo_create_layout(cr);
-	font = pango_font_description_from_string("sans 12");
-	pango_layout_set_font_description(layout, font);
+	/* get width and height of msg */
+	draw_get_text_prop(draw, msg, strlen(msg), &width, &height);
+	area.y = (HELLO_HEIGHT - height) / 2;
 
-	/* set text and get size */
-	pango_layout_set_text(layout, "hello", 5);
-	pango_layout_get_pixel_size(layout, NULL, &height);
+	/* draw msg */
+	draw_set_color(draw, GREY);
+	draw_text(draw, msg, strlen(msg), area);
 
-	/* set color */
-	cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
-	pango_cairo_update_layout(cr, layout);
-
-	/* set geometry */
-	pango_layout_set_width(layout, width * PANGO_SCALE);
-	pango_layout_set_height(layout, HELLO_HEIGHT * PANGO_SCALE);
-	pango_layout_set_alignment(layout, PANGO_ALIGN_CENTER);
-
-	/* move and show layout */
-	cairo_move_to(cr, *pos, (HELLO_HEIGHT - height) / 2);
-	pango_cairo_show_layout(cr, layout);
-	g_object_unref(layout);
-
+	/* update position */
 	*pos += width;
 	LOGI("Draw hello: %d", *pos);
 }

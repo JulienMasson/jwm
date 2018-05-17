@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <dlfcn.h>
+#include <cairo/cairo-xcb.h>
 
 #include "global.h"
 #include "window.h"
@@ -35,7 +36,7 @@ struct widget_t {
 	int width;
 	int height;
 	cairo_surface_t *src;
-	cairo_t *cr;
+	struct draw_t *draw;
 	pthread_t thread;
 	struct widget_module_t **modules;
 	void **handles;
@@ -53,18 +54,17 @@ static void *widgets_loop(void __attribute__((__unused__)) * arg)
 		LOGI("Refresh widgets");
 		sleep(2);
 
-		/* fill background black */
-		cairo_set_source_rgb(widgets->cr, 0, 0, 0);
-		cairo_rectangle(widgets->cr, 0, 0, widgets->width / 2,
-				widgets->height);
-		cairo_fill(widgets->cr);
+		/* fill widgets black */
+		struct area_t area = {0, 0, widgets->width, widgets->height};
+		draw_set_color(widgets->draw, BLACK);
+		draw_rectangle(widgets->draw, area, true);
 
 		/* draw widgets */
 		pos = 0;
 		for (i = 0; i < widgets->count; i++) {
 			module = widgets->modules[i];
 			if (module && module->draw)
-				module->draw(widgets->cr, &pos);
+				module->draw(widgets->draw, &pos);
 		}
 
 		/* flush */
@@ -188,7 +188,7 @@ void widgets_init(xcb_window_t panel, int height)
 	/* init cairo */
 	widgets->src = cairo_xcb_surface_create(
 		conn, widgets->win, visual, widgets->width, widgets->height);
-	widgets->cr = cairo_create(widgets->src);
+	widgets->draw = draw_create(widgets->src, "sans 12");
 
 	/* start widgets loop */
 	pthread_create(&widgets->thread, NULL, widgets_loop, NULL);
@@ -206,8 +206,8 @@ void widgets_exit(void)
 	free(widgets->handles);
 
 	/* free widgets window ressources */
+	draw_destroy(widgets->draw);
 	cairo_surface_destroy(widgets->src);
-	cairo_destroy(widgets->cr);
 
 	TODO("Delete the window make segfault the proram")
 	window_unmap(widgets->win);

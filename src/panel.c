@@ -19,7 +19,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 #include <libgen.h>
 
 #include "global.h"
@@ -30,6 +29,7 @@
 #include "utils.h"
 #include "log.h"
 #include "widgets.h"
+#include "draw.h"
 
 #define PANEL_FONT "sans 12"
 #define PANEL_REFRESH 60
@@ -48,8 +48,6 @@ struct panel_client {
 	double width;
 	struct list *index;
 };
-
-enum color_t { NORMAL, ORANGE };
 
 struct panel *panel = NULL;
 struct list *panel_clients_head;
@@ -126,16 +124,11 @@ void panel_init(void)
 	panel->enable = true;
 	panel->refresh = PANEL_REFRESH;
 
-	/* init cairo */
+	/* init draw */
 	panel->src = cairo_xcb_surface_create(conn, panel->id, visual,
 					      panel->width - panel->x,
 					      panel->height - panel->y);
-	panel->cr = cairo_create(panel->src);
-
-	/* init pango */
-	panel->layout = pango_cairo_create_layout(panel->cr);
-	panel->font = pango_font_description_from_string(PANEL_FONT);
-	pango_layout_set_font_description(panel->layout, panel->font);
+	panel->draw = draw_create(panel->src, PANEL_FONT);
 
 	/* init systray */
 	char atomname[strlen("_NET_SYSTEM_TRAY_S") + 11];
@@ -199,18 +192,15 @@ void panel_update_geom(void)
 		panel->y = border_y;
 		panel->width = border_width;
 
-		/* set new cairo values */
+		/* destroy draw */
+		draw_destroy(panel->draw);
 		cairo_surface_destroy(panel->src);
-		cairo_destroy(panel->cr);
+
+		/* init draw */
 		panel->src = cairo_xcb_surface_create(conn, panel->id, visual,
 						      panel->width - panel->x,
 						      panel->height - panel->y);
-		panel->cr = cairo_create(panel->src);
-
-		/* set new pango values */
-		g_object_unref(panel->layout);
-		panel->layout = pango_cairo_create_layout(panel->cr);
-		pango_layout_set_font_description(panel->layout, panel->font);
+		panel->draw = draw_create(panel->src, PANEL_FONT);
 
 		/* move, resize and show panel */
 		window_move_resize(panel->id, border_x, border_y, border_width,
@@ -219,57 +209,12 @@ void panel_update_geom(void)
 	}
 }
 
-static int panel_get_text_width(char *text, size_t len)
-{
-	int width;
-	PangoLayout *tmp = pango_cairo_create_layout(panel->cr);
-
-	pango_layout_set_text(tmp, text, len);
-	pango_layout_get_pixel_size(tmp, &width, NULL);
-	g_object_unref(tmp);
-
-	return width;
-}
-
-static void panel_draw_text(double x, int width, char *text, size_t len,
-			    enum color_t color)
-{
-	int height;
-	PangoLayout *tmp = pango_cairo_create_layout(panel->cr);
-	pango_layout_set_font_description(tmp, panel->font);
-
-	/* set text and get size */
-	pango_layout_set_text(tmp, text, len);
-	pango_layout_get_pixel_size(tmp, NULL, &height);
-
-	/* set color */
-	switch (color) {
-	case ORANGE:
-		cairo_set_source_rgb(panel->cr, 0.98, 0.52, 0.07);
-		break;
-	case NORMAL:
-		cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
-		break;
-	}
-	pango_cairo_update_layout(panel->cr, panel->layout);
-
-	/* set geometry */
-	pango_layout_set_width(tmp, width * PANGO_SCALE);
-	pango_layout_set_height(tmp, panel->height * PANGO_SCALE);
-	pango_layout_set_alignment(tmp, PANGO_ALIGN_CENTER);
-
-	/* move and show layout */
-	cairo_move_to(panel->cr, x, (PANEL_HEIGHT - height) / 2);
-	pango_cairo_show_layout(panel->cr, tmp);
-	g_object_unref(tmp);
-}
-
 static void draw_clock(double *max_width)
 {
 	time_t t;
 	struct tm *lt;
 	char buf_time[256];
-	int width;
+	int width, height;
 
 	/* get current date */
 	t = time(NULL);
@@ -277,13 +222,20 @@ static void draw_clock(double *max_width)
 	buf_time[strftime(buf_time, sizeof(buf_time), "%R  -  %d %b", lt)] =
 		'\0';
 
-	/* Get width and update max width */
-	width = panel_get_text_width(buf_time, strlen(buf_time));
+	/* Get width and height of the text */
+	draw_get_text_prop(panel->draw, buf_time, strlen(buf_time), &width,
+			   &height);
+
+	/* update max width */
 	width += 5;
 	*max_width = panel->width - width;
 
 	/* draw text */
-	panel_draw_text(*max_width, width, buf_time, strlen(buf_time), NORMAL);
+	struct area_t area = {*max_width, (PANEL_HEIGHT - height) / 2, width,
+			      panel->height};
+	draw_set_color(panel->draw, GREY);
+	draw_text(panel->draw, buf_time, strlen(buf_time), area);
+	draw_set_color(panel->draw, BLACK);
 }
 
 static void draw_systray(double *max_width)
@@ -335,27 +287,11 @@ static void get_window_name(xcb_window_t win, char *name, uint32_t len)
 		strncpy(name, data.strings, data.strings_len);
 }
 
-static void panel_draw_rectangle(double x, double y, double width,
-				 double height)
+static int panel_get_text_width(char *text, size_t len)
 {
-	double aspect = 1.0;
-	double corner_radius = height / 10.0;
-	double radius = corner_radius / aspect;
-	double degrees = M_PI / 180.0;
-
-	cairo_new_sub_path(panel->cr);
-	cairo_arc(panel->cr, x + width - radius, y + radius, radius,
-		  -90 * degrees, 0 * degrees);
-	cairo_arc(panel->cr, x + width - radius, y + height - radius, radius,
-		  0 * degrees, 90 * degrees);
-	cairo_arc(panel->cr, x + radius, y + height - radius, radius,
-		  90 * degrees, 180 * degrees);
-	cairo_arc(panel->cr, x + radius, y + radius, radius, 180 * degrees,
-		  270 * degrees);
-	cairo_close_path(panel->cr);
-
-	cairo_set_line_width(panel->cr, 1);
-	cairo_stroke(panel->cr);
+	int width = 0;
+	draw_get_text_prop(panel->draw, text, len, &width, NULL);
+	return width;
 }
 
 static void draw_client(struct client *client, void *data)
@@ -405,34 +341,33 @@ static void draw_client(struct client *client, void *data)
 					    width_name + 15 + 24);
 
 		/* rounded rectangle around name */
+		struct area_t rect_area = {*client_data->pos, 0,
+					   width_name + 15 + 24, PANEL_HEIGHT};
 		if ((client == focus) && (client->iconic == false))
-			cairo_set_source_rgb(panel->cr, 0.98, 0.52, 0.07);
+			draw_set_color(panel->draw, ORANGE);
 		else
-			cairo_set_source_rgb(panel->cr, 0.5, 0.5, 0.5);
-		panel_draw_rectangle(*client_data->pos, 0, width_name + 15 + 24,
-				     PANEL_HEIGHT);
+			draw_set_color(panel->draw, GREY);
+		draw_rounded_rectangle(panel->draw, rect_area);
 
 		/* shift to display icon */
 		*client_data->pos += 5;
 
 		/* draw icon */
-		cairo_surface_t *image =
-			cairo_image_surface_create_from_png(icon_path);
-		cairo_set_source_surface(panel->cr, image, *client_data->pos,
-					 3);
-		cairo_paint(panel->cr);
-		cairo_surface_destroy(image);
+		struct area_t icon_area = {*client_data->pos, 3, 0, 0};
+		draw_icon(panel->draw, icon_path, icon_area);
 
 		/* shift to show name */
 		*client_data->pos += 24 + 5;
 
 		/* show client name */
+		struct area_t client_area = {*client_data->pos, 4, width_name,
+					     0};
 		if ((client == focus) && (client->iconic == false))
-			panel_draw_text(*client_data->pos, width_name, name,
-					strlen(name), ORANGE);
+			draw_set_color(panel->draw, ORANGE);
 		else
-			panel_draw_text(*client_data->pos, width_name, name,
-					strlen(name), NORMAL);
+			draw_set_color(panel->draw, GREY);
+		draw_text(panel->draw, name, strlen(name), client_area);
+		draw_set_color(panel->draw, BLACK);
 
 		/* update position if next client */
 		if (client->index->next != NULL)
@@ -463,10 +398,9 @@ void panel_draw(void)
 
 	if (panel->enable == true) {
 		/* fill panel black */
-		cairo_set_source_rgb(panel->cr, 0, 0, 0);
-		cairo_rectangle(panel->cr, panel->x, panel->y, panel->width,
-				panel->height);
-		cairo_fill(panel->cr);
+		struct area_t area = {panel->x, panel->y, panel->width,
+				      panel->height};
+		draw_rectangle(panel->draw, area, true);
 
 		/* draw on right of the panel:
 		 *

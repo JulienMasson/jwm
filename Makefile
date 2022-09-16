@@ -11,10 +11,6 @@ WALLPAPER_FLAGS := -D DEFAULT_WALLPAPER='"${WALLPAPER_PATH}"'
 ICONS_DIR := $(ROOT_DIR)/res/icons/
 ICONS_FLAGS := -D ICONS_DIR='"${ICONS_DIR}"'
 
-# flags
-CFLAGS := -Werror -Wall -Wextra -O0 -g ${WALLPAPER_FLAGS} ${ICONS_FLAGS} -export-dynamic
-LDFLAGS := -pthread -ldl
-
 # libs and include
 pkg_configs := xcb \
                xcb-randr \

@@ -6,21 +6,6 @@ JWM
 A minimalist floating/tiling WM, written over the XCB library.
 Initially it was based on 2bwm.
 
-Features
-========
-
-* Move / Resize / Split windows
-* Change focus
-* Hide / Raise windows
-* Multi-screen support
-* Fullscreen on one or all monitors
-* Display wallpaper
-* Toggle panel
-* Reload conf
-* Start programs
-
-![Screenshot](https://raw.githubusercontent.com/JulienMasson/jwm/master/res/screenshot.png)
-
 Compilation
 ============
 
